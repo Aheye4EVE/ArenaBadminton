@@ -1,0 +1,66 @@
+# Phase 7: Roadmap foundation และ Pre-production checklist
+
+เอกสารนี้สรุปงานที่ทำต่อจาก Phase 1–6 และแยกสิ่งที่พร้อมทดสอบออกจากสิ่งที่ต้องตั้งค่าหรือพัฒนาต่อก่อน Production
+
+## ทำแล้ว
+
+- `0008_group_recommendation_indexes.sql` และ `0009_roadmap_foundation.sql` ถูก apply กับ Supabase target แล้ว
+- `0010_production_security_hardening.sql` ถูก apply แล้ว: ปิดการ mint Trophy จาก client, จำกัด Notification ให้แก้ได้เฉพาะ `read_at`, รวม Shop SELECT policy และเพิ่ม FK indexes
+- `0011_roadmap_fk_indexes.sql` ถูก apply แล้วเพื่อ cover foreign key ของ Tournament เพิ่มเติม
+- `0012_security_invoker_profile_directory.sql` ถูก apply แล้ว: แยก public profile directory และเปลี่ยน public profile/group/match views เป็น `security_invoker=true`
+- Community feed อ่านจาก `social_posts` พร้อมสร้างโพสต์, แนบรูปผ่าน presigned R2 flow, Comment และ Like
+- Notification center อ่านตามเจ้าของและ mark as read ได้
+- Profile อ่าน Trophy records ที่ได้รับแล้ว
+- `/ranking` อ่าน `public_profiles` และจัดอันดับตาม Skill BP/Level/EXP เมื่อมี session
+- `/events` รวม Tournament ที่มีสถานะ `published` จาก Supabase เมื่อผู้ใช้เข้าสู่ระบบ; ยังเก็บ demo fallback สำหรับผู้ใช้ที่ยังไม่ login
+- QA data ใน Supabase ใช้ prefix `[QA ONLY]` และไม่แก้ข้อมูล Profile เดิม
+
+## Environment
+
+ตั้งค่าใน local/deployment secret เท่านั้น:
+
+```env
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET=arena-badminton-media
+R2_PUBLIC_BASE_URL=
+```
+
+R2 bucket สร้างแล้วและจำกัด token ที่เตรียมไว้ให้เฉพาะ Object Read & Write ของ bucket นี้เท่านั้น การสร้าง token จะแสดง Secret ครั้งเดียว ผู้ดูแลต้องคัดลอกเข้าตัวจัดการ Secret เอง ห้ามใส่ใน Git หรือแชต
+
+หลังมี `R2_PUBLIC_BASE_URL` ต้องตั้ง R2 CORS ให้รับ `PUT` จาก local app และ production domain พร้อม headers `Content-Type`; public URL ควรเป็น custom domain/hostname ที่ตั้งใจให้ browser อ่านได้
+
+## QA data
+
+ข้อมูลทดสอบที่เพิ่มบน Supabase:
+
+- 3 สนาม และ 5 ก๊วน โดยชื่อขึ้นต้น `[QA ONLY]`
+- 4 ก๊วน published, 1 ก๊วน full เพื่อทดสอบการไม่แนะนำก๊วนเต็ม
+- 1 Tournament published ชื่อ `[QA ONLY] Arena Community Cup`
+- ใช้ Profile เดิมที่มีอยู่เป็น owner เพียงรายเดียว ไม่สร้าง Auth user ปลอม
+
+ลบข้อมูล QA ด้วยตัวกรอง prefix นี้หลังจบ staging QA เท่านั้น และตรวจ foreign key ก่อนลบทุกครั้ง
+
+## Local verification
+
+```bash
+npm run dev
+npm run lint
+npm run typecheck
+npx drizzle-kit check
+npm run build
+npm run start -- -p 3100
+```
+
+ตรวจ `http://localhost:3000/api/health` และคาดหวังให้แสดงสถานะ integration เท่านั้น โดย endpoint นี้ไม่ติดต่อบริการภายนอก
+
+## ต้องทำก่อน Production
+
+1. ตั้ง Google Maps key แบบจำกัด referrer/domain และ Supabase Google/LINE provider, SMTP, email confirmation และ redirect URLs
+2. ตั้ง R2 credentials, public URL และ CORS ใน Vercel; ทดสอบ upload จริงด้วย test account
+3. Bootstrap `admin_users` ด้วย UUID ของ Auth user ที่ยืนยันแล้ว และทดสอบ Admin BP/Shop/Trophy ใน staging
+4. ทำ tournament create/join/bracket/reward ผ่าน RPC ที่ lock capacity และมี audit ก่อนเปิดหน้าใช้งานจริง
+5. เชื่อม Payment Gateway/webhook แบบ server-only มี signature verification, idempotency, refund และ reconciliation; ห้ามใช้ Admin credit เป็น payment แทน
+6. ทดสอบ login Email/Google/LINE, profile completion, recommendation, join/leave, match settlement, shop, image upload และ notification end-to-end แล้วค่อย deploy
