@@ -8,6 +8,7 @@ export function getIntegrationConfiguration() {
     googleMaps,
     database: Boolean(process.env.DATABASE_URL),
     r2: Boolean(process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && process.env.R2_BUCKET),
+    r2PublicUrl: Boolean(process.env.R2_PUBLIC_BASE_URL),
   };
 }
 
