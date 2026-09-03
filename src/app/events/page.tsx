@@ -3,6 +3,7 @@ import EventSearchBrowser, { type EventSearchFilters } from "@/components/event-
 import { events, type Event } from "@/lib/demo-data";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 import { shouldShowQaData } from "@/lib/config";
+import { matchesLocationFilters, matchesSearchTerms, searchTerms } from "@/lib/search-utils";
 
 export const metadata: Metadata = { title: "กิจกรรม | Arena-Badminton" };
 export const dynamic = "force-dynamic";
@@ -71,21 +72,30 @@ function matchesDate(eventDate: string, filter: EventSearchFilters["date"]) {
   return eventKey >= weekendStart && eventKey < addDays(weekendStart, 2);
 }
 
-function searchTerms(value: string) {
-  return value.toLocaleLowerCase("th-TH").split(/\s+/).filter(Boolean);
-}
-
 function liveDateLabel(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "วันเวลาไม่ระบุ";
   return new Intl.DateTimeFormat("th-TH", { timeZone: "Asia/Bangkok", weekday: "short", day: "numeric", month: "short", year: "2-digit" }).format(date);
 }
 
-function mapLiveTournaments(rows: Array<Record<string, unknown>>, entryCounts: Map<string, number>): Event[] {
+type LiveVenueRow = {
+  id: string;
+  name: string | null;
+  province: string | null;
+  district: string | null;
+  subdistrict: string | null;
+};
+
+function mapLiveTournaments(
+  rows: Array<Record<string, unknown>>,
+  entryCounts: Map<string, number>,
+  venueMap: Map<string, LiveVenueRow>,
+): Event[] {
   return rows.map((row, index) => {
     const id = typeof row.id === "string" ? row.id : `live-${index}`;
     const format = row.format === "doubles" || row.format === "team" ? row.format : "singles";
     const maxEntries = Number(row.max_entries);
+    const venue = typeof row.venue_id === "string" ? venueMap.get(row.venue_id) : undefined;
     return {
       id: `tournament-${id}`,
       title: typeof row.title === "string" ? row.title : "Arena Tournament",
@@ -94,10 +104,10 @@ function mapLiveTournaments(rows: Array<Record<string, unknown>>, entryCounts: M
       format,
       dateLabel: liveDateLabel(typeof row.starts_at === "string" ? row.starts_at : ""),
       startsAt: typeof row.starts_at === "string" ? row.starts_at : new Date().toISOString(),
-      venue: "สนามที่ผู้จัดกำหนด",
-      province: "",
-      district: "",
-      subdistrict: "",
+      venue: venue?.name ?? "สนามที่ผู้จัดกำหนด",
+      province: venue?.province ?? "",
+      district: venue?.district ?? "",
+      subdistrict: venue?.subdistrict ?? "",
       capacity: Number.isFinite(maxEntries) && maxEntries > 0 ? maxEntries : 8,
       registered: entryCounts.get(id) ?? 0,
       image: "🏆",
@@ -114,7 +124,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   if (supabase && user) {
     let tournamentQuery = supabase
       .from("tournaments")
-      .select("id, title, description, starts_at, format, max_entries")
+      .select("id, title, description, starts_at, format, max_entries, venue_id")
       .eq("status", "published")
       .gt("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
@@ -123,6 +133,13 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
     const { data: tournamentRows } = await tournamentQuery;
     const rows = (tournamentRows ?? []) as Array<Record<string, unknown>>;
     const tournamentIds = rows.map((row) => typeof row.id === "string" ? row.id : "").filter(Boolean);
+    const venueIds = [...new Set(rows.map((row) => typeof row.venue_id === "string" ? row.venue_id : "").filter(Boolean))];
+    const { data: venueRows } = venueIds.length > 0
+      ? await supabase.from("venues").select("id, name, province, district, subdistrict").in("id", venueIds)
+      : { data: [] };
+    const venueMap = new Map<string, LiveVenueRow>(
+      ((venueRows ?? []) as LiveVenueRow[]).map((venue) => [venue.id, venue]),
+    );
     const { data: entryRows } = tournamentIds.length > 0
       ? await supabase.from("tournament_entries").select("tournament_id").in("tournament_id", tournamentIds).in("entry_status", ["registered", "winner"])
       : { data: [] };
@@ -131,20 +148,22 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
       const id = typeof row.tournament_id === "string" ? row.tournament_id : "";
       if (id) entryCounts.set(id, (entryCounts.get(id) ?? 0) + 1);
     }
-    eventSource = [...mapLiveTournaments(rows, entryCounts), ...events];
+    eventSource = [...mapLiveTournaments(rows, entryCounts, venueMap), ...events];
   }
 
   const terms = searchTerms(filters.q);
   const filteredEvents = eventSource
     .filter((event) => {
-      const haystack = [event.title, event.category, event.venue, event.province, event.district, event.subdistrict].join(" ").toLocaleLowerCase("th-TH");
-      const matchesQuery = terms.length === 0 || terms.every((term) => haystack.includes(term));
-      const matchesProvince = !filters.province || event.province === filters.province;
-      const matchesDistrict = !filters.district || event.district === filters.district;
-      const matchesSubdistrict = !filters.subdistrict || event.subdistrict === filters.subdistrict;
+      const matchesQuery = matchesSearchTerms([event.title, event.category, event.venue, event.province, event.district, event.subdistrict], terms);
+      const matchesLocation = matchesLocationFilters(filters, {
+        province: event.province,
+        district: event.district,
+        subdistrict: event.subdistrict,
+        searchable: [event.venue],
+      });
       const matchesType = filters.eventType === "all" || event.eventType === filters.eventType;
       const matchesFormat = filters.format === "all" || event.format === filters.format;
-      return matchesQuery && matchesProvince && matchesDistrict && matchesSubdistrict && matchesDate(event.startsAt, filters.date) && matchesType && matchesFormat;
+      return matchesQuery && matchesLocation && matchesDate(event.startsAt, filters.date) && matchesType && matchesFormat;
     })
     .sort((left, right) => filters.sort === "newest"
       ? right.startsAt.localeCompare(left.startsAt)

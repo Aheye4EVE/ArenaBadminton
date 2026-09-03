@@ -38,22 +38,17 @@
 - Migration 0013_venue_discovery_metadata.sql เพิ่มจังหวัด/อำเภอ/ตำบล/คะแนน/สถานะคิว และหน้า /venues อ่านสนาม active จาก Supabase เมื่อมี session
 - QA seed ที่ขึ้นต้น [QA ONLY] ถูกซ่อนจากหน้าผู้ใช้โดย default; เปิดเฉพาะ staging ด้วย ARENA_SHOW_QA_DATA=true
 
-## รันบนเครื่อง
+## ตรวจสอบก่อน Deploy Production
 
-```bash
-npm install
-npm run dev
-```
-
-เปิด [http://localhost:3000](http://localhost:3000)
-
-ตรวจคุณภาพโค้ด:
+โปรเจกต์นี้ไม่ใช้ Local Server เป็นสภาพแวดล้อมหลักแล้ว การตรวจเว็บจริงให้ทำบน Vercel Production เท่านั้น ส่วนการตรวจคุณภาพโค้ดก่อนส่งขึ้น Vercel ใช้คำสั่ง:
 
 ```bash
 npm run lint
 npm run typecheck
 npm run build
 ```
+
+ลำดับการทำงานคือแก้ทีละจุด → ตรวจคุณภาพโค้ด → commit/push ไป GitHub → Deploy Production บน Vercel → ตรวจ Smoke test บน URL จริง
 
 ## Environment
 

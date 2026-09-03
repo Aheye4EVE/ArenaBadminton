@@ -48,18 +48,18 @@ R2 bucket สร้างแล้วและจำกัด token ที่เ
 
 ก่อนเปิด Production ให้คง ARENA_SHOW_QA_DATA=false และลบข้อมูล QA ด้วยตัวกรอง prefix นี้หลังจบ staging QA เท่านั้น โดยตรวจ foreign key และ snapshot ก่อนลบทุกครั้ง
 
-## Local verification
+## Vercel Production verification
+
+ไม่ใช้ `npm run dev` หรือ `npm run start` เป็น workflow หลักอีกต่อไป ให้ตรวจคุณภาพโค้ดในเครื่อง แล้ว Deploy Production ขึ้น Vercel เพื่อทดสอบเว็บจริง:
 
 ```bash
-npm run dev
 npm run lint
 npm run typecheck
 npx drizzle-kit check
 npm run build
-npm run start -- -p 3100
 ```
 
-ตรวจ `http://localhost:3000/api/health` และคาดหวังให้แสดงสถานะ integration เท่านั้น โดย endpoint นี้ไม่ติดต่อบริการภายนอก
+หลัง Deploy ให้ตรวจ `/api/health` บน Vercel Production และทำ Smoke/E2E test โดย endpoint นี้แสดงเฉพาะสถานะ integration และไม่ติดต่อบริการภายนอก
 
 ## ต้องทำก่อน Production
 

@@ -3,6 +3,7 @@ import VenueSearchBrowser, { type VenueSearchFilters } from "@/components/venue-
 import { courts } from "@/lib/demo-data";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 import { shouldShowQaData } from "@/lib/config";
+import { matchesLocationFilters, matchesSearchTerms, searchTerms } from "@/lib/search-utils";
 
 export const metadata: Metadata = { title: "สนามแบด | Arena-Badminton" };
 export const dynamic = "force-dynamic";
@@ -38,10 +39,6 @@ function parseFilters(params: SearchParams): VenueSearchFilters {
     courtCount: allowedValue(firstParam(params, "courtCount"), courtCountFilters, "all"),
     sort: allowedValue(firstParam(params, "sort"), sortFilters, "rating"),
   };
-}
-
-function searchTerms(value: string) {
-  return value.toLocaleLowerCase("th-TH").split(/\s+/).filter(Boolean);
 }
 
 type LiveVenueRow = {
@@ -153,17 +150,19 @@ export default async function VenuesPage({ searchParams }: { searchParams: Promi
 
   const filteredVenues = sourceVenues
     .filter((court) => {
-      const haystack = [court.name, court.province, court.district, court.subdistrict, court.address].join(" ").toLocaleLowerCase("th-TH");
-      const matchesQuery = terms.length === 0 || terms.every((term) => haystack.includes(term));
-      const matchesProvince = !filters.province || court.province === filters.province;
-      const matchesDistrict = !filters.district || court.district === filters.district;
-      const matchesSubdistrict = !filters.subdistrict || court.subdistrict === filters.subdistrict;
+      const matchesQuery = matchesSearchTerms([court.name, court.province, court.district, court.subdistrict, court.address], terms);
+      const matchesLocation = matchesLocationFilters(filters, {
+        province: court.province,
+        district: court.district,
+        subdistrict: court.subdistrict,
+        searchable: [court.name, court.address],
+      });
       const matchesAvailability = filters.availability === "all" || court.availability === filters.availability;
       const matchesRating = filters.rating === "all" || Number(court.rating) >= Number(filters.rating);
       const matchesCourtCount = filters.courtCount === "all"
         || filters.courtCount === "5plus" && court.courtCount >= 5
         || filters.courtCount === "10plus" && court.courtCount >= 10;
-      return matchesQuery && matchesProvince && matchesDistrict && matchesSubdistrict && matchesAvailability && matchesRating && matchesCourtCount;
+      return matchesQuery && matchesLocation && matchesAvailability && matchesRating && matchesCourtCount;
     })
     .sort((left, right) => {
       if (filters.sort === "distance") return left.distanceKm - right.distanceKm;

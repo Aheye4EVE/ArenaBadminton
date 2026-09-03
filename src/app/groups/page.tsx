@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import GroupsBrowser, { type GroupListItem, type GroupSearchFilters } from "@/components/groups-browser";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 import { shouldShowQaData } from "@/lib/config";
+import { matchesLocationFilters, matchesSearchTerms, searchTerms } from "@/lib/search-utils";
 
 export const metadata: Metadata = { title: "ค้นหาก๊วน | Arena-Badminton" };
 export const dynamic = "force-dynamic";
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 type GroupRow = {
   id: string;
   owner_id: string;
+  venue_id: string | null;
   title: string;
   description: string | null;
   location_text: string;
@@ -67,14 +69,6 @@ function parseFilters(params: SearchParams): GroupSearchFilters {
   };
 }
 
-function safeSearchTerm(value: string) {
-  return value.replace(/[\u0000-\u001F\u007F\\*%,().'"=_:<>|&?]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
-}
-
-function searchTerms(value: string) {
-  return safeSearchTerm(value).split(/\s+/).filter(Boolean).slice(0, 6);
-}
-
 function bangkokDateKey(value = new Date()) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Bangkok",
@@ -125,26 +119,10 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
   let groupsQuery = supabase
     .from("groups")
     .select(
-      "id, owner_id, title, description, location_text, starts_at, duration_minutes, capacity, min_level, max_level, play_type, entry_fee, status, created_at",
-      { count: "exact" },
+      "id, owner_id, venue_id, title, description, location_text, starts_at, duration_minutes, capacity, min_level, max_level, play_type, entry_fee, status, created_at",
     )
     .in("status", filters.availability === "available" ? ["published"] : ["published", "full"]);
   if (!shouldShowQaData()) groupsQuery = groupsQuery.not("title", "like", "[QA ONLY]%");
-
-  const searchConditions = searchTerms(filters.q)
-    .flatMap((searchTerm) => [
-      `title.ilike.*${searchTerm}*`,
-      `location_text.ilike.*${searchTerm}*`,
-      `description.ilike.*${searchTerm}*`,
-    ])
-    .join(",");
-  if (searchConditions) groupsQuery = groupsQuery.or(searchConditions);
-
-  for (const area of [filters.province, filters.district, filters.subdistrict]) {
-    const areaTerms = searchTerms(area);
-    if (areaTerms.length === 1) groupsQuery = groupsQuery.ilike("location_text", `%${areaTerms[0]}%`);
-    if (areaTerms.length > 1) groupsQuery = groupsQuery.ilikeAllOf("location_text", areaTerms.map((term) => `%${term}%`));
-  }
 
   if (filters.playType !== "all") groupsQuery = groupsQuery.eq("play_type", filters.playType);
   if (filters.fee === "free") groupsQuery = groupsQuery.eq("entry_fee", 0);
@@ -159,10 +137,38 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
   if (dates) groupsQuery = groupsQuery.gte("starts_at", dates.from).lt("starts_at", dates.to);
 
   groupsQuery = groupsQuery.order(filters.sort === "newest" ? "created_at" : "starts_at", { ascending: filters.sort !== "newest" });
-  const { data, error, count } = await groupsQuery.limit(100);
+  const { data, error } = await groupsQuery.limit(500);
 
   const rows = (data ?? []) as GroupRow[];
-  const groupIds = rows.map((row) => row.id);
+  const venueIds = [...new Set(rows.map((row) => row.venue_id).filter((venueId): venueId is string => Boolean(venueId)))];
+  type GroupVenueRow = {
+    id: string;
+    name: string | null;
+    province: string | null;
+    district: string | null;
+    subdistrict: string | null;
+    address: string | null;
+  };
+  const { data: venueData } = venueIds.length > 0
+    ? await supabase.from("venues").select("id, name, province, district, subdistrict, address").in("id", venueIds)
+    : { data: [] };
+  const venueMap = new Map<string, GroupVenueRow>(
+    ((venueData ?? []) as GroupVenueRow[]).map((venue) => [venue.id, venue]),
+  );
+  const terms = searchTerms(filters.q);
+  const filteredRows = rows.filter((row) => {
+    const venue = row.venue_id ? venueMap.get(row.venue_id) : undefined;
+    return matchesSearchTerms(
+      [row.title, row.description, row.location_text, venue?.name, venue?.province, venue?.district, venue?.subdistrict, venue?.address],
+      terms,
+    ) && matchesLocationFilters(filters, {
+      province: venue?.province,
+      district: venue?.district,
+      subdistrict: venue?.subdistrict,
+      searchable: [row.location_text, venue?.name, venue?.address],
+    });
+  });
+  const groupIds = filteredRows.map((row) => row.id);
 
   let memberships: MembershipRow[] = [];
   if (groupIds.length > 0) {
@@ -173,12 +179,12 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
     memberships = (membershipResult.data ?? []) as MembershipRow[];
   }
 
-  const groups: GroupListItem[] = rows.map((row) => ({
+  const groups: GroupListItem[] = filteredRows.map((row) => ({
     id: row.id,
     ownerId: row.owner_id,
     title: row.title,
     description: row.description,
-    locationText: row.location_text,
+    locationText: [row.venue_id ? venueMap.get(row.venue_id)?.name : "", row.location_text].filter(Boolean).join(" · "),
     startsAt: row.starts_at,
     durationMinutes: Number(row.duration_minutes),
     capacity: Number(row.capacity),
@@ -195,7 +201,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
     <GroupsBrowser
       groups={groups}
       filters={filters}
-      totalCount={count ?? groups.length}
+      totalCount={groups.length}
       currentUserId={user.id}
       loadError={error ? "โหลดรายการก๊วนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" : undefined}
     />

@@ -6,7 +6,7 @@ import { ChevronDown, MapPin } from "lucide-react";
 type AddressModule = typeof import("thai-address-select");
 
 type ThaiAreaSelectProps = {
-  mode: "search" | "form";
+  mode: "search" | "form" | "home";
   initialProvince?: string;
   initialDistrict?: string;
   initialSubdistrict?: string;
@@ -17,6 +17,7 @@ type ThaiAreaSelectProps = {
 
 function fieldClass(mode: ThaiAreaSelectProps["mode"], error?: string) {
   if (mode === "search") return "group-filter-control";
+  if (mode === "home") return "search-field search-field--area";
   return error ? "group-form-field group-form-field--error" : "group-form-field";
 }
 
@@ -60,16 +61,18 @@ export default function ThaiAreaSelect({
     [addressData, district, province],
   );
   const isForm = mode === "form";
-  const selectClass = isForm ? "group-form-select-wrap" : "group-filter-select-wrap";
+  const isHome = mode === "home";
+  const selectClass = isForm ? "group-form-select-wrap" : isHome ? "home-search-select-wrap" : "group-filter-select-wrap";
   const provincePlaceholder = isForm ? "เลือกจังหวัด" : "ทุกจังหวัด";
   const districtPlaceholder = province ? "ทุกเขต / อำเภอ" : "เลือกจังหวัดก่อน";
   const subdistrictPlaceholder = district ? "ทุกแขวง / ตำบล" : "เลือกเขต / อำเภอก่อน";
   const loadingLabel = loadError ? "โหลดข้อมูลพื้นที่ไม่สำเร็จ" : "กำลังโหลดพื้นที่...";
 
   return (
-    <div className={isForm ? "group-form__grid group-form__grid--three group-form__grid--area" : "groups-location-grid"}>
+    <div className={isForm ? "group-form__grid group-form__grid--three group-form__grid--area" : isHome ? "home-location-grid" : "groups-location-grid"}>
       <label className={fieldClass(mode, provinceError)}>
-        <span>{isForm ? <MapPin size={15} /> : null} จังหวัด {isForm ? <b>*</b> : null}</span>
+        {isHome ? <MapPin size={18} aria-hidden="true" /> : null}
+        <span className={isHome ? "sr-only" : undefined}>{isForm ? <MapPin size={15} /> : null} จังหวัด {isForm ? <b>*</b> : null}</span>
         <div className={selectClass}>
           <select
             name="province"
@@ -92,7 +95,8 @@ export default function ThaiAreaSelect({
       </label>
 
       <label className={fieldClass(mode, districtError)}>
-        <span>อำเภอ / เขต</span>
+        {isHome ? <MapPin size={18} aria-hidden="true" /> : null}
+        <span className={isHome ? "sr-only" : undefined}>อำเภอ / เขต</span>
         <div className={selectClass}>
           <select
             name="district"
@@ -113,7 +117,8 @@ export default function ThaiAreaSelect({
       </label>
 
       <label className={fieldClass(mode, subdistrictError)}>
-        <span>ตำบล / แขวง</span>
+        {isHome ? <MapPin size={18} aria-hidden="true" /> : null}
+        <span className={isHome ? "sr-only" : undefined}>ตำบล / แขวง</span>
         <div className={selectClass}>
           <select
             name="subdistrict"

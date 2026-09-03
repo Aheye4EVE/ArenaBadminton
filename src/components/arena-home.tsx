@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { brands, courts, events, groups, navItems, type Group } from "@/lib/demo-data";
 import AccountMenu from "@/components/account-menu";
-import ThaiProvinceSelect from "@/components/thai-province-select";
+import ThaiAreaSelect from "@/components/thai-area-select";
 import type { HeaderProfileSummary } from "@/types/profile";
 
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
@@ -233,7 +233,7 @@ export default function ArenaHome({
     const formData = new FormData(event.currentTarget);
     const params = new URLSearchParams();
     const keys = searchType === "ก๊วน"
-      ? ["q", "province", "date", "skill", "playType"]
+      ? ["q", "province", "district", "subdistrict", "date", "skill", "playType"]
       : searchType === "สนามแบด"
         ? ["q", "province", "district", "subdistrict", "availability", "rating"]
         : ["q", "province", "district", "subdistrict", "date", "eventType", "format"];
@@ -364,8 +364,8 @@ export default function ArenaHome({
                   </button>
                 ))}
               </div>
-              <form className={cx("search-form", searchType === "สนามแบด" && "search-form--venue", searchType === "กิจกรรม" && "search-form--event")} onSubmit={submitSearch}>
-                <ThaiProvinceSelect />
+              <form className={cx("search-form", "search-form--with-area", searchType === "สนามแบด" && "search-form--venue", searchType === "กิจกรรม" && "search-form--event")} onSubmit={submitSearch}>
+                <ThaiAreaSelect mode="home" />
                 {searchType === "ก๊วน" ? (
                   <>
                     <label className="search-field">
