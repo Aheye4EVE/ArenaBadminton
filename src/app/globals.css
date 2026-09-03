@@ -7725,3 +7725,129 @@ img.profile-overview-avatar { object-fit: cover; }
   .ranking-live-page .ranking-row { grid-template-columns: 26px 36px minmax(0, 1fr) auto; }
   .ranking-live-page .ranking-trend, .ranking-live-page .ranking-row > svg { display: none; }
 }
+
+/* Profile editing, avatar storage and linked login providers */
+.profile-edit-backline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 19px; color: #9a92ae; font-size: 0.72rem; }
+.profile-edit-backline a { color: #8068c7; font-weight: 700; text-decoration: none; }
+.profile-edit-backline a:hover { color: #df5f9f; }
+.profile-field textarea { width: 100%; min-height: 86px; padding: 10px 13px; border: 1px solid rgba(77, 66, 164, 0.14); border-radius: 12px; outline: 0; color: var(--ink); background: rgba(250, 249, 255, 0.88); font: inherit; line-height: 1.55; resize: vertical; transition: 160ms ease; }
+.profile-field textarea:focus { border-color: rgba(223, 93, 167, 0.5); box-shadow: 0 0 0 4px rgba(235, 101, 175, 0.1); }
+.profile-form-grid--address > .group-form__grid--area { grid-column: 1 / -1; }
+.profile-location-panel__actions { display: flex; align-items: center; justify-content: flex-end; gap: 7px; flex-wrap: wrap; }
+.location-clear-button { min-height: 40px; padding: 0 10px; border: 1px solid rgba(202, 104, 148, 0.18); border-radius: 11px; color: #b0668a; background: #fff5f8; cursor: pointer; font: inherit; font-size: 0.72rem; font-weight: 600; }
+.profile-avatar-editor { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 14px; border: 1px solid rgba(126, 105, 200, 0.11); border-radius: 18px; background: linear-gradient(110deg, rgba(255, 248, 252, 0.86), rgba(245, 246, 255, 0.86)); }
+.profile-avatar-editor__preview { display: grid; width: 76px; height: 76px; place-items: center; overflow: hidden; border: 4px solid #fff; border-radius: 50%; color: #806bc2; background: linear-gradient(145deg, #f8d9ef, #d8dcff); box-shadow: 0 0 0 3px rgba(246, 92, 168, 0.13), 0 8px 16px rgba(111, 86, 190, 0.12); }
+.profile-avatar-editor__preview img { width: 100%; height: 100%; object-fit: cover; }
+.profile-avatar-editor__copy { display: grid; min-width: 0; gap: 3px; }
+.profile-avatar-editor__copy strong { color: #554a90; font-size: 0.88rem; }
+.profile-avatar-editor__copy > span { color: #9790ab; font-size: 0.69rem; line-height: 1.5; }
+.profile-avatar-editor__message { color: #398f79 !important; font-size: 0.68rem !important; }
+.profile-avatar-editor__message--error { color: #b85d79 !important; }
+.profile-avatar-editor__actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex-wrap: wrap; }
+.avatar-upload-button, .avatar-remove-button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 35px; padding: 0 10px; border-radius: 10px; cursor: pointer; font: inherit; font-size: 0.69rem; font-weight: 700; }
+.avatar-upload-button { border: 0; color: #fff; background: linear-gradient(135deg, #8e78d9, #d765a8); }
+.avatar-remove-button { border: 1px solid rgba(202, 104, 148, 0.18); color: #b0668a; background: #fff5f8; }
+.avatar-upload-button:disabled, .avatar-remove-button:disabled { cursor: wait; opacity: 0.55; }
+.profile-overview-edit { display: inline-flex; align-items: center; gap: 5px; align-self: flex-start; margin-left: auto; padding: 0.58rem 0.7rem; border: 1px solid rgba(116, 100, 185, 0.13); border-radius: 11px; color: #7b68bc; background: rgba(255, 255, 255, 0.72); font-size: 0.68rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.profile-overview-edit:hover { color: #df5f9f; background: #fff; }
+.profile-overview-bio { display: block; max-width: 430px; overflow: hidden; margin-top: 0.35rem !important; color: #81799e !important; font-size: 0.69rem !important; font-weight: 500 !important; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
+.profile-identity-manager { display: grid; gap: 17px; margin-top: 32px; padding-top: 28px; border-top: 1px solid rgba(87, 72, 180, 0.1); }
+.profile-identity-list { display: grid; gap: 9px; }
+.profile-identity-item { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px; border: 1px solid rgba(126, 105, 200, 0.1); border-radius: 14px; background: rgba(255, 255, 255, 0.7); }
+.profile-identity-item__mark { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; color: #7363bf; background: #eeeaff; font-family: var(--font-fredoka), sans-serif; font-size: 0.72rem; font-weight: 700; }
+.profile-identity-item__mark--google { color: #4b76be; background: #eaf2ff; font-size: 1.1rem; }
+.profile-identity-item__mark--line { color: #3d9b75; background: #e3f9ee; font-size: 0.57rem; }
+.profile-identity-item > div { display: grid; min-width: 0; gap: 2px; }
+.profile-identity-item strong { color: #5e528f; font-size: 0.76rem; }
+.profile-identity-item small { overflow: hidden; color: #9c95ae; font-size: 0.63rem; text-overflow: ellipsis; white-space: nowrap; }
+.profile-identity-connected, .profile-identity-unconnected { display: inline-flex; align-items: center; gap: 4px; padding: 5px 7px; border-radius: 999px; font-size: 0.61rem; font-weight: 700; white-space: nowrap; }
+.profile-identity-connected { color: #3f957b; background: #e9faf3; }
+.profile-identity-unconnected { color: #a39bb4; background: #f5f3fa; }
+.profile-identity-link { display: inline-flex; align-items: center; gap: 4px; min-height: 29px; padding: 0 8px; border: 1px solid rgba(116, 100, 185, 0.15); border-radius: 9px; color: #7967bc; background: #fff; cursor: pointer; font: inherit; font-size: 0.64rem; font-weight: 700; }
+.profile-identity-link:disabled { cursor: wait; opacity: 0.55; }
+.profile-identity-feedback { display: flex; align-items: flex-start; gap: 6px; margin: 0; padding: 10px 12px; border-radius: 11px; color: #b85d79; background: #fff0f4; font-size: 0.72rem; line-height: 1.5; }
+.profile-identity-feedback svg { flex: 0 0 auto; margin-top: 1px; }
+.profile-identity-note { display: flex; align-items: flex-start; gap: 6px; margin: 0; color: #8c8aa2; font-size: 0.67rem; line-height: 1.55; }
+.profile-identity-note svg { flex: 0 0 auto; color: #5eae92; margin-top: 1px; }
+.admin-hub-card--gold { background: linear-gradient(135deg, rgba(255, 250, 234, 0.92), rgba(255, 244, 250, 0.82)); }
+.admin-hub-card--gold .admin-hub-card__icon { color: #d7a13a; }
+.admin-hub-card--gold .admin-hub-card__copy small { color: #c29155; }
+.admin-hub-card--gold .admin-hub-card__arrow { color: #d3a03d; }
+.admin-trophy-page { min-height: 100vh; padding: 18px 0 70px; background: linear-gradient(145deg, #f8f6ff 0%, #f7fbff 52%, #fff8ed 100%); }
+.admin-trophy-shell { width: min(100% - 36px, 980px); margin: 0 auto; }
+.admin-trophy-topbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 14px; min-height: 54px; margin-bottom: 19px; }
+.admin-trophy-brand { display: inline-flex; align-items: baseline; color: #ed669e; font-family: var(--font-fredoka), "Fredoka", sans-serif; font-size: 1.3rem; font-weight: 700; letter-spacing: -0.05em; text-decoration: none; text-shadow: 1px 2px 0 #fff; }
+.admin-trophy-brand em { color: #7c67d2; font-style: normal; }
+.admin-trophy-topbar nav { display: flex; justify-content: center; gap: 8px; }
+.admin-trophy-topbar nav a { padding: 7px 10px; border-radius: 9px; color: #7d75a2; font-size: 0.69rem; text-decoration: none; }
+.admin-trophy-topbar nav a:hover { color: #df5f9f; background: #fff; }
+.admin-trophy-role { display: inline-flex; align-items: center; justify-self: end; gap: 6px; padding: 7px 10px; border: 1px solid rgba(126, 105, 200, 0.12); border-radius: 999px; color: #5d8e83; background: rgba(255, 255, 255, 0.75); font-size: 0.68rem; }
+.admin-trophy-role svg { color: #51a58f; }
+.admin-trophy-hero { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 165px; overflow: hidden; padding: 28px 34px; border: 1px solid rgba(154, 132, 224, 0.13); border-radius: 27px; background: radial-gradient(circle at 84% 0%, rgba(255, 213, 234, 0.75), transparent 37%), linear-gradient(115deg, #fff6dc, #fff3f9 54%, #eff9ff); box-shadow: 0 18px 45px rgba(120, 101, 185, 0.08); }
+.admin-trophy-hero::after { position: absolute; right: 9%; bottom: -76px; width: 255px; height: 150px; border-radius: 50%; background: rgba(255, 255, 255, 0.6); content: ""; }
+.admin-trophy-hero > div:first-child { position: relative; z-index: 1; }
+.admin-trophy-hero p, .admin-trophy-section-heading p { margin: 0 0 4px; color: #c29155; font-family: var(--font-fredoka), "Fredoka", sans-serif; font-size: 0.76rem; letter-spacing: 0.04em; }
+.admin-trophy-hero h1 { margin: 0; color: #4c418f; font-size: clamp(1.75rem, 4vw, 2.45rem); font-weight: 600; letter-spacing: -0.05em; }
+.admin-trophy-hero span { display: block; max-width: 650px; margin-top: 6px; color: #8781a7; font-size: 0.82rem; line-height: 1.65; }
+.admin-trophy-hero__art { position: relative; z-index: 1; display: grid; width: 91px; height: 91px; place-items: center; border: 7px solid rgba(255, 255, 255, 0.78); border-radius: 31px; background: linear-gradient(145deg, #fff, #fff3d4); box-shadow: 11px 14px 0 rgba(201, 157, 231, 0.14), 0 14px 28px rgba(143, 103, 190, 0.12); font-size: 2.9rem; transform: rotate(7deg); }
+.admin-trophy-form { display: grid; gap: 17px; margin-top: 23px; padding: 21px; border: 1px solid rgba(126, 105, 200, 0.1); border-radius: 22px; background: rgba(255, 255, 255, 0.78); box-shadow: 0 13px 36px rgba(119, 98, 183, 0.05); }
+.admin-trophy-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
+.admin-trophy-section-heading h2 { margin: 0; color: #574b94; font-size: 1.2rem; font-weight: 600; }
+.admin-trophy-section-heading > span { color: #9a92ad; font-size: 0.68rem; text-align: right; }
+.admin-trophy-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.admin-trophy-fields label { display: grid; gap: 5px; min-width: 0; }
+.admin-trophy-fields label > span { color: #77709e; font-size: 0.69rem; font-weight: 600; }
+.admin-trophy-fields label b { color: #ed609f; }
+.admin-trophy-fields input, .admin-trophy-fields select, .admin-trophy-fields textarea { width: 100%; min-width: 0; border: 1px solid rgba(113, 94, 187, 0.13); border-radius: 10px; outline: 0; padding: 9px 10px; color: #5b528d; background: #fff; font: inherit; font-size: 0.74rem; }
+.admin-trophy-fields textarea { resize: vertical; }
+.admin-trophy-fields input:focus, .admin-trophy-fields select:focus, .admin-trophy-fields textarea:focus { border-color: rgba(223, 93, 167, 0.5); box-shadow: 0 0 0 4px rgba(235, 101, 175, 0.1); }
+.admin-trophy-field--wide { grid-column: 1 / -1; }
+.admin-trophy-select { position: relative; }
+.admin-trophy-select select { appearance: none; padding-right: 30px; }
+.admin-trophy-select > svg { position: absolute; top: 50%; right: 10px; pointer-events: none; color: #9b86c9; transform: translateY(-50%); }
+.admin-trophy-notice { display: flex; align-items: flex-start; gap: 8px; padding: 12px 14px; border: 1px solid rgba(219, 173, 93, 0.16); border-radius: 14px; color: #9b8563; background: #fff9eb; font-size: 0.71rem; line-height: 1.55; }
+.admin-trophy-notice svg { flex: 0 0 auto; color: #d9a949; margin-top: 1px; }
+.admin-trophy-save { display: inline-flex; align-items: center; justify-content: center; justify-self: end; gap: 6px; min-height: 38px; padding: 0 14px; border: 0; border-radius: 11px; color: #fff; background: linear-gradient(135deg, #e6a655, #df7299); cursor: pointer; font: inherit; font-size: 0.72rem; font-weight: 700; }
+.admin-trophy-save:disabled { cursor: wait; opacity: 0.55; }
+.admin-trophy-feedback { display: flex; align-items: flex-start; gap: 7px; margin: 0; padding: 10px 12px; border-radius: 11px; font-size: 0.74rem; line-height: 1.5; }
+.admin-trophy-feedback svg { flex: 0 0 auto; margin-top: 1px; }
+.admin-trophy-feedback--error { color: #b85d79; background: #fff0f4; }
+.admin-trophy-feedback--success { color: #378e76; background: #eafaf4; }
+.admin-trophy-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; padding: 0 4px; color: #aaa3bd; font-size: 0.67rem; }
+.admin-trophy-footer a { color: #8d77bd; text-decoration: none; }
+.admin-trophy-footer span { display: inline-flex; align-items: center; gap: 4px; }
+
+@media (max-width: 700px) {
+  .profile-avatar-editor { grid-template-columns: 64px minmax(0, 1fr); }
+  .profile-avatar-editor__preview { width: 64px; height: 64px; }
+  .profile-avatar-editor__actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .profile-overview-edit { margin-left: 0; }
+  .admin-trophy-topbar { grid-template-columns: 1fr auto; }
+  .admin-trophy-brand { grid-column: 1 / -1; grid-row: 1; justify-self: center; }
+  .admin-trophy-topbar nav { grid-column: 1; grid-row: 2; justify-content: flex-start; }
+  .admin-trophy-role { grid-column: 2; grid-row: 2; }
+}
+
+@media (max-width: 620px) {
+  .profile-edit-backline { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .profile-location-panel { grid-template-columns: auto minmax(0, 1fr); }
+  .profile-location-panel__actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .profile-identity-item { grid-template-columns: 35px minmax(0, 1fr); }
+  .profile-identity-item__mark { width: 35px; height: 35px; }
+  .profile-identity-connected, .profile-identity-unconnected, .profile-identity-link { grid-column: 2; justify-self: start; }
+  .admin-trophy-page { padding-top: 12px; }
+  .admin-trophy-shell { width: min(100% - 24px, 560px); }
+  .admin-trophy-topbar { gap: 9px; }
+  .admin-trophy-topbar nav { overflow-x: auto; }
+  .admin-trophy-hero { min-height: 151px; padding: 22px 20px; border-radius: 22px; }
+  .admin-trophy-hero h1 { font-size: 1.65rem; }
+  .admin-trophy-hero span { max-width: 275px; font-size: 0.75rem; }
+  .admin-trophy-hero__art { position: absolute; right: -8px; width: 77px; height: 77px; opacity: 0.65; font-size: 2.4rem; }
+  .admin-trophy-form { padding: 14px; border-radius: 19px; }
+  .admin-trophy-section-heading { align-items: flex-start; flex-direction: column; }
+  .admin-trophy-section-heading > span { text-align: left; }
+  .admin-trophy-fields { grid-template-columns: 1fr; }
+  .admin-trophy-field--wide { grid-column: auto; }
+  .admin-trophy-save { width: 100%; }
+  .admin-trophy-footer { align-items: flex-start; flex-direction: column; }
+}

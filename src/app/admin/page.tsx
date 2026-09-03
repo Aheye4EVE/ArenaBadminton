@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowRight, Gem, Settings2, ShieldCheck, Store, Swords } from "lucide-react";
+import { ArrowRight, Award, Gem, Settings2, ShieldCheck, Store, Swords } from "lucide-react";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 
 export const metadata: Metadata = { title: "Admin Console | Arena-Badminton" };
@@ -23,6 +23,14 @@ const adminTools = [
     title: "ตั้งค่ากติกา Skill BP",
     description: "กำหนดกติกากลางของ BP และรักษา Floor ขั้นต่ำ 1,000 ให้ผู้เล่นทุกคน",
     tone: "admin-hub-card--purple",
+  },
+  {
+    href: "/admin/trophies",
+    icon: Award,
+    eyebrow: "Achievement Control",
+    title: "แจก Trophy ให้ผู้เล่น",
+    description: "มอบ Badge/Trophy ผ่าน RPC พร้อมเก็บ Record ถาวรและตรวจสอบย้อนหลังได้",
+    tone: "admin-hub-card--gold",
   },
 ] as const;
 

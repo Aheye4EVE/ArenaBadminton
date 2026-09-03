@@ -9,6 +9,10 @@
 - `src/proxy.ts` refresh session cookie ทุก request ที่เหมาะสม โดยไม่ตัดสินสิทธิ์แทนหน้าและ RLS
 - หลังสมัครหรือเชื่อมต่อสำเร็จ จะพาไป `/profile/setup`
 - หน้า Profile Completion บังคับกรอกชื่อ, ที่อยู่, จังหวัด, อำเภอ/เขต, ตำบล/แขวง และรหัสไปรษณีย์
+- `/profile/edit` แก้ชื่อ, Bio, LINE ID สำหรับติดต่อ, ที่อยู่แบบ Dropdown สัมพันธ์กัน, รหัสไปรษณีย์, GPS และ Avatar ได้
+- Avatar ใช้ presigned PUT ไป R2 โดยจำกัด JPG/PNG/WebP ไม่เกิน 5 MB และ server รับเฉพาะ object key ใต้ `avatars/{userId}/`
+- `complete_profile` RPC เป็นช่องทางสร้าง/เติม Profile; Data API ไม่ให้ผู้ใช้แก้ handle, LINE provider subject, Level, EXP, BP หรือสถานะ Profile โดยตรง
+- ผู้ใช้ที่มีบัญชีอยู่แล้วสามารถเชื่อม Google/LINE เพิ่มจาก `/profile/edit` ได้; ระบบยังไม่ให้ unlink จนกว่าจะมีช่องทางสำรอง
 - Email แสดงจาก `auth.users`/session และไม่ทำสำเนาไว้ใน `public.profiles`
 - LINE provider subject (`sub` หรือ `user_id`) เก็บภายใน `public.profiles.line_user_id` และไม่รับจาก form เพื่อป้องกันการสวมตัวตน
 - LINE ID ที่ผู้ใช้กรอกเพื่อให้เพื่อนติดต่อเก็บแยกใน `public.profiles.line_contact_id`
@@ -21,9 +25,9 @@
 ทำใน Supabase project ของ Arena-Badminton:
 
 1. ไปที่ Authentication > URL Configuration
-   - Local site URL: `http://localhost:3000`
-   - Redirect URL: `http://localhost:3000/auth/callback`
-   - เพิ่ม URL ของ Vercel production และ preview ที่ใช้จริงภายหลัง
+   - ตั้ง Site URL เป็นโดเมน Vercel Production ที่ใช้งานจริง
+   - เพิ่ม Redirect URL ของ Production เป็น `https://<production-domain>/auth/callback`
+   - เพิ่ม Preview URL เฉพาะ environment ที่จะทดสอบจริง
 2. เปิด Email provider
    - กำหนด password policy ให้สอดคล้องกับระบบอย่างน้อย 8 ตัวอักษร
    - Development ใช้ email confirmation ของ Supabase ได้
@@ -62,22 +66,23 @@ R2_PUBLIC_BASE_URL=
 
 Phase 2 ฝั่ง browser ใช้เฉพาะ `NEXT_PUBLIC_SUPABASE_URL` และ `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` ส่วน secret/database connection ใช้เฉพาะฝั่ง server
 
-## Local verification
+## Vercel verification
 
 ```bash
-npm run dev
 npm run lint
 npm run typecheck
+npx drizzle-kit check
 npm run build
 ```
 
-เปิด `http://localhost:3000/auth/login` แล้วตรวจ:
+หลัง Deploy ให้ตรวจบนโดเมน Vercel จริง:
 
 - Email signup แสดงข้อความให้ยืนยันอีเมลเมื่อ Supabase เปิด email confirmation
 - Email login หลังสำเร็จไป `/profile/setup`
 - Google OAuth เริ่มใช้งานและทดสอบแล้ว; LINE จะเริ่มได้เมื่อ provider และ callback ใน Dashboard ถูกตั้งค่า
 - ผู้ใช้ที่ยังไม่กรอก profile จะถูกนำไป `/profile/setup`
 - ผู้ใช้ที่กรอก profile แล้วจะไม่ถูกบังคับกรอกซ้ำ
+- `/profile/edit` แสดง Dropdown พื้นที่, Avatar Upload, ปุ่มล้าง GPS และสถานะ Provider ที่เชื่อมอยู่
 
 ## ขอบเขตความปลอดภัยของ Phase 2
 
@@ -86,4 +91,4 @@ npm run build
 - ไม่เก็บ email ซ้ำใน public profile เพื่อไม่สร้างข้อมูลสองแหล่งที่ไม่ตรงกัน
 - `line_user_id` มี partial unique index เพื่อป้องกันการผูก LINE ID ซ้ำ
 - ที่อยู่/GPS/LINE provider subject อยู่ใน owner-only table surface; `public_profiles` เปิดเฉพาะข้อมูลที่จำเป็นต่อ feed/profile
-- ระบบลืมรหัสผ่าน, merge บัญชีจากหลาย provider และการเปลี่ยน email เป็นงานถัดไป
+- ระบบลืมรหัสผ่านมีอยู่แล้ว; การเปลี่ยน email ยังต้องทำผ่าน Auth flow ที่ยืนยันอีเมลใหม่ และการ unlink provider ถูกพักไว้เพื่อป้องกันล็อกบัญชี

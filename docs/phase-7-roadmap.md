@@ -8,6 +8,7 @@
 - `0010_production_security_hardening.sql` ถูก apply แล้ว: ปิดการ mint Trophy จาก client, จำกัด Notification ให้แก้ได้เฉพาะ `read_at`, รวม Shop SELECT policy และเพิ่ม FK indexes
 - `0011_roadmap_fk_indexes.sql` ถูก apply แล้วเพื่อ cover foreign key ของ Tournament เพิ่มเติม
 - `0012_security_invoker_profile_directory.sql` ถูก apply แล้ว: แยก public profile directory และเปลี่ยน public profile/group/match views เป็น `security_invoker=true`
+- `0015_profile_rank_rpc.sql` และ `0016_profile_completion_rpc.sql` ถูก apply แล้ว: Profile อ่าน Ranking จริง และการสร้าง/แก้ข้อมูล Profile ไม่เปิดให้แก้ Level/EXP/BP/identity subject ผ่าน Data API
 - Community feed อ่านจาก `social_posts` พร้อมสร้างโพสต์, แนบรูปผ่าน presigned R2 flow, Comment และ Like
 - Notification center อ่านตามเจ้าของและ mark as read ได้
 - Profile อ่าน Trophy records ที่ได้รับแล้ว
@@ -18,7 +19,7 @@
 - Google Maps JavaScript API ถูกกำหนดเป็น map provider หลัก; ถ้ายังไม่มี API Key หน้าเว็บจะแสดงลิงก์ Google Maps ภายนอกแทน interactive map
 - Migration 0014 ผูกฟอร์มสร้างก๊วนกับ `venues.id` ผ่าน `groups.venue_id` และตรวจสนาม Active ภายใน `create_group` RPC
 - Admin account ที่ยืนยันแล้วถูก bootstrap ใน `admin_users` และมี Admin Hub/ปุ่มจาก Profile Card
-- ทดสอบ Google OAuth และ R2 upload บน Local ด้วยบัญชีทดสอบแล้ว
+- Google OAuth flow มีอยู่ใน Production และ R2 upload route พร้อมใช้งานเมื่อ Vercel มี server secrets, public URL และ CORS ครบ; ยังต้องทำ E2E upload ด้วย test account หลัง Deploy
 
 ## Environment
 
@@ -35,7 +36,7 @@ R2_PUBLIC_BASE_URL=
 
 R2 bucket สร้างแล้วและจำกัด token ที่เตรียมไว้ให้เฉพาะ Object Read & Write ของ bucket นี้เท่านั้น การสร้าง token จะแสดง Secret ครั้งเดียว ผู้ดูแลต้องคัดลอกเข้าตัวจัดการ Secret เอง ห้ามใส่ใน Git หรือแชต
 
-หลังมี `R2_PUBLIC_BASE_URL` ต้องตั้ง R2 CORS ให้รับ `PUT` จาก local app และ production domain พร้อม headers `Content-Type`; public URL ควรเป็น custom domain/hostname ที่ตั้งใจให้ browser อ่านได้
+หลังมี `R2_PUBLIC_BASE_URL` ต้องตั้ง R2 CORS ให้รับ `PUT` จาก Preview และ Production domain พร้อม headers `Content-Type`; public URL ควรเป็น custom domain/hostname ที่ตั้งใจให้ browser อ่านได้
 
 ## QA data
 
@@ -59,7 +60,7 @@ npx drizzle-kit check
 npm run build
 ```
 
-หลัง Deploy ให้ตรวจ `/api/health` บน Vercel Production และทำ Smoke/E2E test โดย endpoint นี้แสดงเฉพาะสถานะ integration และไม่ติดต่อบริการภายนอก
+หลัง Deploy ให้ตรวจ `/api/health` บน Vercel Production และทำ Smoke/E2E test โดย endpoint นี้แสดงเฉพาะสถานะ integration และไม่ติดต่อบริการภายนอก; `status` จะเป็น `production` เมื่อรันบน Vercel Production
 
 ## ต้องทำก่อน Production
 

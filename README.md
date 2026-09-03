@@ -11,6 +11,8 @@
 - Phase 1 migration สำหรับ `profiles`, `level_definitions`, `venues`, `groups` และ `group_members`
 - Phase 2 Auth UI: Email & Password, Google OAuth และ LINE ผ่าน Supabase Custom OAuth/OIDC provider
 - หน้า Profile Completion หลังสมัคร/เชื่อมต่อ พร้อมชื่อ, Email จาก Auth, LINE ID สำหรับติดต่อ, ที่อยู่ และพิกัด GPS แบบ opt-in
+- หน้าแก้ไข Profile พร้อม Dropdown จังหวัด/อำเภอ/ตำบลแบบสัมพันธ์กัน, Bio, ล้างพิกัด GPS และ Avatar Upload แบบ presigned ไป Cloudflare R2
+- หน้า Profile เชื่อม Google/LINE เพิ่มในบัญชีเดิมได้ โดยไม่เปิดปุ่ม unlink จนกว่าจะมีช่องทางสำรอง และ Email ยังคงอ้างอิงจาก Auth
 - Phase 2 migration สำหรับข้อมูล profile/location, LINE contact ID และ public profile view ที่ไม่เปิดข้อมูลส่วนตัว
 - Phase 3 หน้าก๊วนจริง: ค้นหา, ดูรายละเอียด, สร้างก๊วน, เข้าร่วม, ออกจากก๊วน และยกเลิกก๊วน
 - Phase 3 atomic capacity: owner ถูกเพิ่มเป็นสมาชิกอัตโนมัติ, ที่นั่งเต็มจะเข้าคิวรอ และการออกจะเลื่อนคิวถัดไป
@@ -34,6 +36,7 @@
 - ฟอร์ม Organizer เลือกสนาม Active จาก Supabase และส่ง `venue_id` เข้า RPC `create_group` โดยฐานข้อมูลตรวจสถานะสนามซ้ำอีกชั้น
 - Admin Hub สำหรับบัญชีที่อยู่ใน `admin_users` พร้อมทางเข้า Profile Card ไปยัง Shop/Wallet และ BP Rule Editor
 - Roadmap foundation เพิ่มแล้วสำหรับ Trophy record, Community feed (โพสต์/รูป/Comment/Like), Notification center, live Ranking, live Tournament ingest และ Admin BP rule editor
+- Live Ranking ใน Profile ใช้ `get_current_user_rank()` และ Admin มีหน้าแจก Trophy ที่เรียกผ่าน Admin RPC เท่านั้น
 - ยังไม่มี Payment Gateway/webhook จริง, tournament create/bracket/reward workflow หรือ moderation console; interactive Google Maps ยังต้องใส่ API Key และเปิด API ที่จำเป็นใน Google Cloud
 - Migration 0013_venue_discovery_metadata.sql เพิ่มจังหวัด/อำเภอ/ตำบล/คะแนน/สถานะคิว และหน้า /venues อ่านสนาม active จาก Supabase เมื่อมี session
 - QA seed ที่ขึ้นต้น [QA ONLY] ถูกซ่อนจากหน้าผู้ใช้โดย default; เปิดเฉพาะ staging ด้วย ARENA_SHOW_QA_DATA=true
@@ -55,17 +58,17 @@ npm run build
 ไฟล์ `.env.local` ในเครื่องมีค่า Supabase ฝั่ง public และค่า R2 ที่ไม่ใช่ secret สำหรับ bucket แล้ว โดยถูก ignore โดย Git อยู่แล้ว ส่วน secret, database, Google Maps และ public media URL ให้เติมใน local secret/deployment environment ที่ใช้งานจริง
 
 - `NEXT_PUBLIC_SUPABASE_URL` และ `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` สำหรับ Supabase Auth/SSR
-- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` สำหรับ Google Maps JavaScript API; ต้องจำกัด HTTP referrer ให้เฉพาะ Local/Preview/Production ที่ใช้งาน
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` สำหรับ Google Maps JavaScript API; ต้องจำกัด HTTP referrer ให้เฉพาะ Preview/Production ที่ใช้งาน
 - DATABASE_URL ใช้ runtime transaction pooler เช่น aws-0-ap-southeast-1.pooler.supabase.com:6543
 - MIGRATION_DATABASE_URL ใช้ session pooler สำหรับ migration แยกจาก runtime เช่น aws-0-ap-southeast-1.pooler.supabase.com:5432
 - `R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` ใช้เฉพาะฝั่ง server สำหรับ presigned upload
-- `R2_PUBLIC_BASE_URL` เป็น HTTPS custom domain/R2 public hostname ที่ตั้งค่าอ่านรูปได้ ใช้กับ Community image post; ห้ามใช้ bucket ที่เปิด public โดยไม่จำกัดขอบเขต
+- `R2_PUBLIC_BASE_URL` เป็น HTTPS custom domain/R2 public hostname ที่ตั้งค่าอ่านรูปได้ ใช้กับ Community image post และ Avatar; ห้ามใช้ bucket ที่เปิด public โดยไม่จำกัดขอบเขต
 
 ห้าม commit `.env.local`, secret key หรือ service-role key
 
 ## คำสั่งฐานข้อมูลที่เตรียมไว้
 
-Drizzle ใช้สำหรับ schema และ query ในแอป ส่วน migration ที่ apply ไปยัง Supabase target แล้วเก็บ source ไว้ที่ 0001_core_preview.sql ถึง 0014_create_group_venue_link.sql:
+Drizzle ใช้สำหรับ schema และ query ในแอป ส่วน migration ที่ apply ไปยัง Supabase target แล้วเก็บ source ไว้ที่ 0001_core_preview.sql ถึง 0016_profile_completion_rpc.sql:
 
 ```bash
 npm run db:generate
@@ -103,7 +106,7 @@ src/app/                 routes, metadata และ API route handlers
 src/components/          Home และ preview UI
 src/db/                  Drizzle schema และ database client boundary
 src/lib/                 demo data, Supabase server client และ config helpers
-supabase/migrations/     Phase 1–6 migration ที่ apply กับ Supabase แล้ว
+supabase/migrations/     Phase 1–7 migration ที่ apply กับ Supabase แล้ว
 public/assets/           artwork ที่ใช้ในหน้า Home
 ```
 
@@ -111,7 +114,6 @@ public/assets/           artwork ที่ใช้ในหน้า Home
 
 1. ยืนยัน/คัดลอก R2 Access Key ID และ Secret ไปไว้ใน local/Vercel secret โดยไม่ส่งผ่านแชต และตั้ง `R2_PUBLIC_BASE_URL` + CORS ของ bucket
 2. ตั้ง Google/LINE provider, SMTP และ redirect URL ใน Supabase Dashboard; ใส่ Google Maps API Key และจำกัด referrer ก่อนใช้ interactive map
-3. Bootstrap Admin ด้วย Auth User UUID ที่ยืนยันแล้ว แล้วทดสอบ BP editor, Catalog, Trophy award และ internal credit ด้วย test account
+3. ตั้งค่า SMTP/LINE/Google Maps/R2 public URL ตามบริการที่เลือก และทดสอบ login, profile edit และ upload ด้วย test account บน Vercel
 4. ทำ tournament create/join/bracket/reward RPC แบบ atomic และ moderation console ก่อนเปิดใช้งานจริง
 5. เชื่อม Payment Gateway/webhook แบบ server-only พร้อม signature verification, idempotency, refund และ reconciliation
-6. เติม Vercel environment, deploy preview, รัน smoke/E2E กับ test account แล้วค่อย promote production

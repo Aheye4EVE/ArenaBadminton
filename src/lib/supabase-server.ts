@@ -69,7 +69,7 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
   }
 
   const { supabase, user, profile } = profileContext;
-  const [levelsResult, createdGroupsResult, joinedGroupsResult, matchesResult, winsResult, walletResult, notificationsResult, adminResult] = await Promise.all([
+  const [levelsResult, createdGroupsResult, joinedGroupsResult, matchesResult, winsResult, walletResult, notificationsResult, rankResult, adminResult] = await Promise.all([
     supabase.from("level_definitions").select("level, required_exp, label").order("level", { ascending: true }),
     supabase.from("groups").select("id", { count: "exact", head: true }).eq("owner_id", user.id),
     supabase.from("group_members").select("group_id", { count: "exact", head: true }).eq("user_id", user.id).in("membership_status", ["registered", "attended"]),
@@ -77,6 +77,7 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
     supabase.from("exp_ledger").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("source_type", "match_win"),
     supabase.from("user_wallets").select("gems_balance").eq("user_id", user.id).maybeSingle(),
     supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("read_at", null),
+    supabase.rpc("get_current_user_rank"),
     supabase.rpc("is_current_user_admin"),
   ]);
 
@@ -90,6 +91,10 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
   const levelProgress = nextLevelExp === null || nextLevelExp <= currentLevelExp
     ? level >= 99 ? 100 : 0
     : clamp(((expTotal - currentLevelExp) / (nextLevelExp - currentLevelExp)) * 100, 0, 100);
+
+  const rank = rankResult.error || rankResult.data === null || rankResult.data === undefined
+    ? null
+    : Math.max(1, Math.trunc(asNumber(rankResult.data, 1)));
 
   const summary: HeaderProfileSummary = {
     id: user.id,
@@ -106,7 +111,7 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
     skillBp: Math.max(1000, asNumber(profile.skill_bp, 1000)),
     gemsBalance: Math.max(0, asNumber(walletResult.data?.gems_balance)),
     unreadNotificationCount: Math.max(0, notificationsResult.count ?? 0),
-    rank: null,
+    rank,
     isAdmin: !adminResult.error && adminResult.data === true,
     isProfileComplete: Boolean(profile.profile_completed_at),
     stats: {

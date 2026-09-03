@@ -3,6 +3,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthenticatedUser } from "@/lib/supabase-server";
+import { AVATAR_CONTENT_TYPES, AVATAR_MAX_BYTES, publicObjectUrl } from "@/lib/r2-upload";
 
 export const runtime = "nodejs";
 
@@ -10,16 +11,11 @@ const uploadRequestSchema = z.object({
   filename: z.string().trim().min(1).max(120),
   contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]),
   size: z.number().int().positive().max(10 * 1024 * 1024),
+  purpose: z.enum(["community", "avatar"]).default("community"),
 });
 
 function safeFilename(filename: string) {
   return filename.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^\.+/, "").slice(0, 90) || "upload";
-}
-
-function publicObjectUrl(objectKey: string) {
-  const baseUrl = process.env.R2_PUBLIC_BASE_URL?.replace(/\/+$/, "");
-  if (!baseUrl) return null;
-  return `${baseUrl}/${objectKey.split("/").map(encodeURIComponent).join("/")}`;
 }
 
 export async function POST(request: Request) {
@@ -41,7 +37,12 @@ export async function POST(request: Request) {
 
   try {
     const body = uploadRequestSchema.parse(await request.json());
-    const key = `media/${user.id}/${crypto.randomUUID()}-${safeFilename(body.filename)}`;
+    if (body.purpose === "avatar" && (!AVATAR_CONTENT_TYPES.includes(body.contentType as (typeof AVATAR_CONTENT_TYPES)[number]) || body.size > AVATAR_MAX_BYTES)) {
+      return NextResponse.json({ code: "INVALID_AVATAR", message: "Avatar ต้องเป็น JPG, PNG หรือ WebP ขนาดไม่เกิน 5 MB" }, { status: 422 });
+    }
+
+    const keyPrefix = body.purpose === "avatar" ? "avatars" : "media";
+    const key = `${keyPrefix}/${user.id}/${crypto.randomUUID()}-${safeFilename(body.filename)}`;
     const client = new S3Client({
       region: "auto",
       endpoint: `https://${configuration.accountId}.r2.cloudflarestorage.com`,

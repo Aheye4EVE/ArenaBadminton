@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export function GET() {
   return NextResponse.json({
-    status: "local-preview",
+    status: process.env.VERCEL_ENV ?? "local",
     integrations: getIntegrationConfiguration(),
     note: "Configuration visibility only; external services are not contacted by this check.",
   });

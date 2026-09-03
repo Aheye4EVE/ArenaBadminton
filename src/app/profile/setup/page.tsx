@@ -22,6 +22,7 @@ export default async function ProfileSetupPage() {
   const metadata = user.user_metadata as Record<string, unknown> | undefined;
   const initialValues = {
     displayName: profile?.display_name ?? getMetadataText(metadata?.full_name ?? metadata?.name),
+    bio: profile?.bio ?? "",
     lineContactId: profile?.line_contact_id ?? "",
     addressLine: profile?.address_line ?? "",
     province: profile?.province ?? "",
@@ -30,6 +31,7 @@ export default async function ProfileSetupPage() {
     postalCode: profile?.postal_code ?? "",
     latitude: profile?.latitude ?? "",
     longitude: profile?.longitude ?? "",
+    avatarUrl: profile?.avatar_url ?? null,
   };
 
   return <ProfileCompletionForm email={user.email ?? "ไม่พบอีเมลจาก Provider"} initialValues={initialValues} />;

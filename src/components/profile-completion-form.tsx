@@ -4,10 +4,15 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { CheckCircle2, ChevronRight, Crosshair, LogOut, MapPin, ShieldCheck } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
-import { completeProfile, type ProfileActionState } from "@/app/profile/setup/actions";
+import { completeProfile } from "@/app/profile/setup/actions";
+import { type ProfileActionState } from "@/lib/profile-validation";
+import ThaiAreaSelect from "@/components/thai-area-select";
+import ProfileAvatarUpload from "@/components/profile-avatar-upload";
+import ProfileIdentityManager from "@/components/profile-identity-manager";
 
-type ProfileValues = {
+export type ProfileValues = {
   displayName?: string | null;
+  bio?: string | null;
   lineContactId?: string | null;
   addressLine?: string | null;
   province?: string | null;
@@ -16,7 +21,10 @@ type ProfileValues = {
   postalCode?: string | null;
   latitude?: number | string | null;
   longitude?: number | string | null;
+  avatarUrl?: string | null;
 };
+
+export type ProfileFormAction = (previousState: ProfileActionState, formData: FormData) => Promise<ProfileActionState>;
 
 function errorFor(state: ProfileActionState, field: string) {
   return state.fieldErrors?.[field]?.[0];
@@ -26,11 +34,26 @@ function coordinateValue(value: ProfileValues["latitude"]) {
   return value === null || value === undefined ? "" : String(value);
 }
 
-export default function ProfileCompletionForm({ email, initialValues }: { email: string; initialValues?: ProfileValues }) {
-  const [state, formAction, isPending] = useActionState(completeProfile, {});
+export default function ProfileCompletionForm({
+  email,
+  initialValues,
+  mode = "setup",
+  action = completeProfile,
+  connectedProviders = [],
+  identityError,
+}: {
+  email: string;
+  initialValues?: ProfileValues;
+  mode?: "setup" | "edit";
+  action?: ProfileFormAction;
+  connectedProviders?: string[];
+  identityError?: string;
+}) {
+  const [state, formAction, isPending] = useActionState(action, {});
   const [latitude, setLatitude] = useState(coordinateValue(initialValues?.latitude));
   const [longitude, setLongitude] = useState(coordinateValue(initialValues?.longitude));
   const [locationStatus, setLocationStatus] = useState("");
+  const isEdit = mode === "edit";
 
   const captureLocation = () => {
     if (!navigator.geolocation) {
@@ -50,11 +73,17 @@ export default function ProfileCompletionForm({ email, initialValues }: { email:
     );
   };
 
+  const clearLocation = () => {
+    setLatitude("");
+    setLongitude("");
+    setLocationStatus("ล้างพิกัด GPS แล้ว ระบบยังใช้ที่อยู่สำหรับแนะนำพื้นที่ได้");
+  };
+
   return (
     <main className="profile-setup-page">
       <div className="profile-setup-shell">
         <header className="profile-setup-topbar">
-          <Link href="/" className="auth-brand" aria-label="กลับหน้าหลัก Arena-Badminton">
+          <Link href={isEdit ? "/profile" : "/"} className="auth-brand" aria-label="กลับหน้าหลัก Arena-Badminton">
             <span className="auth-brand__word">Arena</span>
             <span className="auth-brand__sub">-Badminton</span>
           </Link>
@@ -64,13 +93,18 @@ export default function ProfileCompletionForm({ email, initialValues }: { email:
         </header>
 
         <section className="profile-setup-card" aria-labelledby="profile-setup-title">
-          <div className="profile-setup-progress"><span className="profile-setup-progress__active">1</span><span /><span>2</span><span /><span>3</span></div>
+          {isEdit ? (
+            <div className="profile-edit-backline"><Link href="/profile">← กลับ Profile</Link><span>ข้อมูลส่วนตัวของคุณ</span></div>
+          ) : (
+            <div className="profile-setup-progress"><span className="profile-setup-progress__active">1</span><span /><span>2</span><span /><span>3</span></div>
+          )}
+
           <div className="profile-setup-heading">
             <div className="profile-setup-heading__icon" aria-hidden="true">🧑🏻</div>
             <div>
               <p lang="en">Your Arena identity</p>
-              <h1 id="profile-setup-title">ขอรู้จักคุณมากขึ้นหน่อย</h1>
-              <span>ข้อมูลนี้ช่วยให้เราหาก๊วนและสนามแบดใกล้คุณได้แม่นยำขึ้น</span>
+              <h1 id="profile-setup-title">{isEdit ? "แก้ไข Profile ของฉัน" : "ขอรู้จักคุณมากขึ้นหน่อย"}</h1>
+              <span>{isEdit ? "ปรับข้อมูลให้เป็นปัจจุบัน เพื่อให้ระบบแนะนำก๊วนและสนามได้แม่นขึ้น" : "ข้อมูลนี้ช่วยให้เราหาก๊วนและสนามแบดใกล้คุณได้แม่นยำขึ้น"}</span>
             </div>
           </div>
 
@@ -78,7 +112,8 @@ export default function ProfileCompletionForm({ email, initialValues }: { email:
 
           <form className="profile-setup-form" action={formAction}>
             <section className="profile-form-section">
-              <div className="profile-form-section__heading"><span>01</span><div><h2>ข้อมูลโปรไฟล์</h2><p>ชื่อที่จะแสดงให้เพื่อน ๆ ใน Arena เห็น</p></div></div>
+              <div className="profile-form-section__heading"><span>01</span><div><h2>ข้อมูลโปรไฟล์</h2><p>ข้อมูลที่เพื่อน ๆ ใน Arena จะเห็น</p></div></div>
+              <ProfileAvatarUpload initialUrl={initialValues?.avatarUrl ?? null} displayName={initialValues?.displayName ?? "Arena Player"} />
               <div className="profile-form-grid profile-form-grid--identity">
                 <label className={errorFor(state, "displayName") ? "profile-field profile-field--error" : "profile-field"}>
                   <span>ชื่อ <b>*</b></span>
@@ -91,9 +126,14 @@ export default function ProfileCompletionForm({ email, initialValues }: { email:
                   <small id="email-note">อ้างอิงจากบัญชีที่ใช้สมัคร ไม่สามารถแก้จากหน้านี้</small>
                 </label>
                 <label className={errorFor(state, "lineContactId") ? "profile-field profile-field--error" : "profile-field"}>
-                  <span>LINE ID สำหรับติดต่อ <b>*</b></span>
-                  <input name="lineContactId" defaultValue={initialValues?.lineContactId ?? ""} placeholder="LINE ID ที่เพื่อนใช้ค้นหาคุณ" autoComplete="off" required />
-                  {errorFor(state, "lineContactId") ? <small>{errorFor(state, "lineContactId")}</small> : <small>ใช้สำหรับติดต่อเรื่องก๊วนและการแข่งขัน</small>}
+                  <span>LINE ID สำหรับติดต่อ <em>(ไม่บังคับ)</em></span>
+                  <input name="lineContactId" defaultValue={initialValues?.lineContactId ?? ""} placeholder="LINE ID ที่เพื่อนใช้ค้นหาคุณ" autoComplete="off" />
+                  {errorFor(state, "lineContactId") ? <small>{errorFor(state, "lineContactId")}</small> : <small>เพิ่มภายหลังได้ หากยังไม่ได้ใช้ LINE</small>}
+                </label>
+                <label className={errorFor(state, "bio") ? "profile-field profile-field--error profile-field--full" : "profile-field profile-field--full"}>
+                  <span>แนะนำตัวสั้น ๆ <em>(ไม่บังคับ)</em></span>
+                  <textarea name="bio" defaultValue={initialValues?.bio ?? ""} placeholder="เช่น ชอบตีหลังเลิกงาน หาเพื่อนเล่นระดับมือกลาง" maxLength={280} rows={3} />
+                  {errorFor(state, "bio") ? <small>{errorFor(state, "bio")}</small> : <small>ไม่เกิน 280 ตัวอักษร และจะแสดงบน Public Profile</small>}
                 </label>
               </div>
             </section>
@@ -106,21 +146,15 @@ export default function ProfileCompletionForm({ email, initialValues }: { email:
                   <input name="addressLine" defaultValue={initialValues?.addressLine ?? ""} placeholder="บ้านเลขที่ ซอย ถนน อาคาร" autoComplete="street-address" required />
                   {errorFor(state, "addressLine") ? <small>{errorFor(state, "addressLine")}</small> : null}
                 </label>
-                <label className={errorFor(state, "province") ? "profile-field profile-field--error" : "profile-field"}>
-                  <span>จังหวัด <b>*</b></span>
-                  <input name="province" defaultValue={initialValues?.province ?? ""} placeholder="เช่น กรุงเทพมหานคร" autoComplete="address-level1" required />
-                  {errorFor(state, "province") ? <small>{errorFor(state, "province")}</small> : null}
-                </label>
-                <label className={errorFor(state, "district") ? "profile-field profile-field--error" : "profile-field"}>
-                  <span>อำเภอ / เขต <b>*</b></span>
-                  <input name="district" defaultValue={initialValues?.district ?? ""} placeholder="เช่น บางเขน" autoComplete="address-level2" required />
-                  {errorFor(state, "district") ? <small>{errorFor(state, "district")}</small> : null}
-                </label>
-                <label className={errorFor(state, "subdistrict") ? "profile-field profile-field--error" : "profile-field"}>
-                  <span>ตำบล / แขวง <b>*</b></span>
-                  <input name="subdistrict" defaultValue={initialValues?.subdistrict ?? ""} placeholder="เช่น อนุสาวรีย์" autoComplete="address-level3" required />
-                  {errorFor(state, "subdistrict") ? <small>{errorFor(state, "subdistrict")}</small> : null}
-                </label>
+                <ThaiAreaSelect
+                  mode="form"
+                  initialProvince={initialValues?.province ?? ""}
+                  initialDistrict={initialValues?.district ?? ""}
+                  initialSubdistrict={initialValues?.subdistrict ?? ""}
+                  provinceError={errorFor(state, "province")}
+                  districtError={errorFor(state, "district")}
+                  subdistrictError={errorFor(state, "subdistrict")}
+                />
                 <label className={errorFor(state, "postalCode") ? "profile-field profile-field--error" : "profile-field"}>
                   <span>รหัสไปรษณีย์ <b>*</b></span>
                   <input name="postalCode" defaultValue={initialValues?.postalCode ?? ""} placeholder="10220" inputMode="numeric" autoComplete="postal-code" maxLength={5} required />
@@ -131,16 +165,17 @@ export default function ProfileCompletionForm({ email, initialValues }: { email:
               <div className="profile-location-panel">
                 <div className="profile-location-panel__icon"><MapPin size={21} /></div>
                 <div><strong>เพิ่มตำแหน่ง GPS ของคุณ</strong><p>ช่วยคำนวณระยะทางไปสนามแบดได้แม่นขึ้น พิกัดจะไม่แสดงเป็นที่อยู่สาธารณะ</p>{locationStatus ? <small className={locationStatus.includes("แล้ว") ? "profile-location-status profile-location-status--success" : "profile-location-status"}>{locationStatus}</small> : null}</div>
-                <button type="button" className="location-button" onClick={captureLocation}><Crosshair size={16} /> ใช้ตำแหน่งปัจจุบัน</button>
+                <div className="profile-location-panel__actions"><button type="button" className="location-button" onClick={captureLocation}><Crosshair size={16} /> ใช้ตำแหน่งปัจจุบัน</button>{latitude || longitude ? <button type="button" className="location-clear-button" onClick={clearLocation}>ล้างพิกัด</button> : null}</div>
               </div>
               <input type="hidden" name="latitude" value={latitude} readOnly />
               <input type="hidden" name="longitude" value={longitude} readOnly />
               {errorFor(state, "latitude") ? <p className="profile-field-error">{errorFor(state, "latitude")}</p> : null}
             </section>
 
-            <div className="profile-privacy-note"><ShieldCheck size={18} /><span>ข้อมูลโปรไฟล์ใช้สำหรับการแนะนำก๊วนและสนามเท่านั้น คุณสามารถแก้ไขข้อมูลภายหลังได้</span></div>
-            <div className="profile-setup-actions"><button type="submit" className="profile-submit" disabled={isPending}>{isPending ? "กำลังบันทึก..." : "บันทึกโปรไฟล์และเข้าสู่ Arena"} {!isPending ? <ChevronRight size={18} /> : null}</button><span><CheckCircle2 size={15} /> BP เริ่มต้น 1,000 · Level 1</span></div>
+            <div className="profile-privacy-note"><ShieldCheck size={18} /><span>ที่อยู่, GPS และ LINE provider ID เป็นข้อมูลส่วนตัว ระบบจะใช้สำหรับการแนะนำพื้นที่เท่านั้น ส่วนชื่อ, Bio, Level และ BP จะแสดงบน Public Profile</span></div>
+            <div className="profile-setup-actions"><button type="submit" className="profile-submit" disabled={isPending}>{isPending ? "กำลังบันทึก..." : isEdit ? "บันทึกการแก้ไข" : "บันทึกโปรไฟล์และเข้าสู่ Arena"} {!isPending ? <ChevronRight size={18} /> : null}</button><span><CheckCircle2 size={15} /> {isEdit ? "EXP, BP และ Trophy จะไม่ถูกแก้ไข" : "BP เริ่มต้น 1,000 · Level 1"}</span></div>
           </form>
+          {isEdit ? <ProfileIdentityManager connectedProviders={connectedProviders} initialError={identityError} /> : null}
         </section>
       </div>
     </main>

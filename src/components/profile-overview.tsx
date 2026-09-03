@@ -8,6 +8,7 @@ import {
   Gem,
   LogOut,
   MapPin,
+  Pencil,
   ShieldCheck,
   Trophy,
   UserRound,
@@ -84,7 +85,9 @@ export default function ProfileOverview({ summary, province, trophies }: { summa
                 </div>
                 <p><MapPin size={13} /> @{summary.handle.replace(/^@/, "")} · {location}</p>
                 <span className="profile-overview-title-pill">{summary.levelLabel}</span>
+                {summary.bio ? <p className="profile-overview-bio">{summary.bio}</p> : null}
               </div>
+              <Link href="/profile/edit" className="profile-overview-edit"><Pencil size={15} /> แก้ไข Profile</Link>
             </div>
 
             <div className="profile-overview-level-block">
@@ -140,7 +143,7 @@ export default function ProfileOverview({ summary, province, trophies }: { summa
           </aside>
         </div>
 
-        <footer className="profile-overview-footer"><span>© Arena-Badminton</span><span>Level up together · Local preview</span></footer>
+        <footer className="profile-overview-footer"><span>© Arena-Badminton</span><span>Level up together · Production Arena</span></footer>
       </div>
     </main>
   );
