@@ -46,6 +46,9 @@ export type Court = {
   distanceKm: number;
   rating: string;
   image: string;
+  imageUrl?: string | null;
+  latitude: number;
+  longitude: number;
 };
 
 export type RankingEntry = {
@@ -168,6 +171,8 @@ export const courts: Court[] = [
     distanceKm: 5.1,
     rating: "4.6",
     image: "🏟️",
+    latitude: 13.8627,
+    longitude: 100.5145,
   },
   {
     id: "88-badminton",
@@ -182,6 +187,8 @@ export const courts: Court[] = [
     distanceKm: 2.5,
     rating: "4.8",
     image: "🏸",
+    latitude: 13.8054,
+    longitude: 100.607,
   },
   {
     id: "smash-arena",
@@ -196,6 +203,8 @@ export const courts: Court[] = [
     distanceKm: 7.3,
     rating: "4.7",
     image: "✨",
+    latitude: 13.9602,
+    longitude: 100.5863,
   },
 ];
 

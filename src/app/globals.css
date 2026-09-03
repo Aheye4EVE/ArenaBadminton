@@ -2839,6 +2839,226 @@ select:focus-visible {
   font-weight: 750;
 }
 
+.venue-map-shell {
+  position: relative;
+  min-height: 382px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.venue-map {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 350px;
+  height: 350px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #f1edff, #e8fbf7);
+}
+
+.venue-map__toolbar {
+  position: absolute;
+  top: 11px;
+  right: 11px;
+  left: 11px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  pointer-events: none;
+}
+
+.venue-map__toolbar > span,
+.venue-map__locate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  min-height: 29px;
+  padding: 0.38rem 0.58rem;
+  border: 1px solid rgba(255, 255, 255, 0.94);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #6e5b9e;
+  box-shadow: 0 5px 15px rgba(90, 71, 155, 0.12);
+  font-size: 0.58rem;
+  font-weight: 850;
+  backdrop-filter: blur(8px);
+}
+
+.venue-map__toolbar > span svg {
+  color: #e878ae;
+}
+
+.venue-map__locate {
+  cursor: pointer;
+  font: inherit;
+  pointer-events: auto;
+}
+
+.venue-map__locate:hover {
+  border-color: #e7a6c9;
+  color: #e162a2;
+}
+
+.venue-map__locate:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.venue-map__empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 450;
+  display: grid;
+  justify-items: center;
+  gap: 0.28rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.87);
+  color: #806db4;
+  box-shadow: 0 8px 20px rgba(86, 72, 152, 0.12);
+  font-size: 0.65rem;
+  font-weight: 800;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.venue-map__message {
+  position: absolute;
+  right: 12px;
+  bottom: 38px;
+  left: 12px;
+  z-index: 450;
+  margin: 0;
+  padding: 0.38rem 0.55rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #806db4;
+  box-shadow: 0 5px 15px rgba(90, 71, 155, 0.1);
+  font-size: 0.58rem;
+  font-weight: 750;
+  text-align: center;
+  pointer-events: none;
+}
+
+.venue-map__message--error {
+  color: #c76383;
+}
+
+.venue-map__note {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 0.52rem 0.75rem 0.62rem;
+  color: #9890ae;
+  font-size: 0.56rem;
+  font-weight: 650;
+  text-align: center;
+}
+
+.venue-map .leaflet-container {
+  width: 100%;
+  height: 100%;
+  color: #4e428f;
+  font-family: var(--font-mitr), "Mitr", sans-serif;
+}
+
+.venue-map .leaflet-control-zoom {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(90, 71, 155, 0.14);
+}
+
+.venue-map .leaflet-control-zoom a {
+  width: 29px;
+  height: 29px;
+  border: 0;
+  color: #7563a8;
+  background: rgba(255, 255, 255, 0.9);
+  line-height: 29px;
+}
+
+.venue-map .leaflet-control-zoom a:hover {
+  color: #e35f9f;
+  background: #fff4fb;
+}
+
+.venue-map .leaflet-control-attribution {
+  padding: 2px 5px;
+  color: #81789d;
+  background: rgba(255, 255, 255, 0.76);
+  font-size: 0.49rem;
+}
+
+.venue-map .leaflet-control-attribution a {
+  color: #7861b6;
+}
+
+.venue-map-marker-wrap {
+  border: 0;
+  background: transparent;
+}
+
+.venue-map-marker {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 50% 50% 50% 9px;
+  background: linear-gradient(145deg, #ff92c3, #8d7ce9);
+  box-shadow: 0 5px 12px rgba(91, 70, 161, 0.25);
+  font-size: 1.08rem;
+  transform: rotate(-45deg);
+}
+
+.venue-map-marker b {
+  display: block;
+  transform: rotate(45deg);
+}
+
+.venue-map-popup {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 180px;
+  color: #685a8f;
+  font-family: var(--font-mitr), "Mitr", sans-serif;
+}
+
+.venue-map-popup strong {
+  color: #4e428f;
+  font-size: 0.78rem;
+}
+
+.venue-map-popup span,
+.venue-map-popup small {
+  color: #8c83a5;
+  font-size: 0.6rem;
+  line-height: 1.4;
+}
+
+.venue-map-popup__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  margin-top: 0.15rem;
+}
+
+.venue-map-popup__actions a {
+  color: #dc5f9d;
+  font-size: 0.6rem;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.venue-map-popup__actions a:hover {
+  color: #745ec0;
+}
+
 .community-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 310px;

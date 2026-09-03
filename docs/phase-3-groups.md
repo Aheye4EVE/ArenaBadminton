@@ -44,7 +44,7 @@ Phase 3 เปลี่ยน `/groups` และ `/organizer` จาก preview
 
 ## ขอบเขตที่ยังไม่รวมใน Phase 3
 
-- การเลือก `venue_id` จากฐานข้อมูลสนามและแผนที่ Google Maps
+- การเลือก `venue_id` จากฐานข้อมูลสนามในฟอร์มสร้างก๊วน; หน้า discovery มีแผนที่ Leaflet/OpenStreetMap แล้ว ส่วนการเลือกหมุดในฟอร์มเป็นงานถัดไป
 - การแก้ไขก๊วนหลังสร้าง
 - check-in, match bracket, result confirmation และ BP/EXP settlement
 - payment/entry fee collection และ refund

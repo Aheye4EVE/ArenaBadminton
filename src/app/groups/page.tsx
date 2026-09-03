@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import GroupsBrowser, { type GroupListItem, type GroupSearchFilters } from "@/components/groups-browser";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
+import { shouldShowQaData } from "@/lib/config";
 
 export const metadata: Metadata = { title: "ค้นหาก๊วน | Arena-Badminton" };
 export const dynamic = "force-dynamic";
@@ -128,6 +129,7 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
       { count: "exact" },
     )
     .in("status", filters.availability === "available" ? ["published"] : ["published", "full"]);
+  if (!shouldShowQaData()) groupsQuery = groupsQuery.not("title", "like", "[QA ONLY]%");
 
   const searchConditions = searchTerms(filters.q)
     .flatMap((searchTerm) => [

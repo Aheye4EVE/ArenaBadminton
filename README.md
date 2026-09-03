@@ -28,9 +28,13 @@
 - RLS เปิดครบทุกตาราง และปิดสิทธิ์ anonymous ใน Data API
 - Cloudflare R2 presigned-upload route ที่ตรวจ auth, MIME type, file size และสร้าง key แยกตาม user
 - `/api/health` แสดงเฉพาะสถานะว่ามี environment variables ครบหรือไม่ โดยไม่ติดต่อบริการภายนอก
-- Provider Google/LINE ต้องตั้งค่า Client ID/Secret และ callback ใน Supabase Dashboard ก่อนทดสอบ OAuth จริง
+- Google OAuth เปิดใช้งานและทดสอบกับบัญชี QA แล้ว; LINE ยังรอ Client ID/Secret และ callback จาก LINE Login Console
+- Email Auth ใช้งานกับ Supabase provider แล้ว; Production ยังต้องตั้ง SMTP ของโดเมนจริงและทดสอบอีเมลยืนยัน/รีเซ็ตรหัสผ่าน
+- หน้าแผนที่สนามใช้ Leaflet + OpenStreetMap แสดงหมุดตามพิกัดของสนาม, ขอ Location แบบ opt-in และเปิดรายละเอียดบน OpenStreetMap ได้
 - Roadmap foundation เพิ่มแล้วสำหรับ Trophy record, Community feed (โพสต์/รูป/Comment/Like), Notification center, live Ranking, live Tournament ingest และ Admin BP rule editor
-- ยังไม่มี Payment Gateway/webhook จริง, tournament create/bracket/reward workflow, moderation console, Google Maps key/provider setup หรือ deploy production
+- ยังไม่มี Payment Gateway/webhook จริง, tournament create/bracket/reward workflow, moderation console หรือ deploy production; หน้าแผนที่ใช้ Leaflet + OpenStreetMap โดยไม่ต้องเปิด Google Cloud Billing แล้ว
+- Migration 0013_venue_discovery_metadata.sql เพิ่มจังหวัด/อำเภอ/ตำบล/คะแนน/สถานะคิว และหน้า /venues อ่านสนาม active จาก Supabase เมื่อมี session
+- QA seed ที่ขึ้นต้น [QA ONLY] ถูกซ่อนจากหน้าผู้ใช้โดย default; เปิดเฉพาะ staging ด้วย ARENA_SHOW_QA_DATA=true
 
 ## รันบนเครื่อง
 
@@ -54,9 +58,9 @@ npm run build
 ไฟล์ `.env.local` ในเครื่องมีค่า Supabase ฝั่ง public และค่า R2 ที่ไม่ใช่ secret สำหรับ bucket แล้ว โดยถูก ignore โดย Git อยู่แล้ว ส่วน secret, database, Google Maps และ public media URL ให้เติมใน local secret/deployment environment ที่ใช้งานจริง
 
 - `NEXT_PUBLIC_SUPABASE_URL` และ `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` สำหรับ Supabase Auth/SSR
-- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` สำหรับแผนที่ฝั่ง browser โดยต้องจำกัด referrer/domain ใน Google Cloud
-- `DATABASE_URL` ใช้ runtime connection pooler
-- `MIGRATION_DATABASE_URL` ใช้ connection สำหรับ migration แยกจาก runtime
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` เป็นค่าทางเลือกสำหรับกรณีเปลี่ยนกลับไปใช้ Google Maps; แผนที่หลักใช้ Leaflet + OpenStreetMap โดยไม่ต้องใช้ key
+- DATABASE_URL ใช้ runtime transaction pooler เช่น aws-0-ap-southeast-1.pooler.supabase.com:6543
+- MIGRATION_DATABASE_URL ใช้ session pooler สำหรับ migration แยกจาก runtime เช่น aws-0-ap-southeast-1.pooler.supabase.com:5432
 - `R2_ACCOUNT_ID`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` ใช้เฉพาะฝั่ง server สำหรับ presigned upload
 - `R2_PUBLIC_BASE_URL` เป็น HTTPS custom domain/R2 public hostname ที่ตั้งค่าอ่านรูปได้ ใช้กับ Community image post; ห้ามใช้ bucket ที่เปิด public โดยไม่จำกัดขอบเขต
 
@@ -64,7 +68,7 @@ npm run build
 
 ## คำสั่งฐานข้อมูลที่เตรียมไว้
 
-Drizzle ใช้สำหรับ schema และ query ในแอป ส่วน migration ที่ apply ไปยัง Supabase target แล้วเก็บ source ไว้ที่ `supabase/migrations/0001_core_preview.sql` ถึง `supabase/migrations/0012_security_invoker_profile_directory.sql`:
+Drizzle ใช้สำหรับ schema และ query ในแอป ส่วน migration ที่ apply ไปยัง Supabase target แล้วเก็บ source ไว้ที่ 0001_core_preview.sql ถึง 0013_venue_discovery_metadata.sql:
 
 ```bash
 npm run db:generate
@@ -109,7 +113,7 @@ public/assets/           artwork ที่ใช้ในหน้า Home
 ## ลำดับงานถัดไป
 
 1. ยืนยัน/คัดลอก R2 Access Key ID และ Secret ไปไว้ใน local/Vercel secret โดยไม่ส่งผ่านแชต และตั้ง `R2_PUBLIC_BASE_URL` + CORS ของ bucket
-2. ใส่ Google Maps browser key แบบจำกัด domain และตั้ง Google/LINE provider, SMTP, redirect URL ใน Supabase Dashboard
+2. ตั้ง Google/LINE provider, SMTP และ redirect URL ใน Supabase Dashboard; Google Maps key ไม่จำเป็นสำหรับแผนที่หลัก
 3. Bootstrap Admin ด้วย Auth User UUID ที่ยืนยันแล้ว แล้วทดสอบ BP editor, Catalog, Trophy award และ internal credit ด้วย test account
 4. ทำ tournament create/join/bracket/reward RPC แบบ atomic และ moderation console ก่อนเปิดใช้งานจริง
 5. เชื่อม Payment Gateway/webhook แบบ server-only พร้อม signature verification, idempotency, refund และ reconciliation

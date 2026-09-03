@@ -31,7 +31,7 @@
 3. ตั้งค่า Google provider
    - สร้าง OAuth Web Client ใน Google Cloud Console
    - ใส่ Supabase Auth callback URL ที่ Dashboard แสดงให้ใน Google Authorized redirect URIs
-   - ใส่ Client ID/Secret ใน Supabase Authentication > Providers > Google
+   - ใส่ Client ID/Secret ใน Supabase Authentication > Providers > Google (โปรเจกต์นี้ตั้งค่าและทดสอบ Google OAuth แล้ว)
    - ในแอป callback สุดท้ายยังกลับมาที่ `/auth/callback` ของเว็บ เพื่อให้ SSR cookie ถูกตั้งในโดเมนแอป
 4. ตั้งค่า LINE provider
    - สร้าง LINE Login channel และเปิด OIDC ตาม LINE Login Console
@@ -75,7 +75,7 @@ npm run build
 
 - Email signup แสดงข้อความให้ยืนยันอีเมลเมื่อ Supabase เปิด email confirmation
 - Email login หลังสำเร็จไป `/profile/setup`
-- Google/LINE จะเริ่มได้เมื่อ provider และ callback ใน Dashboard ถูกตั้งค่าแล้ว
+- Google OAuth เริ่มใช้งานและทดสอบแล้ว; LINE จะเริ่มได้เมื่อ provider และ callback ใน Dashboard ถูกตั้งค่า
 - ผู้ใช้ที่ยังไม่กรอก profile จะถูกนำไป `/profile/setup`
 - ผู้ใช้ที่กรอก profile แล้วจะไม่ถูกบังคับกรอกซ้ำ
 

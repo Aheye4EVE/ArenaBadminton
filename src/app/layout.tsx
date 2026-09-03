@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fredoka, Mitr } from "next/font/google";
 import type { ReactNode } from "react";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
 const fredoka = Fredoka({

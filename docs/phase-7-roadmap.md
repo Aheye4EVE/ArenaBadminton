@@ -14,13 +14,16 @@
 - `/ranking` อ่าน `public_profiles` และจัดอันดับตาม Skill BP/Level/EXP เมื่อมี session
 - `/events` รวม Tournament ที่มีสถานะ `published` จาก Supabase เมื่อผู้ใช้เข้าสู่ระบบ; ยังเก็บ demo fallback สำหรับผู้ใช้ที่ยังไม่ login
 - QA data ใน Supabase ใช้ prefix `[QA ONLY]` และไม่แก้ข้อมูล Profile เดิม
+- 0013_venue_discovery_metadata.sql เพิ่ม metadata การค้นหาสนาม และ /venues อ่านสนาม active จาก Supabase เมื่อมี authenticated session
+- Leaflet/OpenStreetMap ถูกใช้เป็น map provider หลัก จึงไม่ต้องใช้ Google Cloud Billing
+- ทดสอบ Google OAuth และ R2 upload บน Local ด้วยบัญชีทดสอบแล้ว
 
 ## Environment
 
 ตั้งค่าใน local/deployment secret เท่านั้น:
 
 ```env
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY= # optional fallback; main map uses Leaflet + OpenStreetMap
 R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
 R2_SECRET_ACCESS_KEY=
@@ -41,7 +44,7 @@ R2 bucket สร้างแล้วและจำกัด token ที่เ
 - 1 Tournament published ชื่อ `[QA ONLY] Arena Community Cup`
 - ใช้ Profile เดิมที่มีอยู่เป็น owner เพียงรายเดียว ไม่สร้าง Auth user ปลอม
 
-ลบข้อมูล QA ด้วยตัวกรอง prefix นี้หลังจบ staging QA เท่านั้น และตรวจ foreign key ก่อนลบทุกครั้ง
+ก่อนเปิด Production ให้คง ARENA_SHOW_QA_DATA=false และลบข้อมูล QA ด้วยตัวกรอง prefix นี้หลังจบ staging QA เท่านั้น โดยตรวจ foreign key และ snapshot ก่อนลบทุกครั้ง
 
 ## Local verification
 
@@ -58,7 +61,7 @@ npm run start -- -p 3100
 
 ## ต้องทำก่อน Production
 
-1. ตั้ง Google Maps key แบบจำกัด referrer/domain และ Supabase Google/LINE provider, SMTP, email confirmation และ redirect URLs
+1. Google OAuth และ redirect URL หลักตั้งค่าแล้ว; ตั้ง LINE provider, SMTP, email confirmation และ redirect URLs ของ Preview/Production ให้ครบ; Google Maps key เป็น optional เพราะแผนที่หลักใช้ Leaflet + OpenStreetMap
 2. ตั้ง R2 credentials, public URL และ CORS ใน Vercel; ทดสอบ upload จริงด้วย test account
 3. Bootstrap `admin_users` ด้วย UUID ของ Auth user ที่ยืนยันแล้ว และทดสอบ Admin BP/Shop/Trophy ใน staging
 4. ทำ tournament create/join/bracket/reward ผ่าน RPC ที่ lock capacity และมี audit ก่อนเปิดหน้าใช้งานจริง

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import EventSearchBrowser, { type EventSearchFilters } from "@/components/event-search-browser";
 import { events, type Event } from "@/lib/demo-data";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
+import { shouldShowQaData } from "@/lib/config";
 
 export const metadata: Metadata = { title: "กิจกรรม | Arena-Badminton" };
 export const dynamic = "force-dynamic";
@@ -111,13 +112,15 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   let eventSource = events;
 
   if (supabase && user) {
-    const { data: tournamentRows } = await supabase
+    let tournamentQuery = supabase
       .from("tournaments")
       .select("id, title, description, starts_at, format, max_entries")
       .eq("status", "published")
       .gt("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
       .limit(50);
+    if (!shouldShowQaData()) tournamentQuery = tournamentQuery.not("title", "like", "[QA ONLY]%");
+    const { data: tournamentRows } = await tournamentQuery;
     const rows = (tournamentRows ?? []) as Array<Record<string, unknown>>;
     const tournamentIds = rows.map((row) => typeof row.id === "string" ? row.id : "").filter(Boolean);
     const { data: entryRows } = tournamentIds.length > 0

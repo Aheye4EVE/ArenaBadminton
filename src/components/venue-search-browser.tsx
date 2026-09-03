@@ -14,6 +14,7 @@ import {
 import ThaiAreaSelect from "@/components/thai-area-select";
 import { PreviewHeader } from "@/components/preview-page";
 import type { Court } from "@/lib/demo-data";
+import VenueMap from "@/components/venue-map";
 
 export type VenueSearchFilters = {
   q: string;
@@ -46,7 +47,15 @@ function availabilityLabel(value: Court["availability"]) {
 function VenueCard({ court }: { court: Court }) {
   return (
     <article id={court.id} className="venue-card venue-card--discovery">
-      <div className="venue-card__image" aria-hidden="true"><span>{court.image}</span><small><MapPin size={12} /> {court.province}</small></div>
+      <div className="venue-card__image" aria-hidden="true">
+        {court.imageUrl ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={court.imageUrl} alt="" />
+          </>
+        ) : <span>{court.image}</span>}
+        <small><MapPin size={12} /> {court.province}</small>
+      </div>
       <div>
         <div className="discovery-card__topline">
           <span className={court.availability === "available" ? "discovery-status discovery-status--available" : "discovery-status"}>
@@ -116,7 +125,7 @@ export default function VenueSearchBrowser({
           </section>
 
           <aside className="discovery-sidebar">
-            <section className="preview-panel preview-panel--soft map-placeholder discovery-map-card"><div className="map-placeholder__grid" /><MapPin size={29} /><strong>แผนที่สนาม</strong><span>เลือกพื้นที่ แล้วดูสนามในบริเวณนั้น</span><p className="discovery-map-note"><Navigation size={14} /> Google Maps จะเปิดใช้งานเมื่อใส่ API key ที่จำกัดโดเมนแล้ว</p></section>
+            <VenueMap venues={venues} />
             <section className="preview-panel preview-panel--soft discovery-tip-card"><p className="muted-label">Court guide</p><h2>เลือกสนามให้เหมาะกับคุณ</h2><ul><li><span>01</span>เช็กระยะทางและเวลาเดินทาง</li><li><span>02</span>ดูจำนวนคอร์ทก่อนชวนเพื่อน</li><li><span>03</span>กดเช็กคิวกับสนามอีกครั้งก่อนจอง</li></ul></section>
           </aside>
         </div>

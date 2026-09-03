@@ -1,5 +1,6 @@
 import type { getAuthenticatedProfile } from "@/lib/supabase-server";
 import { groups as demoGroups, type Group } from "@/lib/demo-data";
+import { shouldShowQaData } from "@/lib/config";
 
 type RecommendationContext = Awaited<ReturnType<typeof getAuthenticatedProfile>>;
 
@@ -181,13 +182,15 @@ export async function getRecommendedGroups(context: RecommendationContext): Prom
   const { supabase, user, profile } = context;
   if (!supabase || !user) return fallbackGroups();
 
-  const { data: groupData, error: groupError } = await supabase
+  let groupQuery = supabase
     .from("groups")
     .select("id, owner_id, venue_id, title, location_text, starts_at, duration_minutes, capacity, min_level, max_level, play_type, status")
     .eq("status", "published")
     .gt("starts_at", new Date().toISOString())
     .order("starts_at", { ascending: true })
     .limit(candidateLimit);
+  if (!shouldShowQaData()) groupQuery = groupQuery.not("title", "like", "[QA ONLY]%");
+  const { data: groupData, error: groupError } = await groupQuery;
 
   if (groupError) return fallbackGroups();
 
