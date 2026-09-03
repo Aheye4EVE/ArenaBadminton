@@ -21,6 +21,15 @@ function fieldClass(mode: ThaiAreaSelectProps["mode"], error?: string) {
   return error ? "group-form-field group-form-field--error" : "group-form-field";
 }
 
+function normalizeAreaValue(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  // Existing profiles may contain the bilingual display format used by the
+  // earlier preview data, for example "สมุทรปราการ — Samut Prakan".
+  return trimmed.split(/\s+[—–-]\s+/u, 2)[0]?.trim() ?? trimmed;
+}
+
 export default function ThaiAreaSelect({
   mode,
   initialProvince = "",
@@ -31,9 +40,9 @@ export default function ThaiAreaSelect({
   subdistrictError,
 }: ThaiAreaSelectProps) {
   const [addressData, setAddressData] = useState<AddressModule | null>(null);
-  const [province, setProvince] = useState(initialProvince);
-  const [district, setDistrict] = useState(initialDistrict);
-  const [subdistrict, setSubdistrict] = useState(initialSubdistrict);
+  const [province, setProvince] = useState(() => normalizeAreaValue(initialProvince));
+  const [district, setDistrict] = useState(() => normalizeAreaValue(initialDistrict));
+  const [subdistrict, setSubdistrict] = useState(() => normalizeAreaValue(initialSubdistrict));
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
