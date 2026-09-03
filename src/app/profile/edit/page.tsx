@@ -33,6 +33,7 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
       email={user.email ?? (getMetadataText(metadata?.email) || "ไม่พบอีเมลจาก Provider")}
       initialValues={{
         displayName: profile.display_name,
+        handle: profile.handle,
         bio: profile.bio,
         lineContactId: profile.line_contact_id,
         addressLine: profile.address_line,

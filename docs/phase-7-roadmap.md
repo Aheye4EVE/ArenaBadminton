@@ -8,7 +8,7 @@
 - `0010_production_security_hardening.sql` ถูก apply แล้ว: ปิดการ mint Trophy จาก client, จำกัด Notification ให้แก้ได้เฉพาะ `read_at`, รวม Shop SELECT policy และเพิ่ม FK indexes
 - `0011_roadmap_fk_indexes.sql` ถูก apply แล้วเพื่อ cover foreign key ของ Tournament เพิ่มเติม
 - `0012_security_invoker_profile_directory.sql` ถูก apply แล้ว: แยก public profile directory และเปลี่ยน public profile/group/match views เป็น `security_invoker=true`
-- `0015_profile_rank_rpc.sql` และ `0016_profile_completion_rpc.sql` ถูก apply แล้ว: Profile อ่าน Ranking จริง และการสร้าง/แก้ข้อมูล Profile ไม่เปิดให้แก้ Level/EXP/BP/identity subject ผ่าน Data API
+- `0015_profile_rank_rpc.sql`, `0016_profile_completion_rpc.sql` และ `0017_profile_edit_rpc.sql` ถูก apply แล้ว: Profile อ่าน Ranking จริง, TAGNAME แก้ไขได้ผ่าน RPC แบบ atomic และไม่เปิดให้แก้ Level/EXP/BP/identity subject ผ่าน Data API
 - Community feed อ่านจาก `social_posts` พร้อมสร้างโพสต์, แนบรูปผ่าน presigned R2 flow, Comment และ Like
 - Notification center อ่านตามเจ้าของและ mark as read ได้
 - Profile อ่าน Trophy records ที่ได้รับแล้ว

@@ -20,9 +20,22 @@ const optionalCoordinate = (min: number, max: number) => z.preprocess(
   z.number().finite().min(min).max(max).optional(),
 );
 
+const optionalHandle = z.preprocess(
+  (value) => {
+    if (typeof value !== "string" || value.trim() === "") return undefined;
+    return value.trim().replace(/^@+/u, "").toLowerCase();
+  },
+  z.string()
+    .min(3, "TAGNAME ต้องมีอย่างน้อย 3 ตัวอักษร")
+    .max(40, "TAGNAME ยาวเกินไป")
+    .regex(/^[a-z0-9_]+$/u, "ใช้ภาษาอังกฤษ ตัวเลข และ _ เท่านั้น")
+    .optional(),
+);
+
 export const profileSchema = z
   .object({
     displayName: z.string().trim().min(1, "กรุณากรอกชื่อ").max(80, "ชื่อยาวเกินไป"),
+    handle: optionalHandle,
     bio: optionalText(280, "Bio ยาวเกินไป"),
     lineContactId: optionalText(80, "LINE ID ยาวเกินไป"),
     addressLine: z.string().trim().min(1, "กรุณากรอกที่อยู่").max(240, "ที่อยู่ยาวเกินไป"),
@@ -78,6 +91,7 @@ export function parseProfileForm(formData: FormData):
   | { success: false; state: ProfileActionState } {
   const parsed = profileSchema.safeParse({
     displayName: readFormText(formData, "displayName"),
+    handle: readFormText(formData, "handle"),
     bio: readFormText(formData, "bio"),
     lineContactId: readFormText(formData, "lineContactId"),
     addressLine: readFormText(formData, "addressLine"),

@@ -87,7 +87,10 @@ export default function ProfileOverview({ summary, province, trophies }: { summa
                 <span className="profile-overview-title-pill">{summary.levelLabel}</span>
                 {summary.bio ? <p className="profile-overview-bio">{summary.bio}</p> : null}
               </div>
-              <Link href="/profile/edit" className="profile-overview-edit"><Pencil size={15} /> แก้ไข Profile</Link>
+              <div className="profile-overview-identity__links">
+                <Link href="/profile/edit" className="profile-overview-edit"><Pencil size={15} /> แก้ไข Profile</Link>
+                {summary.isAdmin ? <Link href="/admin" className="profile-overview-admin"><ShieldCheck size={15} /> Admin</Link> : null}
+              </div>
             </div>
 
             <div className="profile-overview-level-block">
@@ -123,7 +126,7 @@ export default function ProfileOverview({ summary, province, trophies }: { summa
                 <div className="profile-overview-score profile-overview-score--bp"><span><Award size={17} /> Skill BP</span><strong>{formatNumber(summary.skillBp)}</strong><small>ค่าต่ำสุด 1,000 BP</small></div>
                 <div className="profile-overview-score profile-overview-score--wins"><span><Trophy size={17} /> ชนะแล้ว</span><strong>{formatNumber(summary.stats.wins)}</strong><small>จาก {formatNumber(summary.stats.matchesPlayed)} แมตช์</small></div>
               </div>
-              <div className="profile-overview-rank-line"><span>Ranking</span><strong>{summary.rank === null ? "กำลังคำนวณ" : `#${formatNumber(summary.rank)}`}</strong></div>
+              <Link href="/ranking" className="profile-overview-rank-line"><span>Ranking</span><strong>{summary.rank === null ? "กำลังคำนวณ" : `#${formatNumber(summary.rank)}`}</strong><ArrowRight size={15} /></Link>
             </section>
 
             <section className="profile-overview-card profile-overview-trophy-card">

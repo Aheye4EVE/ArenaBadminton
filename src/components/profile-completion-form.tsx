@@ -12,6 +12,7 @@ import ProfileIdentityManager from "@/components/profile-identity-manager";
 
 export type ProfileValues = {
   displayName?: string | null;
+  handle?: string | null;
   bio?: string | null;
   lineContactId?: string | null;
   addressLine?: string | null;
@@ -120,6 +121,25 @@ export default function ProfileCompletionForm({
                   <input name="displayName" defaultValue={initialValues?.displayName ?? ""} placeholder="เช่น BadBuddy" autoComplete="name" required />
                   {errorFor(state, "displayName") ? <small>{errorFor(state, "displayName")}</small> : null}
                 </label>
+                {isEdit ? (
+                  <label className={errorFor(state, "handle") ? "profile-field profile-field--error" : "profile-field"}>
+                    <span>TAGNAME <b>*</b></span>
+                    <div className="profile-handle-input">
+                      <span aria-hidden="true">@</span>
+                      <input
+                        name="handle"
+                        defaultValue={(initialValues?.handle ?? "").replace(/^@+/u, "")}
+                        placeholder="playername"
+                        autoComplete="username"
+                        minLength={3}
+                        maxLength={40}
+                        pattern="[A-Za-z0-9_]+"
+                        required
+                      />
+                    </div>
+                    {errorFor(state, "handle") ? <small>{errorFor(state, "handle")}</small> : <small>แสดงใต้ชื่อเป็น @TAGNAME ใช้ภาษาอังกฤษ ตัวเลข และ _</small>}
+                  </label>
+                ) : null}
                 <label className="profile-field">
                   <span>Email</span>
                   <input value={email} readOnly aria-describedby="email-note" />

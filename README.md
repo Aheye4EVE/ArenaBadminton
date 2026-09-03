@@ -11,7 +11,7 @@
 - Phase 1 migration สำหรับ `profiles`, `level_definitions`, `venues`, `groups` และ `group_members`
 - Phase 2 Auth UI: Email & Password, Google OAuth และ LINE ผ่าน Supabase Custom OAuth/OIDC provider
 - หน้า Profile Completion หลังสมัคร/เชื่อมต่อ พร้อมชื่อ, Email จาก Auth, LINE ID สำหรับติดต่อ, ที่อยู่ และพิกัด GPS แบบ opt-in
-- หน้าแก้ไข Profile พร้อม Dropdown จังหวัด/อำเภอ/ตำบลแบบสัมพันธ์กัน, Bio, ล้างพิกัด GPS และ Avatar Upload แบบ presigned ไป Cloudflare R2
+- หน้าแก้ไข Profile พร้อม TAGNAME ที่ normalize เป็นตัวพิมพ์เล็กและตรวจชื่อซ้ำ, Dropdown จังหวัด/อำเภอ/ตำบลแบบสัมพันธ์กัน, Bio, ล้างพิกัด GPS และ Avatar Upload แบบ presigned ไป Cloudflare R2
 - หน้า Profile เชื่อม Google/LINE เพิ่มในบัญชีเดิมได้ โดยไม่เปิดปุ่ม unlink จนกว่าจะมีช่องทางสำรอง และ Email ยังคงอ้างอิงจาก Auth
 - Phase 2 migration สำหรับข้อมูล profile/location, LINE contact ID และ public profile view ที่ไม่เปิดข้อมูลส่วนตัว
 - Phase 3 หน้าก๊วนจริง: ค้นหา, ดูรายละเอียด, สร้างก๊วน, เข้าร่วม, ออกจากก๊วน และยกเลิกก๊วน
@@ -39,6 +39,7 @@
 - Live Ranking ใน Profile ใช้ `get_current_user_rank()` และ Admin มีหน้าแจก Trophy ที่เรียกผ่าน Admin RPC เท่านั้น
 - ยังไม่มี Payment Gateway/webhook จริง, tournament create/bracket/reward workflow หรือ moderation console; interactive Google Maps ยังต้องใส่ API Key และเปิด API ที่จำเป็นใน Google Cloud
 - Migration 0013_venue_discovery_metadata.sql เพิ่มจังหวัด/อำเภอ/ตำบล/คะแนน/สถานะคิว และหน้า /venues อ่านสนาม active จาก Supabase เมื่อมี session
+- Migration 0017_profile_edit_rpc.sql รวมการแก้ Profile เป็น authenticated RPC เดียวแบบ atomic; ไม่เปิด direct update และไม่แตะ Level, EXP, BP, provider subject หรือ completion state
 - QA seed ที่ขึ้นต้น [QA ONLY] ถูกซ่อนจากหน้าผู้ใช้โดย default; เปิดเฉพาะ staging ด้วย ARENA_SHOW_QA_DATA=true
 
 ## ตรวจสอบก่อน Deploy Production
@@ -68,7 +69,7 @@ npm run build
 
 ## คำสั่งฐานข้อมูลที่เตรียมไว้
 
-Drizzle ใช้สำหรับ schema และ query ในแอป ส่วน migration ที่ apply ไปยัง Supabase target แล้วเก็บ source ไว้ที่ 0001_core_preview.sql ถึง 0016_profile_completion_rpc.sql:
+Drizzle ใช้สำหรับ schema และ query ในแอป ส่วน migration ที่ apply ไปยัง Supabase target แล้วเก็บ source ไว้ที่ 0001_core_preview.sql ถึง 0017_profile_edit_rpc.sql:
 
 ```bash
 npm run db:generate

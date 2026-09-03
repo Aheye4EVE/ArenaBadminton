@@ -9,9 +9,10 @@
 - `src/proxy.ts` refresh session cookie ทุก request ที่เหมาะสม โดยไม่ตัดสินสิทธิ์แทนหน้าและ RLS
 - หลังสมัครหรือเชื่อมต่อสำเร็จ จะพาไป `/profile/setup`
 - หน้า Profile Completion บังคับกรอกชื่อ, ที่อยู่, จังหวัด, อำเภอ/เขต, ตำบล/แขวง และรหัสไปรษณีย์
-- `/profile/edit` แก้ชื่อ, Bio, LINE ID สำหรับติดต่อ, ที่อยู่แบบ Dropdown สัมพันธ์กัน, รหัสไปรษณีย์, GPS และ Avatar ได้
+- `/profile/edit` แก้ชื่อ, TAGNAME, Bio, LINE ID สำหรับติดต่อ, ที่อยู่แบบ Dropdown สัมพันธ์กัน, รหัสไปรษณีย์, GPS และ Avatar ได้
+- TAGNAME ตัด `@` ด้านหน้าและ normalize เป็นตัวพิมพ์เล็ก; รับเฉพาะภาษาอังกฤษ/ตัวเลข/`_` ยาว 3–40 ตัวอักษร และ unique แบบไม่สนตัวพิมพ์ใหญ่เล็ก
 - Avatar ใช้ presigned PUT ไป R2 โดยจำกัด JPG/PNG/WebP ไม่เกิน 5 MB และ server รับเฉพาะ object key ใต้ `avatars/{userId}/`
-- `complete_profile` RPC เป็นช่องทางสร้าง/เติม Profile; Data API ไม่ให้ผู้ใช้แก้ handle, LINE provider subject, Level, EXP, BP หรือสถานะ Profile โดยตรง
+- `complete_profile` RPC เป็นช่องทางสร้าง/เติม Profile และ `update_profile` RPC เป็นช่องทางแก้ Profile แบบ atomic; Data API ไม่ให้ผู้ใช้แก้ handle, LINE provider subject, Level, EXP, BP หรือสถานะ Profile โดยตรง
 - ผู้ใช้ที่มีบัญชีอยู่แล้วสามารถเชื่อม Google/LINE เพิ่มจาก `/profile/edit` ได้; ระบบยังไม่ให้ unlink จนกว่าจะมีช่องทางสำรอง
 - Email แสดงจาก `auth.users`/session และไม่ทำสำเนาไว้ใน `public.profiles`
 - LINE provider subject (`sub` หรือ `user_id`) เก็บภายใน `public.profiles.line_user_id` และไม่รับจาก form เพื่อป้องกันการสวมตัวตน
@@ -83,6 +84,7 @@ npm run build
 - ผู้ใช้ที่ยังไม่กรอก profile จะถูกนำไป `/profile/setup`
 - ผู้ใช้ที่กรอก profile แล้วจะไม่ถูกบังคับกรอกซ้ำ
 - `/profile/edit` แสดง Dropdown พื้นที่, Avatar Upload, ปุ่มล้าง GPS และสถานะ Provider ที่เชื่อมอยู่
+- `/profile/edit` แสดง TAGNAME เดิม, ตรวจรูปแบบก่อน submit และแจ้งชื่อซ้ำจากฐานข้อมูลโดยไม่เปลี่ยนข้อมูลส่วนอื่นแบบครึ่งรายการ
 
 ## ขอบเขตความปลอดภัยของ Phase 2
 
