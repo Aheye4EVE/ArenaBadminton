@@ -19,6 +19,7 @@ import {
   LogOut,
   Medal,
   Sparkles,
+  ShieldCheck,
   Trophy,
   TrendingUp,
   UserRound,
@@ -284,6 +285,12 @@ function ProfileSummaryCard({ account, onClose }: { account: HeaderProfileSummar
       </div>
 
       <Link href="/profile" className="account-profile__cta" onClick={onClose}>โปรไฟล์ของฉัน <ArrowRight size={17} /></Link>
+
+      {account.isAdmin ? (
+        <Link href="/admin" className="account-profile__admin-cta" onClick={onClose}>
+          <ShieldCheck size={16} /> เข้าสู่ระบบ Admin <ArrowRight size={15} />
+        </Link>
+      ) : null}
 
       <div className="account-profile__metrics">
         <div><Gem size={19} /><span><small>Skill BP</small><strong>{formatNumber(account.skillBp)}</strong></span></div>

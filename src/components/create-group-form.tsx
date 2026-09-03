@@ -6,6 +6,15 @@ import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock3, Coins, MapPi
 import { createGroupAction, type GroupActionState } from "@/app/groups/actions";
 import ThaiAreaSelect from "@/components/thai-area-select";
 
+export type OrganizerVenueOption = {
+  id: string;
+  name: string;
+  province: string | null;
+  district: string | null;
+  subdistrict: string | null;
+  address: string | null;
+};
+
 function errorFor(state: GroupActionState, field: string) {
   return state.fieldErrors?.[field]?.[0];
 }
@@ -14,7 +23,7 @@ function fieldClass(state: GroupActionState, field: string) {
   return errorFor(state, field) ? "group-form-field group-form-field--error" : "group-form-field";
 }
 
-export default function CreateGroupForm({ minimumDate }: { minimumDate: string }) {
+export default function CreateGroupForm({ minimumDate, venues }: { minimumDate: string; venues: OrganizerVenueOption[] }) {
   const [state, formAction, isPending] = useActionState(createGroupAction, {});
 
   return (
@@ -31,9 +40,19 @@ export default function CreateGroupForm({ minimumDate }: { minimumDate: string }
       </label>
 
       <div className="group-form__grid">
+        <label className={`${fieldClass(state, "venueId")} group-form-field--venue`}>
+          <span><MapPin size={15} /> เลือกสนามจากระบบ <b>*</b></span>
+          <div className="group-form-select-wrap">
+            <select name="venueId" defaultValue="" required={venues.length > 0} aria-describedby="group-venue-help">
+              <option value="">{venues.length > 0 ? "เลือกสนามแบดมินตัน" : "ยังไม่มีสนามที่เปิดให้เลือก"}</option>
+              {venues.map((venue) => <option key={venue.id} value={venue.id}>{venue.name} · {[venue.district, venue.province].filter(Boolean).join(" · ")}</option>)}
+            </select>
+          </div>
+          {errorFor(state, "venueId") ? <small>{errorFor(state, "venueId")}</small> : null}
+        </label>
         <label className={fieldClass(state, "locationText")}>
-          <span><MapPin size={15} /> สถานที่ / สนาม <b>*</b></span>
-          <input name="locationText" placeholder="เช่น The Hub Badminton นนทบุรี" maxLength={240} required />
+          <span><MapPin size={15} /> รายละเอียดจุดนัดพบ <b>*</b></span>
+          <input name="locationText" placeholder="เช่น ทางเข้าอาคาร A / สนามที่ 3" maxLength={240} required />
           {errorFor(state, "locationText") ? <small>{errorFor(state, "locationText")}</small> : null}
         </label>
         <label className={fieldClass(state, "capacity")}>
@@ -49,7 +68,7 @@ export default function CreateGroupForm({ minimumDate }: { minimumDate: string }
         districtError={errorFor(state, "district")}
         subdistrictError={errorFor(state, "subdistrict")}
       />
-      <p className="group-form__location-help"><MapPin size={15} />เลือกจังหวัดก่อน แล้วระบบจะกรองเขต/อำเภอและแขวง/ตำบลให้ตรงกับพื้นที่โดยอัตโนมัติ</p>
+      <p id="group-venue-help" className="group-form__location-help"><MapPin size={15} />เลือกสนามจากข้อมูล Google Maps/สนามในระบบ แล้วกรอกจุดนัดพบและพื้นที่เพื่อให้ก๊วนถูกค้นหาเจอง่ายขึ้น</p>
 
       <div className="group-form__grid group-form__grid--three">
         <label className={fieldClass(state, "startsDate")}>

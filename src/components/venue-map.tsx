@@ -1,124 +1,145 @@
 "use client";
 
-import { LocateFixed, MapPinned, Navigation } from "lucide-react";
+import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
+import { ExternalLink, LocateFixed, MapPinned, Navigation } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Court } from "@/lib/demo-data";
 
-type LeafletMap = import("leaflet").Map;
-type LeafletLayerGroup = import("leaflet").LayerGroup;
-type LeafletCircleMarker = import("leaflet").CircleMarker;
+type MapState = "idle" | "loading" | "ready" | "missing-key" | "error";
 
-const fallbackCenter: [number, number] = [13.7563, 100.5018];
+const fallbackCenter = { lat: 13.7563, lng: 100.5018 };
 
 function hasCoordinates(court: Court): court is Court & { latitude: number; longitude: number } {
-  return Number.isFinite(court.latitude) && Number.isFinite(court.longitude);
+  return Number.isFinite(court.latitude)
+    && Number.isFinite(court.longitude)
+    && Math.abs(court.latitude) <= 90
+    && Math.abs(court.longitude) <= 180
+    && (court.latitude !== 0 || court.longitude !== 0);
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function googleMapsUrl(court: Court) {
+  const hasLocation = Number.isFinite(court.latitude)
+    && Number.isFinite(court.longitude)
+    && (court.latitude !== 0 || court.longitude !== 0);
+  return hasLocation
+    ? `https://www.google.com/maps/search/?api=1&query=${court.latitude},${court.longitude}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([court.name, court.address].filter(Boolean).join(", "))}`;
 }
 
 function makePopup(court: Court) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "venue-map-popup";
+  const address = [court.subdistrict, court.district, court.province].filter(Boolean).join(" · ");
+  return `
+    <div class="venue-map-popup">
+      <strong>${escapeHtml(court.name)}</strong>
+      <span>${escapeHtml(address || court.address || "ยังไม่มีข้อมูลที่อยู่")}</span>
+      <small>${escapeHtml(`${court.rating} ดาว · ${court.courtCount} คอร์ท · ${court.distance}`)}</small>
+      <div class="venue-map-popup__actions">
+        <a href="/venues#${encodeURIComponent(court.id)}">ดูรายละเอียด</a>
+        <a href="${googleMapsUrl(court)}" target="_blank" rel="noreferrer">เปิด Google Maps</a>
+      </div>
+    </div>
+  `;
+}
 
-  const title = document.createElement("strong");
-  title.textContent = court.name;
-  wrapper.append(title);
-
-  const address = document.createElement("span");
-  address.textContent = `${court.subdistrict} · ${court.district} · ${court.province}`;
-  wrapper.append(address);
-
-  const meta = document.createElement("small");
-  meta.textContent = `${court.rating} ดาว · ${court.courtCount} คอร์ท · ${court.distance}`;
-  wrapper.append(meta);
-
-  const actions = document.createElement("div");
-  actions.className = "venue-map-popup__actions";
-
-  const detailLink = document.createElement("a");
-  detailLink.href = `/venues#${encodeURIComponent(court.id)}`;
-  detailLink.textContent = "ดูรายละเอียด";
-  actions.append(detailLink);
-
-  const mapLink = document.createElement("a");
-  mapLink.href = `https://www.openstreetmap.org/?mlat=${court.latitude}&mlon=${court.longitude}#map=16/${court.latitude}/${court.longitude}`;
-  mapLink.target = "_blank";
-  mapLink.rel = "noreferrer";
-  mapLink.textContent = "เปิดแผนที่";
-  actions.append(mapLink);
-
-  wrapper.append(actions);
-  return wrapper;
+function markerIcon() {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="46" height="46" viewBox="0 0 46 46"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#ff91c1"/><stop offset="1" stop-color="#806fe4"/></linearGradient></defs><path d="M23 2C13.2 2 5.2 9.8 5.2 19.4c0 12.2 14.6 22.5 17.8 24.6 3.2-2.1 17.8-12.4 17.8-24.6C40.8 9.8 32.8 2 23 2Z" fill="url(#g)" stroke="#fff" stroke-width="3"/><text x="23" y="26" text-anchor="middle" font-size="16">🏸</text></svg>`;
+  return {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    scaledSize: new google.maps.Size(46, 46),
+    anchor: new google.maps.Point(23, 42),
+  };
 }
 
 export default function VenueMap({ venues }: { venues: Court[] }) {
   const mapElementRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<LeafletMap | null>(null);
-  const markersRef = useRef<LeafletLayerGroup | null>(null);
-  const userMarkerRef = useRef<LeafletCircleMarker | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  const userMarkerRef = useRef<google.maps.Marker | null>(null);
+  const userCircleRef = useRef<google.maps.Circle | null>(null);
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ?? "";
+  const [mapState, setMapState] = useState<MapState>(apiKey ? "loading" : "missing-key");
   const [locationState, setLocationState] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   useEffect(() => {
     let disposed = false;
 
-    async function setupMap() {
-      const leaflet = await import("leaflet");
+    function clearMapObjects() {
+      markersRef.current.forEach((marker) => marker.setMap(null));
+      markersRef.current = [];
+      userMarkerRef.current?.setMap(null);
+      userMarkerRef.current = null;
+      userCircleRef.current?.setMap(null);
+      userCircleRef.current = null;
+      mapRef.current = null;
+    }
+
+    if (!apiKey) {
+      clearMapObjects();
+      return () => { disposed = true; };
+    }
+
+    setOptions({ key: apiKey, v: "weekly", language: "th", region: "TH" });
+
+    void Promise.all([importLibrary("maps"), importLibrary("marker"), importLibrary("core")]).then(([mapsLibrary, , coreLibrary]) => {
       if (disposed || !mapElementRef.current) return;
 
+      clearMapObjects();
       const mappedVenues = venues.filter(hasCoordinates);
-      const map = leaflet.map(mapElementRef.current, {
-        zoomControl: false,
-        scrollWheelZoom: false,
+      const map = new mapsLibrary.Map(mapElementRef.current, {
+        center: fallbackCenter,
+        zoom: 11,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
+        gestureHandling: "greedy",
+        clickableIcons: false,
       });
-      leaflet.control.zoom({ position: "bottomright" }).addTo(map);
-      leaflet
-        .tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
-          maxZoom: 19,
-        })
-        .addTo(map);
+      const infoWindow = new mapsLibrary.InfoWindow();
+      const icon = markerIcon();
 
-      const markers = leaflet.layerGroup().addTo(map);
-      const markerIcon = leaflet.divIcon({
-        className: "venue-map-marker-wrap",
-        html: '<span class="venue-map-marker"><b>🏸</b></span>',
-        iconSize: [38, 38],
-        iconAnchor: [19, 35],
-        popupAnchor: [0, -35],
+      markersRef.current = mappedVenues.map((court) => {
+        const marker = new google.maps.Marker({
+          map,
+          position: { lat: court.latitude, lng: court.longitude },
+          title: court.name,
+          icon,
+        });
+        marker.addListener("click", () => {
+          infoWindow.setContent(makePopup(court));
+          infoWindow.open({ map, anchor: marker });
+        });
+        return marker;
       });
-
-      for (const court of mappedVenues) {
-        leaflet
-          .marker([court.latitude, court.longitude], { icon: markerIcon, title: court.name })
-          .bindPopup(makePopup(court), { maxWidth: 250 })
-          .addTo(markers);
-      }
 
       if (mappedVenues.length === 1) {
-        map.setView([mappedVenues[0].latitude, mappedVenues[0].longitude], 14);
+        map.setCenter({ lat: mappedVenues[0].latitude, lng: mappedVenues[0].longitude });
+        map.setZoom(14);
       } else if (mappedVenues.length > 1) {
-        map.fitBounds(
-          leaflet.latLngBounds(mappedVenues.map((court) => [court.latitude, court.longitude] as [number, number])),
-          { padding: [30, 30], maxZoom: 13 },
-        );
-      } else {
-        map.setView(fallbackCenter, 11);
+        const bounds = new coreLibrary.LatLngBounds();
+        mappedVenues.forEach((court) => bounds.extend({ lat: court.latitude, lng: court.longitude }));
+        map.fitBounds(bounds, 34);
       }
 
       mapRef.current = map;
-      markersRef.current = markers;
-      window.setTimeout(() => map.invalidateSize(), 0);
-    }
-
-    void setupMap();
+      setMapState("ready");
+    }).catch(() => {
+      if (!disposed) setMapState("error");
+    });
 
     return () => {
       disposed = true;
-      userMarkerRef.current?.remove();
-      userMarkerRef.current = null;
-      markersRef.current = null;
-      mapRef.current?.remove();
-      mapRef.current = null;
+      clearMapObjects();
     };
-  }, [venues]);
+  }, [apiKey, venues]);
 
   function locateUser() {
     if (!navigator.geolocation || !mapRef.current) {
@@ -132,23 +153,28 @@ export default function VenueMap({ venues }: { venues: Court[] }) {
         const map = mapRef.current;
         if (!map) return;
 
-        userMarkerRef.current?.remove();
-
-        void import("leaflet").then((leaflet) => {
-          if (!mapRef.current) return;
-          userMarkerRef.current = leaflet
-            .circleMarker([coords.latitude, coords.longitude], {
-              radius: 8,
-              color: "#ffffff",
-              weight: 3,
-              fillColor: "#e968a9",
-              fillOpacity: 1,
-            })
-            .addTo(mapRef.current)
-            .bindTooltip("ตำแหน่งของฉัน", { direction: "top", offset: [0, -8] });
-          mapRef.current.setView([coords.latitude, coords.longitude], 13);
-          setLocationState("ready");
+        userMarkerRef.current?.setMap(null);
+        userCircleRef.current?.setMap(null);
+        userMarkerRef.current = new google.maps.Marker({
+          map,
+          position: { lat: coords.latitude, lng: coords.longitude },
+          title: "ตำแหน่งของฉัน",
+          label: { text: "●", color: "#e968a9", fontSize: "28px" },
+          zIndex: 999,
         });
+        userCircleRef.current = new google.maps.Circle({
+          map,
+          center: { lat: coords.latitude, lng: coords.longitude },
+          radius: 120,
+          strokeColor: "#e968a9",
+          strokeOpacity: 0.32,
+          strokeWeight: 2,
+          fillColor: "#f7a4ca",
+          fillOpacity: 0.12,
+        });
+        map.setCenter({ lat: coords.latitude, lng: coords.longitude });
+        map.setZoom(13);
+        setLocationState("ready");
       },
       () => setLocationState("error"),
       { enableHighAccuracy: false, maximumAge: 300_000, timeout: 8_000 },
@@ -164,15 +190,26 @@ export default function VenueMap({ venues }: { venues: Court[] }) {
   return (
     <section className="preview-panel preview-panel--soft venue-map-shell" aria-label="แผนที่สนามแบดมินตัน">
       <div className="venue-map__toolbar">
-        <span><MapPinned size={15} /> Leaflet · OpenStreetMap</span>
-        <button type="button" className="venue-map__locate" onClick={locateUser} disabled={locationState === "loading"}>
+        <span><MapPinned size={15} /> Google Maps</span>
+        <button type="button" className="venue-map__locate" onClick={locateUser} disabled={locationState === "loading" || mapState !== "ready"}>
           <LocateFixed size={14} /> {locationState === "loading" ? "กำลังค้นหา..." : "ใกล้ฉัน"}
         </button>
       </div>
       <div ref={mapElementRef} className="venue-map" aria-label="แผนที่สนามพร้อมหมุดสถานที่" />
-      {venues.length === 0 ? <div className="venue-map__empty"><Navigation size={18} /><span>ยังไม่มีสนามในพื้นที่นี้</span></div> : null}
+
+      {mapState === "missing-key" ? (
+        <div className="venue-map__fallback">
+          <Navigation size={22} />
+          <strong>แผนที่พร้อมเชื่อม Google Maps</strong>
+          <span>เพิ่ม NEXT_PUBLIC_GOOGLE_MAPS_API_KEY เพื่อเปิดแผนที่แบบโต้ตอบ</span>
+          {venues.length > 0 ? <div className="venue-map__fallback-links">{venues.slice(0, 4).map((court) => <a key={court.id} href={googleMapsUrl(court)} target="_blank" rel="noreferrer"><span>{court.name}</span><ExternalLink size={13} /></a>)}</div> : null}
+        </div>
+      ) : null}
+      {mapState === "loading" ? <div className="venue-map__loading">กำลังโหลด Google Maps...</div> : null}
+      {mapState === "error" ? <div className="venue-map__fallback"><Navigation size={22} /><strong>โหลด Google Maps ไม่สำเร็จ</strong><span>ตรวจ API Key, Maps JavaScript API และโดเมนที่อนุญาต</span></div> : null}
+      {venues.length === 0 && mapState === "ready" ? <div className="venue-map__empty"><Navigation size={18} /><span>ยังไม่มีสนามในพื้นที่นี้</span></div> : null}
       {locationMessage ? <p className={`venue-map__message venue-map__message--${locationState}`} role="status">{locationMessage}</p> : null}
-      <p className="venue-map__note">หมุดเป็นข้อมูลสนามที่ตรงกับตัวกรองปัจจุบัน · © OpenStreetMap contributors</p>
+      <p className="venue-map__note">หมุดเป็นข้อมูลสนามที่ตรงกับตัวกรองปัจจุบัน · Google Maps Platform</p>
     </section>
   );
 }

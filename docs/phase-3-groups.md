@@ -12,9 +12,9 @@ Phase 3 เปลี่ยน `/groups` และ `/organizer` จาก preview
 
 ## Data flow
 
-1. Organizer กรอกชื่อก๊วน, สนาม/สถานที่, วันเวลาไทย, ชั่วโมง, capacity, Level range, ประเภท, ค่าเข้าร่วม และหมายเหตุ
+1. Organizer เลือกสนาม Active จากระบบหรือกรอกสถานที่/จุดนัดพบ, วันเวลาไทย, ชั่วโมง, capacity, Level range, ประเภท, ค่าเข้าร่วม และหมายเหตุ
 2. Server Action validate ด้วย Zod และแปลงวันเวลา `Asia/Bangkok` เป็น ISO/timestamptz
-3. `create_group(...)` สร้าง `groups` และเพิ่ม owner ใน `group_members` ใน transaction เดียว
+3. `create_group(..., p_venue_id)` ตรวจสนาม Active, สร้าง `groups` พร้อม `venue_id` และเพิ่ม owner ใน `group_members` ใน transaction เดียว
 4. สมาชิกกด join แล้ว `join_group(...)` lock แถวก๊วนก่อนนับสมาชิก
 5. ถ้ามีที่นั่งจะเป็น `registered`; ถ้าเต็มจะเป็น `waitlisted`
 6. `leave_group(...)` เปลี่ยนสมาชิกเป็น `cancelled` และเลื่อนคิวแรกเข้าแทนเมื่อมีที่นั่ง
@@ -44,7 +44,7 @@ Phase 3 เปลี่ยน `/groups` และ `/organizer` จาก preview
 
 ## ขอบเขตที่ยังไม่รวมใน Phase 3
 
-- การเลือก `venue_id` จากฐานข้อมูลสนามในฟอร์มสร้างก๊วน; หน้า discovery มีแผนที่ Leaflet/OpenStreetMap แล้ว ส่วนการเลือกหมุดในฟอร์มเป็นงานถัดไป
+- การแก้ไขก๊วนหลังสร้าง และการเลือกหมุดโดยลากบนแผนที่โดยตรงยังไม่รวม; ปัจจุบันเลือกสนาม Active จาก dropdown ที่ผูกกับฐานข้อมูลและเปิด Google Maps จากหมุดได้
 - การแก้ไขก๊วนหลังสร้าง
 - check-in, match bracket, result confirmation และ BP/EXP settlement
 - payment/entry fee collection และ refund

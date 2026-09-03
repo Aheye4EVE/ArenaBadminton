@@ -14,6 +14,7 @@ export type HeaderProfileSummary = {
   gemsBalance: number;
   unreadNotificationCount: number;
   rank: number | null;
+  isAdmin: boolean;
   isProfileComplete: boolean;
   stats: {
     createdGroups: number;

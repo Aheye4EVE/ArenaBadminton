@@ -34,12 +34,18 @@ const locationAreaField = z.preprocess(
   z.string().trim().max(80, "ชื่อพื้นที่ยาวเกินไป").optional(),
 );
 
+const venueIdField = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z.string().uuid("สนามไม่ถูกต้อง").optional(),
+);
+
 const createGroupSchema = z
   .object({
     title: z.string().trim().min(1, "กรุณากรอกชื่อก๊วน").max(160, "ชื่อก๊วนยาวเกินไป"),
     description: optionalText(1_000),
-    locationText: z.string().trim().min(1, "กรุณากรอกสถานที่หรือชื่อสนาม").max(240, "สถานที่ยาวเกินไป"),
-    province: z.string().trim().min(1, "กรุณากรอกจังหวัด").max(80, "ชื่อจังหวัดยาวเกินไป"),
+    venueId: venueIdField,
+    locationText: optionalText(240),
+    province: locationAreaField,
     district: locationAreaField,
     subdistrict: locationAreaField,
     startsDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "กรุณาเลือกวันที่"),
@@ -55,6 +61,12 @@ const createGroupSchema = z
   .superRefine((data, context) => {
     if (data.minLevel > data.maxLevel) {
       context.addIssue({ code: "custom", path: ["maxLevel"], message: "ระดับสูงสุดต้องไม่น้อยกว่าระดับเริ่มต้น" });
+    }
+    if (!data.venueId && !data.locationText) {
+      context.addIssue({ code: "custom", path: ["locationText"], message: "กรุณาเลือกสนามหรือกรอกรายละเอียดจุดนัดพบ" });
+    }
+    if (!data.venueId && !data.province) {
+      context.addIssue({ code: "custom", path: ["province"], message: "กรุณาเลือกจังหวัดเมื่อไม่ได้เลือกสนามจากระบบ" });
     }
   });
 
@@ -114,6 +126,7 @@ export async function createGroupAction(_previousState: GroupActionState, formDa
   const parsed = createGroupSchema.safeParse({
     title: readFormText(formData, "title"),
     description: readFormText(formData, "description"),
+    venueId: readFormText(formData, "venueId"),
     locationText: readFormText(formData, "locationText"),
     province: readFormText(formData, "province"),
     district: readFormText(formData, "district"),
@@ -137,13 +150,41 @@ export async function createGroupAction(_previousState: GroupActionState, formDa
     return { error: "ก๊วนต้องเริ่มล่วงหน้าอย่างน้อย 15 นาที", fieldErrors: { startsTime: ["เวลาเริ่มต้องอยู่ล่วงหน้าอย่างน้อย 15 นาที"] } };
   }
 
-  const locationParts = [parsed.data.locationText, parsed.data.subdistrict, parsed.data.district, parsed.data.province].filter(Boolean);
+  const { supabase } = await requireCompletedProfile();
+
+  let selectedVenue: {
+    id: string;
+    name: string;
+    province: string | null;
+    district: string | null;
+    subdistrict: string | null;
+    address: string | null;
+  } | null = null;
+
+  if (parsed.data.venueId) {
+    const { data, error } = await supabase
+      .from("venues")
+      .select("id, name, province, district, subdistrict, address")
+      .eq("id", parsed.data.venueId)
+      .eq("status", "active")
+      .maybeSingle();
+    if (error || !data) return { error: "สนามนี้ไม่พร้อมให้เลือกแล้ว กรุณาเลือกสนามใหม่", fieldErrors: { venueId: ["สนามไม่พร้อมใช้งาน"] } };
+    selectedVenue = data;
+  }
+
+  const locationParts = [
+    parsed.data.locationText ?? selectedVenue?.name,
+    parsed.data.subdistrict ?? selectedVenue?.subdistrict,
+    parsed.data.district ?? selectedVenue?.district,
+    parsed.data.province ?? selectedVenue?.province,
+    selectedVenue?.address,
+  ].filter(Boolean);
   const searchableLocation = locationParts.join(" · ");
+  if (!searchableLocation) return { error: "กรุณาเลือกสนามหรือกรอกรายละเอียดสถานที่", fieldErrors: { locationText: ["กรุณากรอกจุดนัดพบ"] } };
   if (searchableLocation.length > 240) {
     return { error: "รายละเอียดพื้นที่ยาวเกินไป กรุณาลดความยาวลง", fieldErrors: { locationText: ["ลดความยาวสถานที่หรือพื้นที่ลง"] } };
   }
 
-  const { supabase } = await requireCompletedProfile();
   let groupId: string | null = null;
   try {
     const { data, error } = await supabase.rpc("create_group", {
@@ -158,6 +199,7 @@ export async function createGroupAction(_previousState: GroupActionState, formDa
       p_play_type: parsed.data.playType,
       p_entry_fee: parsed.data.entryFee,
       p_notes: parsed.data.notes ?? null,
+      p_venue_id: parsed.data.venueId ?? null,
     });
 
     if (error) return { error: groupErrorMessage(error) };
