@@ -27,7 +27,7 @@ function normalizeAreaValue(value: string) {
 
   // Existing profiles may contain the bilingual display format used by the
   // earlier preview data, for example "สมุทรปราการ — Samut Prakan".
-  return trimmed.split(/\s+[—–-]\s+/u, 2)[0]?.trim() ?? trimmed;
+  return trimmed.split(/\s*[—–-]\s*/u, 2)[0]?.trim() ?? trimmed;
 }
 
 export default function ThaiAreaSelect({
