@@ -40,7 +40,8 @@
 - Admin Hub สำหรับบัญชีที่อยู่ใน `admin_users` พร้อมทางเข้า Profile Card ไปยัง Shop/Wallet และ BP Rule Editor
 - Roadmap foundation เพิ่มแล้วสำหรับ Trophy record, Community feed (โพสต์/รูป/Comment/Like), Notification center, live Ranking, live Tournament ingest และ Admin BP rule editor
 - Live Ranking ใน Profile ใช้ `get_current_user_rank()` และ Admin มีหน้าแจก Trophy ที่เรียกผ่าน Admin RPC เท่านั้น
-- ยังไม่มี Payment Gateway/webhook จริง, tournament create/bracket/reward workflow หรือ moderation console; interactive Google Maps ยังต้องใส่ API Key และเปิด API ที่จำเป็นใน Google Cloud
+- Tournament registration รุ่นแรก: ผู้ใช้ที่กรอก Profile แล้วสร้างกิจกรรมฟรีแบบ Published, เปิดหน้ารายละเอียด, สมัคร, ถอนชื่อ และเข้าคิวรอผ่าน Supabase RPC transaction; direct write ของ Tournament ถูกปิดไว้
+- ยังไม่มี Payment Gateway/webhook จริง, tournament bracket/reward workflow หรือ moderation console; interactive Google Maps ยังต้องใส่ API Key และเปิด API ที่จำเป็นใน Google Cloud
 - Migration 0013_venue_discovery_metadata.sql เพิ่มจังหวัด/อำเภอ/ตำบล/คะแนน/สถานะคิว และหน้า /venues อ่านสนาม active จาก Supabase เมื่อมี session
 - Migration 0017_profile_edit_rpc.sql รวมการแก้ Profile เป็น authenticated RPC เดียวแบบ atomic; ไม่เปิด direct update และไม่แตะ Level, EXP, BP, provider subject หรือ completion state
 - QA seed ที่ขึ้นต้น [QA ONLY] ถูกซ่อนจากหน้าผู้ใช้โดย default; เปิดเฉพาะ staging ด้วย ARENA_SHOW_QA_DATA=true
@@ -123,5 +124,5 @@ public/assets/           artwork ที่ใช้ในหน้า Home
 2. ตั้ง Google/LINE provider, SMTP และ redirect URL ใน Supabase Dashboard; ใส่ Google Maps API Key และจำกัด referrer ก่อนใช้ interactive map
 3. ตั้งค่า SMTP/LINE/Google Maps/R2 public URL ตามบริการที่เลือก และทดสอบ login, profile edit และ upload ด้วย test account บน Vercel
 4. ทดสอบ Guild ด้วยบัญชีจริง: สร้าง/ใช้ Item, อัปโหลด Logo, Join Request/Invite, อนุมัติสมาชิก, ผูกก๊วน และยืนยัน Match ให้ Guild EXP
-5. ทำ tournament create/join/bracket/reward RPC แบบ atomic และ moderation console ก่อนเปิดใช้งานจริง
+5. ทำ tournament bracket/reward workflow แบบ atomic และ moderation console ก่อนเปิดใช้งานจริง; ตอนนี้ create/join/withdraw รุ่นแรกพร้อมแล้วและเปิดเฉพาะกิจกรรมฟรี
 6. เชื่อม Payment Gateway/webhook แบบ server-only พร้อม signature verification, idempotency, refund และ reconciliation

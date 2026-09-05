@@ -21,6 +21,7 @@
 - Admin account ที่ยืนยันแล้วถูก bootstrap ใน `admin_users` และมี Admin Hub/ปุ่มจาก Profile Card
 - Guild system ถูก apply แล้ว: Directory, founding mode, Logo, member capacity, roles, Join Request/Invite, announcements, Group reference และ Guild EXP trigger
 - Google OAuth flow มีอยู่ใน Production และ R2 upload route พร้อมใช้งานเมื่อ Vercel มี server secrets, public URL และ CORS ครบ; ยังต้องทำ E2E upload ด้วย test account หลัง Deploy
+- Tournament registration รุ่นแรกพร้อมแล้ว: สร้างกิจกรรมฟรีแบบ Published, เปิดรายละเอียด, สมัคร, ถอนชื่อ และเลื่อนคิวรอด้วย RPC transaction; direct authenticated write ถูกปิดไว้
 
 ## Environment
 
@@ -69,6 +70,6 @@ npm run build
 2. ตั้ง R2 credentials, public URL และ CORS ใน Vercel; ทดสอบ upload จริงด้วย test account
 3. Bootstrap `admin_users` ด้วย UUID ของ Auth user ที่ยืนยันแล้ว และทดสอบ Admin BP/Shop/Trophy/Guild ใน staging
 4. ทดสอบ Guild create/Logo/Join Request/Invite/role/Group reference/Match EXP ด้วยบัญชีจริง
-5. ทำ tournament create/join/bracket/reward ผ่าน RPC ที่ lock capacity และมี audit ก่อนเปิดหน้าใช้งานจริง
+5. ทำ tournament bracket/reward ผ่าน RPC ที่ lock capacity และมี audit ก่อนเปิดหน้าใช้งานจริง; create/join/withdraw รุ่นแรกทำแล้วและยังรองรับเฉพาะกิจกรรมฟรี
 6. เชื่อม Payment Gateway/webhook แบบ server-only มี signature verification, idempotency, refund และ reconciliation; ห้ามใช้ Admin credit เป็น payment แทน
 7. ทดสอบ login Email/Google/LINE, profile completion, recommendation, join/leave, match settlement, shop, image upload, notification และ Guild end-to-end แล้วค่อย deploy

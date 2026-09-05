@@ -48,6 +48,10 @@ function formatLabel(value: Event["format"]) {
   return ({ singles: "เดี่ยว", doubles: "คู่", team: "ทีม" } as const)[value];
 }
 
+function eventDetailHref(event: Event) {
+  return event.id.startsWith("tournament-") ? `/events/${event.id.slice("tournament-".length)}` : `/events#${event.id}`;
+}
+
 function EventCard({ event }: { event: Event }) {
   const percent = Math.min(100, Math.round((event.registered / event.capacity) * 100));
 
@@ -61,7 +65,7 @@ function EventCard({ event }: { event: Event }) {
         <div className="event-discovery-meta"><span><CalendarDays size={13} /> {event.dateLabel}</span><span><MapPin size={13} /> {event.venue} · {event.district}</span><span><Users size={13} /> {formatLabel(event.format)} · {event.registered}/{event.capacity} คน</span></div>
         <div className="event-discovery-progress"><span><small>จำนวนผู้สมัคร</small><b>{percent}%</b></span><div><i style={{ width: `${percent}%` }} /></div></div>
       </div>
-      <Link href={`/events#${event.id}`} className="secondary-action">ดูรายละเอียด <ArrowRight size={14} /></Link>
+      <Link href={eventDetailHref(event)} className="secondary-action">ดูรายละเอียด <ArrowRight size={14} /></Link>
     </article>
   );
 }
@@ -119,7 +123,7 @@ export default function EventSearchBrowser({
           </section>
 
           <aside className="discovery-sidebar">
-            <section className="preview-panel preview-panel--soft discovery-event-guide"><p className="muted-label">Event guide</p><h2>เลือกกิจกรรมในสไตล์คุณ</h2><div className="type-pills"><span>🏆 Tournament</span><span>🤝 Friendly</span><span>🎯 Challenge</span><span>💪 Training</span></div></section>
+            <section className="preview-panel preview-panel--soft discovery-event-guide"><p className="muted-label">Event guide</p><h2>เลือกกิจกรรมในสไตล์คุณ</h2><div className="type-pills"><span>🏆 Tournament</span><span>🤝 Friendly</span><span>🎯 Challenge</span><span>💪 Training</span></div><Link href="/events/create" className="group-secondary-action discovery-create-event"><Trophy size={15} /> สร้างกิจกรรมฟรี <ArrowRight size={14} /></Link></section>
             <section className="preview-panel preview-panel--soft discovery-tip-card"><p className="muted-label">Before you play</p><h2>ก่อนกดสมัคร</h2><ul><li><span>01</span>เช็กวัน เวลา และพื้นที่</li><li><span>02</span>ดูรูปแบบการแข่งขัน</li><li><span>03</span>ตรวจจำนวนที่นั่งที่เหลือ</li></ul></section>
           </aside>
         </div>
