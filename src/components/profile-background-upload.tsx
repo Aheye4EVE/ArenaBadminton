@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, LoaderCircle, Trash2 } from "lucide-react";
+import { ImagePlus, LoaderCircle, Trash2, X } from "lucide-react";
 import ProfileMediaCropper from "@/components/profile-media-cropper";
 
 const BACKGROUND_MAX_BYTES = 10 * 1024 * 1024;
@@ -28,6 +28,7 @@ export default function ProfileBackgroundUpload({ initialUrl, initialFocusX, ini
   const [objectKey, setObjectKey] = useState("");
   const [removeBackground, setRemoveBackground] = useState(false);
   const [cropConfirmed, setCropConfirmed] = useState(true);
+  const [cropOpen, setCropOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
   const [message, setMessage] = useState("");
@@ -54,6 +55,7 @@ export default function ProfileBackgroundUpload({ initialUrl, initialFocusX, ini
       setFocusX(50);
       setFocusY(50);
       setCropConfirmed(false);
+      setCropOpen(true);
       setRemoveBackground(false);
       setImageFailed(false);
       setMessage("อัปโหลดภาพแล้ว ลากภาพเลือกมุม จากนั้นกดยืนยันการ Crop");
@@ -79,13 +81,26 @@ export default function ProfileBackgroundUpload({ initialUrl, initialFocusX, ini
   return (
     <div className="profile-background-editor">
       <div className="profile-background-editor__heading"><div><strong>ภาพพื้นหลัง Profile</strong><span>ใช้ภาพอัตราส่วนมาตรฐาน 3:1 · JPG, PNG, WebP, GIF หรือ AVIF ไม่เกิน 5 MB</span></div><span className="profile-background-editor__badge">Banner 3:1</span></div>
-      {previewUrl && !imageFailed ? <ProfileMediaCropper url={previewUrl} alt="ภาพพื้นหลัง Profile" focusX={focusX} focusY={focusY} aspectRatio="banner" confirmed={cropConfirmed} onFocusChange={(nextX, nextY) => { setFocusX(nextX); setFocusY(nextY); setCropConfirmed(false); }} onConfirm={() => { setCropConfirmed(true); setMessage("ยืนยันตำแหน่งภาพพื้นหลังแล้ว"); setMessageIsError(false); }} /> : <div className="profile-background-editor__empty">ยังไม่มีภาพพื้นหลัง · ระบบจะใช้พื้นหลัง Rainbow Court ให้โดยอัตโนมัติ</div>}
+      {previewUrl && !imageFailed ? <div className="profile-background-editor__selected"><span>มีภาพพื้นหลังที่เลือกไว้แล้ว</span><button type="button" className="avatar-crop-button" onClick={() => setCropOpen(true)} disabled={isUploading}><ImagePlus size={15} /> ปรับ Crop</button></div> : <div className="profile-background-editor__empty">ยังไม่มีภาพพื้นหลัง · ระบบจะใช้พื้นหลัง Rainbow Court ให้โดยอัตโนมัติ</div>}
       <div className="profile-background-editor__footer">
         <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadBackground(file); }} />
         <button type="button" className="avatar-upload-button" onClick={() => inputRef.current?.click()} disabled={isUploading}><ImagePlus size={16} />{isUploading ? <><LoaderCircle className="community-spin" size={15} /> กำลังอัปโหลด</> : previewUrl ? "เปลี่ยนภาพพื้นหลัง" : "อัปโหลดภาพพื้นหลัง"}</button>
         {previewUrl ? <button type="button" className="avatar-remove-button" onClick={clearBackground} disabled={isUploading}><Trash2 size={15} /> ลบภาพ</button> : null}
         {message ? <small className={messageIsError ? "profile-background-editor__message profile-background-editor__message--error" : "profile-background-editor__message"} role={messageIsError ? "alert" : "status"}>{message}</small> : null}
       </div>
+      {cropOpen && previewUrl && !imageFailed ? (
+        <div className="profile-media-modal" role="dialog" aria-modal="true" aria-labelledby="profile-background-crop-title">
+          <button type="button" className="profile-media-modal__backdrop" aria-label="ปิดหน้าต่าง Crop" onClick={() => setCropOpen(false)} />
+          <div className="profile-media-modal__surface">
+            <div className="profile-media-modal__header">
+              <div><p lang="en">Profile cover</p><strong id="profile-background-crop-title">จัดตำแหน่งภาพพื้นหลัง</strong></div>
+              <button type="button" className="profile-media-modal__close" aria-label="ปิดหน้าต่าง Crop" onClick={() => setCropOpen(false)}><X size={18} /></button>
+            </div>
+            <ProfileMediaCropper url={previewUrl} alt="ภาพพื้นหลัง Profile" focusX={focusX} focusY={focusY} aspectRatio="banner" confirmed={cropConfirmed} onFocusChange={(nextX, nextY) => { setFocusX(nextX); setFocusY(nextY); setCropConfirmed(false); }} onConfirm={() => { setCropConfirmed(true); setCropOpen(false); setMessage("ยืนยันตำแหน่งภาพพื้นหลังแล้ว"); setMessageIsError(false); }} />
+            <p className="profile-media-modal__note">รูปต้นฉบับจะไม่ถูกลดความละเอียด ระบบจะบันทึกเฉพาะตำแหน่งที่เลือกไว้ใช้แสดงผล</p>
+          </div>
+        </div>
+      ) : null}
       <input type="hidden" name="profileBackgroundObjectKey" value={objectKey} readOnly />
       <input type="hidden" name="removeProfileBackground" value={removeBackground ? "true" : "false"} readOnly />
       <input type="hidden" name="backgroundFocusX" value={focusX} readOnly />

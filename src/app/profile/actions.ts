@@ -51,3 +51,48 @@ export async function updateProfile(_previousState: ProfileActionState, formData
   revalidatePath("/profile/edit");
   redirect("/profile");
 }
+
+export async function updateProfileMedia(_previousState: ProfileActionState, formData: FormData): Promise<ProfileActionState> {
+  const { supabase, user, profile } = await getAuthenticatedProfile();
+  if (!supabase || !user) return { error: "เซสชันหมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง" };
+  if (!profile?.profile_completed_at) return { error: "กรุณาตั้งค่า Profile ให้ครบก่อนอัปโหลดรูป" };
+
+  const mediaType = formData.get("mediaType");
+  const avatar = mediaType === "avatar" ? resolveAvatarUpdate(formData, user.id) : { value: undefined, focusX: Number(profile.avatar_focus_x ?? 50), focusY: Number(profile.avatar_focus_y ?? 50), error: null };
+  const background = mediaType === "background" ? resolveProfileBackgroundUpdate(formData, user.id) : { value: undefined, focusX: Number(profile.profile_background_focus_x ?? 50), focusY: Number(profile.profile_background_focus_y ?? 50), error: null };
+
+  if (mediaType !== "avatar" && mediaType !== "background") return { error: "ไม่พบประเภทภาพที่ต้องการบันทึก" };
+  if (avatar.error) return { error: avatar.error };
+  if (background.error) return { error: background.error };
+  if (mediaType === "avatar" && avatar.value === undefined) return { error: "ยังไม่มีรูปโปรไฟล์ที่ยืนยันการ Crop" };
+  if (mediaType === "background" && background.value === undefined) return { error: "ยังไม่มีภาพพื้นหลังที่ยืนยันการ Crop" };
+
+  const { error } = await supabase.rpc("update_profile", {
+    p_handle: profile.handle ?? "",
+    p_display_name: profile.display_name ?? "ผู้เล่นใหม่",
+    p_bio: profile.bio ?? null,
+    p_address_line: profile.address_line ?? "",
+    p_province: profile.province ?? "",
+    p_district: profile.district ?? "",
+    p_subdistrict: profile.subdistrict ?? "",
+    p_postal_code: profile.postal_code ?? "",
+    p_latitude: profile.latitude ?? null,
+    p_longitude: profile.longitude ?? null,
+    p_avatar_url: mediaType === "avatar" ? avatar.value : profile.avatar_url ?? null,
+    p_avatar_focus_x: mediaType === "avatar" ? avatar.focusX : profile.avatar_focus_x ?? 50,
+    p_avatar_focus_y: mediaType === "avatar" ? avatar.focusY : profile.avatar_focus_y ?? 50,
+    p_profile_background_url: mediaType === "background" ? background.value : profile.profile_background_url ?? null,
+    p_background_focus_x: mediaType === "background" ? background.focusX : profile.profile_background_focus_x ?? 50,
+    p_background_focus_y: mediaType === "background" ? background.focusY : profile.profile_background_focus_y ?? 50,
+  });
+
+  if (error) {
+    if (error.code === "23505" || error.message.toLowerCase().includes("handle already in use")) return { error: "TAGNAME นี้ถูกใช้แล้ว ลองชื่ออื่นได้เลย" };
+    return { error: "บันทึกรูป Profile ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/profile");
+  revalidatePath("/profile/edit");
+  return { message: mediaType === "avatar" ? "เปลี่ยนรูปโปรไฟล์เรียบร้อยแล้ว" : "เปลี่ยนภาพพื้นหลังเรียบร้อยแล้ว" };
+}

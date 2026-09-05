@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, LoaderCircle, Trash2, UserRound } from "lucide-react";
+import { ImagePlus, LoaderCircle, Trash2, UserRound, X } from "lucide-react";
 import ProfileMediaCropper from "@/components/profile-media-cropper";
 
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
@@ -26,6 +26,7 @@ export default function ProfileAvatarUpload({ initialUrl, initialFocusX, initial
   const [focusX, setFocusX] = useState(focusValue(initialFocusX));
   const [focusY, setFocusY] = useState(focusValue(initialFocusY));
   const [cropConfirmed, setCropConfirmed] = useState(true);
+  const [cropOpen, setCropOpen] = useState(false);
   const [avatarObjectKey, setAvatarObjectKey] = useState("");
   const [removeAvatar, setRemoveAvatar] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
@@ -67,6 +68,7 @@ export default function ProfileAvatarUpload({ initialUrl, initialFocusX, initial
       setFocusX(50);
       setFocusY(50);
       setCropConfirmed(false);
+      setCropOpen(true);
       setRemoveAvatar(false);
       setImageFailed(false);
       setMessage("อัปโหลดรูปแล้ว ลากภาพเลือกมุม จากนั้นกดยืนยันการ Crop");
@@ -108,9 +110,22 @@ export default function ProfileAvatarUpload({ initialUrl, initialFocusX, initial
       <div className="profile-avatar-editor__actions">
         <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" hidden onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadAvatar(file); }} />
         <button type="button" className="avatar-upload-button" onClick={() => inputRef.current?.click()} disabled={isUploading}><ImagePlus size={16} />{isUploading ? <><LoaderCircle className="community-spin" size={15} /> กำลังอัปโหลด</> : "เปลี่ยนรูป"}</button>
+        {previewUrl ? <button type="button" className="avatar-crop-button" onClick={() => setCropOpen(true)} disabled={isUploading}><ImagePlus size={15} /> ปรับ Crop</button> : null}
         {previewUrl ? <button type="button" className="avatar-remove-button" onClick={clearAvatar} disabled={isUploading}><Trash2 size={15} /> ลบรูป</button> : null}
       </div>
-      {previewUrl && !imageFailed ? <ProfileMediaCropper url={previewUrl} alt={`รูปโปรไฟล์ของ ${displayName}`} focusX={focusX} focusY={focusY} aspectRatio="square" confirmed={cropConfirmed} onFocusChange={(nextX, nextY) => { setFocusX(nextX); setFocusY(nextY); setCropConfirmed(false); }} onConfirm={() => { setCropConfirmed(true); setMessage("ยืนยันตำแหน่ง Crop แล้ว กดบันทึก Profile ได้เลย"); setMessageIsError(false); }} /> : null}
+      {cropOpen && previewUrl && !imageFailed ? (
+        <div className="profile-media-modal" role="dialog" aria-modal="true" aria-labelledby="profile-avatar-crop-title">
+          <button type="button" className="profile-media-modal__backdrop" aria-label="ปิดหน้าต่าง Crop" onClick={() => setCropOpen(false)} />
+          <div className="profile-media-modal__surface">
+            <div className="profile-media-modal__header">
+              <div><p lang="en">Profile photo</p><strong id="profile-avatar-crop-title">จัดตำแหน่งรูปโปรไฟล์</strong></div>
+              <button type="button" className="profile-media-modal__close" aria-label="ปิดหน้าต่าง Crop" onClick={() => setCropOpen(false)}><X size={18} /></button>
+            </div>
+            <ProfileMediaCropper url={previewUrl} alt={`รูปโปรไฟล์ของ ${displayName}`} focusX={focusX} focusY={focusY} aspectRatio="square" confirmed={cropConfirmed} onFocusChange={(nextX, nextY) => { setFocusX(nextX); setFocusY(nextY); setCropConfirmed(false); }} onConfirm={() => { setCropConfirmed(true); setCropOpen(false); setMessage("ยืนยันตำแหน่ง Crop แล้ว กดบันทึก Profile ได้เลย"); setMessageIsError(false); }} />
+            <p className="profile-media-modal__note">รูปต้นฉบับจะไม่ถูกลดความละเอียด ระบบจะบันทึกเฉพาะตำแหน่งที่เลือกไว้ใช้แสดงผล</p>
+          </div>
+        </div>
+      ) : null}
       <input type="hidden" name="avatarObjectKey" value={avatarObjectKey} readOnly />
       <input type="hidden" name="removeAvatar" value={removeAvatar ? "true" : "false"} readOnly />
       <input type="hidden" name="avatarFocusX" value={focusX} readOnly />

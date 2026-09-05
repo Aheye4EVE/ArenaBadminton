@@ -1,24 +1,19 @@
 import Link from "next/link";
 import {
-  ArrowLeft,
   ArrowRight,
   Award,
   CalendarDays,
   Crown,
-  Gem,
-  LogOut,
-  MessageCircle,
   MapPin,
   Pencil,
   ShieldCheck,
   Trophy,
-  UserRound,
   Users,
   Zap,
 } from "lucide-react";
-import { signOut } from "@/app/auth/actions";
 import type { HeaderProfileSummary, ProfileTrophy } from "@/types/profile";
 import ProfileStatusFeed, { type ProfileStatus } from "@/components/profile-status-feed";
+import ProfileMediaInlineEditor from "@/components/profile-media-inline-editor";
 import { safeMediaUrl } from "@/lib/safe-media-url";
 
 function formatNumber(value: number) {
@@ -30,19 +25,6 @@ function getProgressLabel(summary: HeaderProfileSummary) {
   return `${formatNumber(summary.expTotal)} / ${formatNumber(summary.nextLevelExp)} EXP`;
 }
 
-function ProfileAvatar({ summary, size = "large" }: { summary: HeaderProfileSummary; size?: "large" | "small" }) {
-  if (summary.avatarUrl) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img className={`profile-overview-avatar profile-overview-avatar--${size}`} src={summary.avatarUrl} alt={`รูปโปรไฟล์ของ ${summary.displayName}`} style={{ objectPosition: `${summary.avatarFocusX}% ${summary.avatarFocusY}%` }} />;
-  }
-
-  return (
-    <span className={`profile-overview-avatar profile-overview-avatar--${size}`} aria-label={`รูปโปรไฟล์ของ ${summary.displayName}`} role="img">
-      <UserRound size={size === "large" ? 40 : 20} strokeWidth={1.8} />
-    </span>
-  );
-}
-
 export default function ProfileOverview({ summary, province, trophies, statuses = [] }: { summary: HeaderProfileSummary; province: string | null; trophies: ProfileTrophy[]; statuses?: ProfileStatus[] }) {
   const location = province?.trim() || "ยังไม่ได้ระบุจังหวัด";
   const backgroundUrl = safeMediaUrl(summary.profileBackgroundUrl);
@@ -50,57 +32,25 @@ export default function ProfileOverview({ summary, province, trophies, statuses 
   return (
     <main className="profile-overview-page">
       <div className="profile-overview-shell">
-        <header className="profile-overview-topbar">
-          <Link href="/" className="profile-overview-brand" aria-label="กลับหน้าหลัก Arena-Badminton">
-            <span className="profile-overview-brand__word">Arena</span>
-            <span className="profile-overview-brand__sub">-Badminton</span>
-          </Link>
-
-          <nav className="profile-overview-nav" aria-label="เมนูโปรไฟล์">
-            <Link href="/groups"><Users size={15} /> ก๊วน</Link>
-            <Link href="/events"><CalendarDays size={15} /> กิจกรรม</Link>
-            <Link href="/shop"><Gem size={15} /> ร้านค้า</Link>
-          </nav>
-
-          <form action={signOut}>
-            <button type="submit" className="profile-overview-signout"><LogOut size={16} /> ออกจากระบบ</button>
-          </form>
-        </header>
-
-        <div className="profile-overview-heading">
-          <div>
-            <p lang="en">Your Arena identity</p>
-            <h1>โปรไฟล์ของฉัน</h1>
-            <span>เก็บทุกแมตช์ ทุก Level และทุกความทรงจำไว้ในสนามเดียว</span>
-          </div>
-          <Link href="/" className="profile-overview-back"><ArrowLeft size={16} /> กลับหน้าหลัก</Link>
-        </div>
-
         <div className="profile-overview-grid">
           <section className="profile-overview-card profile-overview-card--hero" aria-labelledby="profile-overview-name">
-            <div className="profile-overview-cover" aria-label="ภาพพื้นหลัง Profile">
-              {backgroundUrl ? <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={backgroundUrl} alt="" style={{ objectPosition: `${summary.backgroundFocusX}% ${summary.backgroundFocusY}%` }} />
-              </> : null}
-            </div>
+            <ProfileMediaInlineEditor kind="background" initialUrl={backgroundUrl} initialFocusX={summary.backgroundFocusX} initialFocusY={summary.backgroundFocusY} displayName={summary.displayName} />
 
             <div className="profile-overview-identity">
-              <ProfileAvatar summary={summary} />
+              <ProfileMediaInlineEditor kind="avatar" initialUrl={safeMediaUrl(summary.avatarUrl)} initialFocusX={summary.avatarFocusX} initialFocusY={summary.avatarFocusY} displayName={summary.displayName} />
               <div className="profile-overview-identity__copy">
                 <div className="profile-overview-name-line">
                   <h2 id="profile-overview-name">{summary.displayName}</h2>
                   <Crown size={21} fill="#f7b74b" color="#f7a93b" aria-label="ผู้เล่นเด่น" />
                 </div>
-                <p><MapPin size={13} /> @{summary.handle.replace(/^@/, "")} · {location}</p>
+                <p className="profile-overview-handle">@{summary.handle.replace(/^@/, "")}</p>
+                <p className="profile-overview-location"><MapPin size={13} /> {location}</p>
                 <span className="profile-overview-title-pill">{summary.levelLabel}</span>
                 <span className={`profile-overview-rank-pill profile-overview-rank-pill--${summary.skillRankColor}`}>Tier {summary.skillRankTier} · {summary.skillRankName}</span>
                 {summary.bio ? <p className="profile-overview-bio">{summary.bio}</p> : null}
               </div>
               <div className="profile-overview-identity__links">
                 <Link href="/profile/edit" className="profile-overview-edit"><Pencil size={15} /> แก้ไข Profile</Link>
-                <Link href="/friends" className="profile-overview-social"><Users size={15} /> เพื่อน{summary.pendingFriendRequestCount > 0 ? <b>{summary.pendingFriendRequestCount}</b> : null}</Link>
-                <Link href="/messages" className="profile-overview-social"><MessageCircle size={15} /> ข้อความ{summary.unreadMessageCount > 0 ? <b>{summary.unreadMessageCount}</b> : null}</Link>
                 {summary.isAdmin ? <Link href="/admin" className="profile-overview-admin"><ShieldCheck size={15} /> Admin</Link> : null}
               </div>
             </div>

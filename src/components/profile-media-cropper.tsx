@@ -10,13 +10,14 @@ type ProfileMediaCropperProps = {
   focusY: number;
   aspectRatio: "square" | "banner";
   confirmed: boolean;
+  confirmDisabled?: boolean;
   onFocusChange: (focusX: number, focusY: number) => void;
   onConfirm: () => void;
 };
 
 const clamp = (value: number) => Math.min(100, Math.max(0, value));
 
-export default function ProfileMediaCropper({ url, alt, focusX, focusY, aspectRatio, confirmed, onFocusChange, onConfirm }: ProfileMediaCropperProps) {
+export default function ProfileMediaCropper({ url, alt, focusX, focusY, aspectRatio, confirmed, confirmDisabled = false, onFocusChange, onConfirm }: ProfileMediaCropperProps) {
   const dragRef = useRef<{ startX: number; startY: number; focusX: number; focusY: number } | null>(null);
 
   const beginDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -56,8 +57,8 @@ export default function ProfileMediaCropper({ url, alt, focusX, focusY, aspectRa
       </div>
       <div className="profile-media-cropper__footer">
         <span>{confirmed ? "ยืนยันตำแหน่งแล้ว" : "เลือกตำแหน่งก่อนบันทึก"}</span>
-        <button type="button" className={confirmed ? "profile-media-cropper__confirm profile-media-cropper__confirm--confirmed" : "profile-media-cropper__confirm"} onClick={onConfirm}>
-          <Check size={14} /> {confirmed ? "Crop แล้ว" : "ยืนยันการ Crop"}
+        <button type="button" className={confirmed ? "profile-media-cropper__confirm profile-media-cropper__confirm--confirmed" : "profile-media-cropper__confirm"} onClick={onConfirm} disabled={confirmDisabled}>
+          <Check size={14} /> {confirmDisabled ? "กำลังบันทึก..." : confirmed ? "Crop แล้ว" : "ยืนยันการ Crop"}
         </button>
       </div>
     </div>
