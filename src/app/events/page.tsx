@@ -120,6 +120,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   const filters = parseFilters(await searchParams);
   const { supabase, user } = await getAuthenticatedProfile();
   let eventSource = events;
+  let loadError: string | undefined;
 
   if (supabase && user) {
     let tournamentQuery = supabase
@@ -133,6 +134,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
     const { data: tournamentRows, error: tournamentError } = await tournamentQuery;
     if (tournamentError) {
       eventSource = [];
+      loadError = "กรุณาลองใหม่อีกครั้ง หรือตรวจสอบการเชื่อมต่อบัญชี";
     }
     const rows = (tournamentRows ?? []) as Array<Record<string, unknown>>;
     const tournamentIds = rows.map((row) => typeof row.id === "string" ? row.id : "").filter(Boolean);
@@ -172,5 +174,5 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
       ? right.startsAt.localeCompare(left.startsAt)
       : left.startsAt.localeCompare(right.startsAt));
 
-  return <EventSearchBrowser events={filteredEvents} filters={filters} totalCount={filteredEvents.length} />;
+  return <EventSearchBrowser events={filteredEvents} filters={filters} totalCount={filteredEvents.length} isLiveData={Boolean(supabase && user)} loadError={loadError} />;
 }

@@ -80,16 +80,20 @@ export default function VenueSearchBrowser({
   venues,
   filters,
   totalCount,
+  isLiveData = false,
+  loadError,
 }: {
   venues: Court[];
   filters: VenueSearchFilters;
   totalCount: number;
+  isLiveData?: boolean;
+  loadError?: string;
 }) {
   const filterCount = activeFilterCount(filters);
 
   return (
     <main className="preview-page discovery-page">
-      <PreviewHeader kind="venues" />
+      <PreviewHeader kind="venues" live={isLiveData} />
       <div className="preview-content">
         <div className="preview-section-grid discovery-section-grid">
           <section className="preview-panel preview-panel--wide discovery-main-panel">
@@ -121,7 +125,7 @@ export default function VenueSearchBrowser({
             </form>
 
             <div className="discovery-results-heading"><div><p className="muted-label">Find your court</p><h2>สนามแบดที่ตรงกับคุณ</h2></div><span>{totalCount} สนาม</span></div>
-            {venues.length > 0 ? <div className="venue-grid venue-grid--discovery">{venues.map((court) => <VenueCard key={court.id} court={court} />)}</div> : <div className="discovery-empty"><span>🗺️</span><h2>ยังไม่พบสนามตามตัวกรอง</h2><p>ลองเปลี่ยนพื้นที่ คะแนน หรือจำนวนคอร์ท แล้วค้นหาอีกครั้ง</p><Link href="/venues" className="group-primary-action"><RotateCcw size={15} /> เริ่มค้นหาใหม่</Link></div>}
+            {loadError ? <div className="discovery-error" role="alert"><strong>โหลดข้อมูลสนามไม่สำเร็จ</strong><span>{loadError}</span><Link href="/venues" className="group-secondary-action"><RotateCcw size={15} /> ลองใหม่</Link></div> : venues.length > 0 ? <div className="venue-grid venue-grid--discovery">{venues.map((court) => <VenueCard key={court.id} court={court} />)}</div> : <div className="discovery-empty"><span>🗺️</span><h2>{isLiveData ? "ยังไม่มีสนามที่เปิดให้ค้นหา" : "ยังไม่พบสนามตามตัวกรอง"}</h2><p>{isLiveData ? "เมื่อมีสนามในระบบ สนามจะแสดงที่หน้านี้" : "ลองเปลี่ยนพื้นที่ คะแนน หรือจำนวนคอร์ท แล้วค้นหาอีกครั้ง"}</p><Link href="/venues" className="group-primary-action"><RotateCcw size={15} /> เริ่มค้นหาใหม่</Link></div>}
           </section>
 
           <aside className="discovery-sidebar">
@@ -130,7 +134,7 @@ export default function VenueSearchBrowser({
           </aside>
         </div>
       </div>
-      <footer className="preview-footer"><Link href="/">Arena-Badminton</Link><span>Local Preview · Supabase/R2 integration boundary ready</span></footer>
+      <footer className="preview-footer"><Link href="/">Arena-Badminton</Link><span>{isLiveData ? "Live data · Supabase" : "Guest preview · เข้าสู่ระบบเพื่อดูข้อมูลจริง"}</span></footer>
     </main>
   );
 }

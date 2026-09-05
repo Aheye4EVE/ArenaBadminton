@@ -1,4 +1,4 @@
-const PUBLIC_URL_PATTERN = /^https?:\/\//i;
+const PUBLIC_URL_PATTERN = /^https:\/\//i;
 
 export const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 export const AVATAR_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;

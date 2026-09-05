@@ -1,6 +1,8 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { ArrowLeft, BadgeCheck, CalendarDays, Coins, Crown, ShieldCheck, Swords, Trophy, Users } from "lucide-react";
 import MatchActions from "@/components/match-actions";
+import { safeMediaUrl } from "@/lib/safe-media-url";
 
 type MatchData = {
   id: string;
@@ -64,7 +66,7 @@ function TeamColumn({ team, participants, score, winnerTeam }: { team: "a" | "b"
     <section className={`match-score-team match-score-team--${team} ${isWinner ? "match-score-team--winner" : ""}`}>
       <div className="match-score-team__heading"><span className={`match-team-dot match-team-dot--${team}`}>{team.toUpperCase()}</span><div><p lang="en">Team {team.toUpperCase()}</p><h2>{isWinner ? <><Crown size={18} /> ชนะการแข่งขัน</> : `ทีม ${team.toUpperCase()}`}</h2></div></div>
       <strong className="match-score">{score ?? "—"}</strong>
-      <div className="match-score-team__players">{participants.map((participant) => <div key={participant.user_id}><span className="match-member-avatar">{participant.avatar_url ? "👤" : "🧑🏻"}</span><span><strong>{participant.display_name}</strong><small>@{participant.handle} · Level {participant.level}</small></span></div>)}</div>
+      <div className="match-score-team__players">{participants.map((participant) => { const avatarUrl = safeMediaUrl(participant.avatar_url); return <div key={participant.user_id}><span className="match-member-avatar">{avatarUrl ? <img src={avatarUrl} alt="" /> : "🧑🏻"}</span><span><strong>{participant.display_name}</strong><small>@{participant.handle} · Level {participant.level}</small></span></div>; })}</div>
     </section>
   );
 }

@@ -32,14 +32,14 @@ const pageContent: Record<PreviewKind, { eyebrow: string; title: string; descrip
   messages: { eyebrow: "Stay connected", title: "บอร์ดพูดคุย", description: "คุยกับก๊วนและเพื่อนนักแบดใน Arena", icon: "💌" },
 };
 
-export function PreviewHeader({ kind }: { kind: PreviewKind }) {
+export function PreviewHeader({ kind, live = false }: { kind: PreviewKind; live?: boolean }) {
   const content = pageContent[kind];
   return (
     <header className="preview-header">
       <div className="preview-header__topline">
         <Link href="/" className="preview-back"><ArrowLeft size={17} /> กลับหน้าหลัก</Link>
         <Link href="/" className="preview-brand"><span lang="en">Arena</span><span lang="en">-Badminton</span></Link>
-        <div className="preview-user"><span>🧑🏻</span> <span lang="en">BadBuddy</span> <small lang="en">Lv.25</small></div>
+        <div className="preview-user"><span>{live ? "🏸" : "🧑🏻"}</span> <span lang="en">{live ? "Arena Live" : "Guest Preview"}</span> <small lang="en">{live ? "Supabase" : "เข้าสู่ระบบ"}</small></div>
       </div>
       <div className="preview-heading">
         <div className="preview-heading__icon" aria-hidden="true">{content.icon}</div>
@@ -103,5 +103,5 @@ function NavigationIcon() { return <span aria-hidden="true">↗</span>; }
 function MessageCircleIcon() { return <span aria-hidden="true">◌</span>; }
 
 export default function PreviewPage({ kind }: { kind: PreviewKind }) {
-  return <main className="preview-page"><PreviewHeader kind={kind} /><div className="preview-content">{kind === "groups" ? <GroupsView /> : kind === "organizer" ? <OrganizerView /> : kind === "shop" ? <ShopView /> : kind === "ranking" ? <RankingView /> : kind === "profile" ? <ProfileView /> : kind === "events" ? <EventsView /> : kind === "venues" ? <VenuesView /> : <CommunityView messages={kind === "messages"} />}</div><footer className="preview-footer"><Link href="/">Arena-Badminton</Link><span>Local Preview · Supabase/R2 integration boundary ready</span></footer></main>;
+  return <main className="preview-page"><PreviewHeader kind={kind} /><div className="preview-content">{kind === "groups" ? <GroupsView /> : kind === "organizer" ? <OrganizerView /> : kind === "shop" ? <ShopView /> : kind === "ranking" ? <RankingView /> : kind === "profile" ? <ProfileView /> : kind === "events" ? <EventsView /> : kind === "venues" ? <VenuesView /> : <CommunityView messages={kind === "messages"} />}</div><footer className="preview-footer"><Link href="/">Arena-Badminton</Link><span>Guest preview · เข้าสู่ระบบเพื่อดูข้อมูลจริง</span></footer></main>;
 }

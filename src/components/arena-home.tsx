@@ -10,7 +10,6 @@ import {
   BarChart3,
   Bell,
   CalendarDays,
-  CheckCircle2,
   ChevronDown,
   Dumbbell,
   Filter,
@@ -34,9 +33,10 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { brands, courts, events, groups, navItems, type Group } from "@/lib/demo-data";
+import { brands, courts as demoCourts, events as demoEvents, groups, navItems, type Court, type Event, type Group } from "@/lib/demo-data";
 import AccountMenu from "@/components/account-menu";
 import ThaiAreaSelect from "@/components/thai-area-select";
+import type { HomepageStats } from "@/lib/home-data";
 import type { HeaderProfileSummary } from "@/types/profile";
 
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
@@ -161,7 +161,7 @@ function GroupCard({
   );
 }
 
-function EventCard({ event }: { event: (typeof events)[number] }) {
+function EventCard({ event }: { event: Event }) {
   return (
     <Link href={`/events#${event.id}`} className="event-row">
       <div className={cx("event-art", `event-art--${event.color}`)} aria-hidden="true">
@@ -180,12 +180,15 @@ function EventCard({ event }: { event: (typeof events)[number] }) {
   );
 }
 
-function CourtCard({ court, index }: { court: (typeof courts)[number]; index: number }) {
+function CourtCard({ court, index }: { court: Court; index: number }) {
   return (
     <Link href={`/venues#${court.id}`} className="court-row">
       <span className="court-row__number">{index + 1}</span>
-      <div className="court-photo" aria-hidden="true">
-        <span>{court.image}</span>
+      <div className="court-photo">
+        {court.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={court.imageUrl} alt="" loading="lazy" />
+        ) : <span aria-hidden="true">{court.image}</span>}
       </div>
       <div className="min-w-0 flex-1">
         <h3 lang="en" className="court-row__title">{court.name}</h3>
@@ -203,19 +206,34 @@ export default function ArenaHome({
   account,
   isAuthenticated,
   recommendedGroups,
+  featuredEvents,
+  featuredCourts,
+  communityStats,
+  homeDataErrors,
+  isLiveData = false,
 }: {
   account: HeaderProfileSummary | null;
   isAuthenticated: boolean;
   recommendedGroups?: Group[];
+  featuredEvents?: Event[];
+  featuredCourts?: Court[];
+  communityStats?: HomepageStats;
+  homeDataErrors?: {
+    events: boolean;
+    venues: boolean;
+    stats: boolean;
+  };
+  isLiveData?: boolean;
 }) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchType, setSearchType] = useState("ก๊วน");
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("ทั้งหมด");
-  const [notice, setNotice] = useState<string | null>(null);
   const selectedSkill = activeFilter === "มือใหม่" ? "beginner" : activeFilter === "มือกลาง" ? "intermediate" : activeFilter === "มือสูง" ? "advanced" : "all";
   const homepageGroups = recommendedGroups ?? groups;
+  const homepageEvents = isLiveData ? (featuredEvents ?? []) : demoEvents;
+  const homepageCourts = isLiveData ? (featuredCourts ?? []) : demoCourts;
 
   const visibleGroups = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -225,11 +243,6 @@ export default function ArenaHome({
       return matchesQuery && matchesFilter;
     });
   }, [activeFilter, homepageGroups, query]);
-
-  const showNotice = (message: string) => {
-    setNotice(message);
-    window.setTimeout(() => setNotice(null), 3200);
-  };
 
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -484,7 +497,7 @@ export default function ArenaHome({
                 </span>
               ))}
             </div>
-            <button type="button" className="partner-strip__more" onClick={() => showNotice("กำลังเปิดรายชื่อ Partner ทั้งหมด")}>ดูทั้งหมด <ArrowRight size={15} /></button>
+            <span className="partner-strip__more" aria-label="จำนวน Partner Brands">6 brands</span>
           </section>
 
           <section className="dashboard-layout">
@@ -493,7 +506,7 @@ export default function ArenaHome({
                 <section className="dashboard-card dashboard-card--pink">
                   <SectionHeading eyebrow="ชุมชนของเรา" title="ก๊วนแนะนำ" href="/groups" tone="pink" />
                   <div className="space-y-2">
-                    {visibleGroups.slice(0, 5).map((group) => <GroupCard key={group.id} group={group} onJoin={(selectedGroup) => selectedGroup.detailHref ? router.push(selectedGroup.detailHref) : showNotice(`เปิดรายละเอียดก๊วน ${selectedGroup.title}`)} />)}
+                    {visibleGroups.slice(0, 5).map((group) => <GroupCard key={group.id} group={group} onJoin={(selectedGroup) => router.push(selectedGroup.detailHref ?? "/groups")} />)}
                     {visibleGroups.length === 0 ? <div className="empty-card"><Sparkles size={21} /><p>ยังไม่พบก๊วนจากตัวกรองนี้</p></div> : null}
                   </div>
                 </section>
@@ -501,14 +514,14 @@ export default function ArenaHome({
                 <section className="dashboard-card dashboard-card--lavender">
                   <SectionHeading eyebrow="Play more, feel more" title="กิจกรรม & ทัวร์นาเมนต์" href="/events" tone="purple" />
                   <div className="space-y-2">
-                    {events.map((event) => <EventCard key={event.id} event={event} />)}
+                    {homeDataErrors?.events ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลกิจกรรมจริงไม่สำเร็จ ลองเปิดหน้ากิจกรรมอีกครั้ง</p><Link href="/events" className="section-link">เปิดกิจกรรม <ArrowRight size={14} /></Link></div> : homepageEvents.length > 0 ? homepageEvents.map((event) => <EventCard key={event.id} event={event} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีกิจกรรมที่เปิดรับสมัคร" : "ยังไม่พบกิจกรรม"}</p></div>}
                   </div>
                 </section>
 
                 <section className="dashboard-card dashboard-card--mint">
                   <SectionHeading eyebrow="Find your court" title="สนามแบดแนะนำ" href="/venues" tone="mint" />
                   <div className="space-y-2">
-                    {courts.map((court, index) => <CourtCard key={court.id} court={court} index={index} />)}
+                    {homeDataErrors?.venues ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลสนามจริงไม่สำเร็จ ลองเปิดหน้าสนามอีกครั้ง</p><Link href="/venues" className="section-link">เปิดสนาม <ArrowRight size={14} /></Link></div> : homepageCourts.length > 0 ? homepageCourts.map((court, index) => <CourtCard key={court.id} court={court} index={index} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีสนามที่เปิดให้ค้นหา" : "ยังไม่พบสนาม"}</p></div>}
                   </div>
                 </section>
               </div>
@@ -549,13 +562,14 @@ export default function ArenaHome({
               </section>
 
               <section className="community-card">
-                <div className="community-card__heading"><h2 lang="en">Community</h2><Sparkles size={17} /></div>
+                <div className="community-card__heading"><h2 lang="en">Community</h2><span className="community-card__live-label">{isLiveData ? "Live" : "Preview"}</span><Sparkles size={17} /></div>
                 <div className="community-stats">
-                  <div><Users size={18} /><strong>สมาชิกทั้งหมด</strong><b>12,345 คน</b></div>
-                  <div><Users size={18} /><strong>ก๊วนทั้งหมด</strong><b>1,234 ก๊วน</b></div>
-                  <div><Medal size={18} /><strong>แบดที่จัดแล้ว</strong><b>8,765 แมตช์</b></div>
-                  <div><MapPin size={18} /><strong>สนามในระบบ</strong><b>452 สนาม</b></div>
+                  <div><Users size={18} /><strong>สมาชิกทั้งหมด</strong><b>{communityStats?.members === null || communityStats?.members === undefined ? "—" : `${communityStats.members.toLocaleString("th-TH")} คน`}</b></div>
+                  <div><Users size={18} /><strong>ก๊วนทั้งหมด</strong><b>{communityStats?.groups === null || communityStats?.groups === undefined ? "—" : `${communityStats.groups.toLocaleString("th-TH")} ก๊วน`}</b></div>
+                  <div><Medal size={18} /><strong>แมตช์ในระบบ</strong><b>{communityStats?.matches === null || communityStats?.matches === undefined ? "—" : `${communityStats.matches.toLocaleString("th-TH")} แมตช์`}</b></div>
+                  <div><MapPin size={18} /><strong>สนามในระบบ</strong><b>{communityStats?.venues === null || communityStats?.venues === undefined ? "—" : `${communityStats.venues.toLocaleString("th-TH")} สนาม`}</b></div>
                 </div>
+                {homeDataErrors?.stats ? <p className="community-card__note" role="status">สถิติบางรายการยังโหลดไม่ได้</p> : null}
               </section>
 
               <Link href="/messages" className="chat-card">
@@ -582,13 +596,6 @@ export default function ArenaHome({
         <Link href="/profile" className="mobile-bottom-nav__item"><UserRound size={19} /><span lang="en">Profile</span></Link>
       </nav>
 
-      <AnimatePresence>
-        {notice ? (
-          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 18 }} className="toast" role="status">
-            <CheckCircle2 size={18} /> {notice}
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
     </div>
   );
 }

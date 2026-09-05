@@ -70,16 +70,20 @@ export default function EventSearchBrowser({
   events,
   filters,
   totalCount,
+  isLiveData = false,
+  loadError,
 }: {
   events: Event[];
   filters: EventSearchFilters;
   totalCount: number;
+  isLiveData?: boolean;
+  loadError?: string;
 }) {
   const filterCount = activeFilterCount(filters);
 
   return (
     <main className="preview-page discovery-page">
-      <PreviewHeader kind="events" />
+      <PreviewHeader kind="events" live={isLiveData} />
       <div className="preview-content">
         <div className="preview-section-grid discovery-section-grid">
           <section className="preview-panel preview-panel--wide discovery-main-panel">
@@ -111,7 +115,7 @@ export default function EventSearchBrowser({
             </form>
 
             <div className="discovery-results-heading"><div><p className="muted-label">Play more, feel more</p><h2>กิจกรรมที่ตรงกับคุณ</h2></div><span>{totalCount} กิจกรรม</span></div>
-            {events.length > 0 ? <div className="preview-list event-discovery-list">{events.map((event) => <EventCard key={event.id} event={event} />)}</div> : <div className="discovery-empty"><span>🎯</span><h2>ยังไม่พบกิจกรรมตามตัวกรอง</h2><p>ลองเปลี่ยนพื้นที่ ช่วงเวลา หรือประเภทการแข่งขัน แล้วค้นหาอีกครั้ง</p><Link href="/events" className="group-primary-action"><RotateCcw size={15} /> เริ่มค้นหาใหม่</Link></div>}
+            {loadError ? <div className="discovery-error" role="alert"><strong>โหลดข้อมูลกิจกรรมไม่สำเร็จ</strong><span>{loadError}</span><Link href="/events" className="group-secondary-action"><RotateCcw size={15} /> ลองใหม่</Link></div> : events.length > 0 ? <div className="preview-list event-discovery-list">{events.map((event) => <EventCard key={event.id} event={event} />)}</div> : <div className="discovery-empty"><span>🎯</span><h2>{isLiveData ? "ยังไม่มีกิจกรรมที่เปิดรับสมัคร" : "ยังไม่พบกิจกรรมตามตัวกรอง"}</h2><p>{isLiveData ? "เมื่อมีผู้จัดเปิดกิจกรรม กิจกรรมจะแสดงที่หน้านี้" : "ลองเปลี่ยนพื้นที่ ช่วงเวลา หรือประเภทการแข่งขัน แล้วค้นหาอีกครั้ง"}</p><Link href="/events" className="group-primary-action"><RotateCcw size={15} /> เริ่มค้นหาใหม่</Link></div>}
           </section>
 
           <aside className="discovery-sidebar">
@@ -120,7 +124,7 @@ export default function EventSearchBrowser({
           </aside>
         </div>
       </div>
-      <footer className="preview-footer"><Link href="/">Arena-Badminton</Link><span>Local Preview · Supabase/R2 integration boundary ready</span></footer>
+      <footer className="preview-footer"><Link href="/">Arena-Badminton</Link><span>{isLiveData ? "Live data · Supabase" : "Guest preview · เข้าสู่ระบบเพื่อดูข้อมูลจริง"}</span></footer>
     </main>
   );
 }

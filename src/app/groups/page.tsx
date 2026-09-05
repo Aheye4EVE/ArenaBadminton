@@ -179,6 +179,17 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
     memberships = (membershipResult.data ?? []) as MembershipRow[];
   }
 
+  const registeredCounts = new Map<string, number>();
+  const currentMemberships = new Map<string, string>();
+  for (const membership of memberships) {
+    if (membership.membership_status === "registered") {
+      registeredCounts.set(membership.group_id, (registeredCounts.get(membership.group_id) ?? 0) + 1);
+    }
+    if (membership.user_id === user.id) {
+      currentMemberships.set(membership.group_id, membership.membership_status);
+    }
+  }
+
   const groups: GroupListItem[] = filteredRows.map((row) => ({
     id: row.id,
     ownerId: row.owner_id,
@@ -193,8 +204,8 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
     playType: row.play_type,
     entryFee: row.entry_fee,
     status: row.status,
-    registeredCount: memberships.filter((member) => member.group_id === row.id && member.membership_status === "registered").length,
-    membershipStatus: memberships.find((member) => member.group_id === row.id && member.user_id === user.id)?.membership_status ?? null,
+    registeredCount: registeredCounts.get(row.id) ?? 0,
+    membershipStatus: currentMemberships.get(row.id) ?? null,
   }));
 
   return (

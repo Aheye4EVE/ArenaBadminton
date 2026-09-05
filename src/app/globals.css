@@ -1296,6 +1296,12 @@ select:focus-visible {
   font-size: 1.7rem;
 }
 
+.court-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .rating {
   color: #e6a32e;
 }
@@ -1517,6 +1523,26 @@ select:focus-visible {
   margin: 0;
   font-size: 0.88rem;
   font-weight: 950;
+}
+
+.community-card__live-label {
+  margin-left: auto;
+  margin-right: 0.35rem;
+  padding: 0.2rem 0.42rem;
+  border-radius: 999px;
+  background: #ebf9f1;
+  color: #3eaa82;
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.community-card__note {
+  margin: 0.65rem 0 0;
+  color: #a19ab5;
+  font-size: 0.58rem;
+  font-weight: 750;
 }
 
 .community-stats {
@@ -5750,7 +5776,8 @@ select:focus-visible {
 .match-score { display: block; color: #544791; font-family: var(--font-fredoka), "Fredoka", sans-serif; font-size: 3.5rem; line-height: 1; text-align: center; }
 .match-score-team__players { display: grid; gap: 7px; padding-top: 9px; border-top: 1px solid rgba(113, 97, 190, 0.1); }
 .match-score-team__players > div { display: flex; align-items: center; gap: 7px; min-width: 0; }
-.match-member-avatar { display: grid; width: 29px; height: 29px; flex: 0 0 29px; place-items: center; border-radius: 10px; background: #eeeaff; font-size: 0.86rem; }
+.match-member-avatar { display: grid; width: 29px; height: 29px; flex: 0 0 29px; place-items: center; overflow: hidden; border-radius: 10px; background: #eeeaff; font-size: 0.86rem; }
+.match-member-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .match-score-team__players > div > span:last-child { display: grid; min-width: 0; }
 .match-score-team__players strong { overflow: hidden; color: #625991; font-size: 0.75rem; text-overflow: ellipsis; white-space: nowrap; }
 .match-score-team__players small { overflow: hidden; color: #a29bb7; font-size: 0.65rem; text-overflow: ellipsis; white-space: nowrap; }
@@ -7822,6 +7849,11 @@ img.profile-overview-avatar { object-fit: cover; }
 .discovery-empty h2 { color: #4d438c; font-size: 1rem; font-weight: 950; }
 .discovery-empty p { max-width: 27rem; color: #9690aa; font-size: 0.72rem; line-height: 1.6; }
 .discovery-empty .group-primary-action { margin-top: 0.55rem; }
+.discovery-error { display: grid; min-height: 190px; place-items: center; align-content: center; gap: 0.42rem; margin-top: 1rem; padding: 1.5rem; border: 1px solid rgba(232, 93, 157, 0.18); border-radius: 18px; background: linear-gradient(145deg, #fff4fa, #f8f4ff); text-align: center; }
+.discovery-error strong { color: #8c4d86; font-size: 0.9rem; font-weight: 950; }
+.discovery-error span { max-width: 28rem; color: #9b94ad; font-size: 0.7rem; line-height: 1.6; }
+.discovery-error .group-secondary-action,
+.discovery-error .secondary-action { margin-top: 0.35rem; }
 .venue-grid--discovery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .venue-card--discovery .venue-card__image { position: relative; display: flex; min-height: 132px; align-items: flex-start; justify-content: space-between; padding: 0.8rem; }
 .venue-card--discovery .venue-card__image small { display: inline-flex; align-items: center; gap: 0.2rem; padding: 0.28rem 0.42rem; border-radius: 999px; background: rgba(255, 255, 255, 0.8); color: #6f66a4; font-size: 0.58rem; font-weight: 850; }

@@ -3,6 +3,7 @@ import VenueSearchBrowser, { type VenueSearchFilters } from "@/components/venue-
 import { courts } from "@/lib/demo-data";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 import { shouldShowQaData } from "@/lib/config";
+import { safeMediaUrl } from "@/lib/safe-media-url";
 import { matchesLocationFilters, matchesSearchTerms, searchTerms } from "@/lib/search-utils";
 
 export const metadata: Metadata = { title: "สนามแบด | Arena-Badminton" };
@@ -119,7 +120,7 @@ function mapLiveVenue(
     distanceKm: distanceKm ?? Number.MAX_SAFE_INTEGER,
     rating: rating.toFixed(1),
     image: "🏟️",
-    imageUrl: typeof row.cover_image_url === "string" && row.cover_image_url.trim() ? row.cover_image_url : null,
+    imageUrl: safeMediaUrl(row.cover_image_url),
     latitude: latitude ?? 0,
     longitude: longitude ?? 0,
   };
@@ -130,6 +131,7 @@ export default async function VenuesPage({ searchParams }: { searchParams: Promi
   const terms = searchTerms(filters.q);
   const profileContext = await getAuthenticatedProfile();
   let sourceVenues = courts;
+  let loadError: string | undefined;
 
   if (profileContext.supabase && profileContext.user) {
     sourceVenues = [];
@@ -146,6 +148,8 @@ export default async function VenuesPage({ searchParams }: { searchParams: Promi
       const userLatitude = asNumber(profileContext.profile?.latitude);
       const userLongitude = asNumber(profileContext.profile?.longitude);
       sourceVenues = (data as LiveVenueRow[]).map((row) => mapLiveVenue(row, userLatitude, userLongitude));
+    } else if (error) {
+      loadError = "กรุณาลองใหม่อีกครั้ง หรือตรวจสอบการเชื่อมต่อบัญชี";
     }
   }
 
@@ -171,5 +175,5 @@ export default async function VenuesPage({ searchParams }: { searchParams: Promi
       return Number(right.rating) - Number(left.rating);
     });
 
-  return <VenueSearchBrowser venues={filteredVenues} filters={filters} totalCount={filteredVenues.length} />;
+  return <VenueSearchBrowser venues={filteredVenues} filters={filters} totalCount={filteredVenues.length} isLiveData={Boolean(profileContext.supabase && profileContext.user)} loadError={loadError} />;
 }

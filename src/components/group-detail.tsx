@@ -1,6 +1,8 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { ArrowLeft, BarChart3, CalendarDays, Clock3, Coins, MapPin, ShieldCheck, Swords, Users } from "lucide-react";
 import GroupMembershipActions from "@/components/group-membership-actions";
+import { safeMediaUrl } from "@/lib/safe-media-url";
 
 type GroupDetailData = {
   id: string;
@@ -89,7 +91,7 @@ export default function GroupDetail({ group, members, membershipStatus, currentU
 
             <div className="group-detail-info-grid"><div><MapPin size={20} /><span><small>สถานที่ / สนาม</small><strong>{group.locationText}</strong></span></div><div><CalendarDays size={20} /><span><small>วันและเวลา</small><strong>{groupDate(group.startsAt)}</strong></span></div><div><Clock3 size={20} /><span><small>ระยะเวลา</small><strong>{durationLabel(group.durationMinutes)}</strong></span></div><div><BarChart3 size={20} /><span><small>ระดับที่รับ</small><strong>{levelLabel(group)}</strong></span></div><div><Coins size={20} /><span><small>ค่าเข้าร่วม</small><strong>{feeLabel(group.entryFee)}</strong></span></div><div><Users size={20} /><span><small>ที่นั่ง</small><strong>{registeredCount}/{group.capacity} คน</strong></span></div></div>
 
-            <section className="group-detail-section"><div className="group-detail-section__heading"><div><p lang="en">Member list</p><h2>สมาชิกก๊วน</h2></div><span>{registeredCount} ที่นั่ง · {waitlistedMembers.length} คิวรอ</span></div><div className="group-member-list">{members.length > 0 ? members.map((member) => <div className="group-member-row" key={`${member.user_id}-${member.membership_status}`}><span className="group-member-avatar">{member.avatar_url ? "👤" : "🧑🏻"}</span><span><strong>{member.display_name}</strong><small>@{member.handle} · Level {member.level}</small></span><em className={member.membership_status === "waitlisted" ? "group-member-row__wait" : ""}>{memberStatusLabel(member.membership_status)}</em></div>) : <div className="group-members-empty">ยังไม่มีข้อมูลสมาชิกเพิ่มเติม</div>}</div></section>
+            <section className="group-detail-section"><div className="group-detail-section__heading"><div><p lang="en">Member list</p><h2>สมาชิกก๊วน</h2></div><span>{registeredCount} ที่นั่ง · {waitlistedMembers.length} คิวรอ</span></div><div className="group-member-list">{members.length > 0 ? members.map((member) => { const avatarUrl = safeMediaUrl(member.avatar_url); return <div className="group-member-row" key={`${member.user_id}-${member.membership_status}`}><span className="group-member-avatar">{avatarUrl ? <img src={avatarUrl} alt="" /> : "🧑🏻"}</span><span><strong>{member.display_name}</strong><small>@{member.handle} · Level {member.level}</small></span><em className={member.membership_status === "waitlisted" ? "group-member-row__wait" : ""}>{memberStatusLabel(member.membership_status)}</em></div>; }) : <div className="group-members-empty">ยังไม่มีข้อมูลสมาชิกเพิ่มเติม</div>}</div></section>
 
             <div className="group-detail-safety"><ShieldCheck size={19} /><span>ระบบจะยืนยันที่นั่งและคิวรอด้วย transaction เดียว ป้องกันการรับสมาชิกเกินจำนวนที่ผู้จัดกำหนด</span></div>
           </section>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ArenaHome from "@/components/arena-home";
 import { getRecommendedGroups } from "@/lib/group-recommendations";
+import { getHomepageLiveData } from "@/lib/home-data";
 import { getAuthenticatedProfile, getAuthenticatedProfileSummary } from "@/lib/supabase-server";
 
 export const metadata: Metadata = {
@@ -12,9 +13,19 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const authContext = await getAuthenticatedProfile();
-  const [summaryContext, recommendedGroups] = await Promise.all([
+  const [summaryContext, recommendedGroups, homepageLiveData] = await Promise.all([
     getAuthenticatedProfileSummary(authContext),
     getRecommendedGroups(authContext),
+    getHomepageLiveData(authContext),
   ]);
-  return <ArenaHome account={summaryContext.summary} isAuthenticated={Boolean(authContext.user)} recommendedGroups={recommendedGroups} />;
+  return <ArenaHome
+    account={summaryContext.summary}
+    isAuthenticated={Boolean(authContext.user)}
+    recommendedGroups={recommendedGroups}
+    featuredEvents={homepageLiveData?.featuredEvents}
+    featuredCourts={homepageLiveData?.featuredCourts}
+    communityStats={homepageLiveData?.communityStats}
+    homeDataErrors={homepageLiveData?.errors}
+    isLiveData={Boolean(homepageLiveData)}
+  />;
 }
