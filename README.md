@@ -52,8 +52,11 @@
 ```bash
 npm run lint
 npm run typecheck
+npm run smoke:production
 npm run build
 ```
+
+`npm run smoke:production` จะตรวจหน้า public และ protected redirect บน `https://arena-badminton.vercel.app` โดยอัตโนมัติ และตรวจ `/api/health` เฉพาะโครงสร้างสถานะ โดยไม่พิมพ์ค่า secret ออกมา หากต้องการตรวจ Preview หรือ URL อื่น ให้กำหนด `SMOKE_BASE_URL` เช่น `SMOKE_BASE_URL=https://your-preview.vercel.app npm run smoke:production` การ Login, การแก้ Profile และการอัปโหลดไฟล์ยังต้องทดสอบด้วยบัญชีจริงใน browser เพราะต้องใช้ session และข้อมูลลับที่ไม่ควรใส่ในสคริปต์
 
 ลำดับการทำงานคือแก้ทีละจุด → ตรวจคุณภาพโค้ด → commit/push ไป GitHub → Deploy Production บน Vercel → ตรวจ Smoke test บน URL จริง
 
