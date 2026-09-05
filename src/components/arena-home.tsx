@@ -289,7 +289,7 @@ export default function ArenaHome({
             </Link>
 
             <nav className="desktop-nav" aria-label="เมนูหลัก">
-              {navItems.filter((item) => !["/marketplace", "/messages"].includes(item.href)).map((item, index) => (
+              {navItems.map((item, index) => (
                 <Link key={item.href + item.label} href={item.href} aria-label={item.label} aria-current={index === 0 ? "page" : undefined} className={cx("desktop-nav__item", index === 0 && "desktop-nav__item--active")}>
                   <NavIcon name={item.icon} size={17} />
                   <span lang={/^[A-Za-z]+$/.test(item.label) ? "en" : "th"}>{item.label}</span>
@@ -572,9 +572,9 @@ export default function ArenaHome({
                 {homeDataErrors?.stats ? <p className="community-card__note" role="status">สถิติบางรายการยังโหลดไม่ได้</p> : null}
               </section>
 
-              <Link href="/messages" className="chat-card">
-                <span className="chat-card__icon"><MessageCircle size={22} /></span>
-                <span><strong>ข้อความของฉัน</strong><small>คุยกับเพื่อนนักแบด</small></span>
+              <Link href="/friends" className="chat-card">
+                <span className="chat-card__icon"><Users size={22} /></span>
+                <span><strong>เพื่อน & Messenger</strong><small>แอดเพื่อนก่อนเริ่มแชท</small></span>
                 <ArrowRight size={18} />
               </Link>
 

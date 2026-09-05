@@ -7,6 +7,7 @@ import {
   Crown,
   Gem,
   LogOut,
+  MessageCircle,
   MapPin,
   Pencil,
   ShieldCheck,
@@ -89,6 +90,8 @@ export default function ProfileOverview({ summary, province, trophies }: { summa
               </div>
               <div className="profile-overview-identity__links">
                 <Link href="/profile/edit" className="profile-overview-edit"><Pencil size={15} /> แก้ไข Profile</Link>
+                <Link href="/friends" className="profile-overview-social"><Users size={15} /> เพื่อน{summary.pendingFriendRequestCount > 0 ? <b>{summary.pendingFriendRequestCount}</b> : null}</Link>
+                <Link href="/messages" className="profile-overview-social"><MessageCircle size={15} /> ข้อความ{summary.unreadMessageCount > 0 ? <b>{summary.unreadMessageCount}</b> : null}</Link>
                 {summary.isAdmin ? <Link href="/admin" className="profile-overview-admin"><ShieldCheck size={15} /> Admin</Link> : null}
               </div>
             </div>

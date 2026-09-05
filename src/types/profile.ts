@@ -13,6 +13,8 @@ export type HeaderProfileSummary = {
   skillBp: number;
   gemsBalance: number;
   unreadNotificationCount: number;
+  unreadMessageCount: number;
+  pendingFriendRequestCount: number;
   rank: number | null;
   isAdmin: boolean;
   isProfileComplete: boolean;

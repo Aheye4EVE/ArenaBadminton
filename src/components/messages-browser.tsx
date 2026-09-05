@@ -40,7 +40,7 @@ function Feedback({ state }: { state: MessageActionState }) {
   return <p className={state.error ? "messages-feedback messages-feedback--error" : "messages-feedback"} role={state.error ? "alert" : "status"}>{state.error ? <XCircle size={14} /> : <Check size={14} />}{state.error ?? state.message}</p>;
 }
 
-export default function MessagesBrowser({ conversations, selectedConversationId, initialMessages, currentUserId }: { conversations: DirectConversation[]; selectedConversationId: string | null; initialMessages: DirectMessage[]; currentUserId: string }) {
+export default function MessagesBrowser({ conversations, selectedConversationId, initialMessages, currentUserId, friendOnlyNotice = false }: { conversations: DirectConversation[]; selectedConversationId: string | null; initialMessages: DirectMessage[]; currentUserId: string; friendOnlyNotice?: boolean }) {
   const selected = conversations.find((conversation) => conversation.id === selectedConversationId) ?? conversations[0] ?? null;
   const [messages, setMessages] = useState(initialMessages);
   const [realtime, setRealtime] = useState<"connecting" | "connected" | "offline">("connecting");
@@ -113,7 +113,7 @@ export default function MessagesBrowser({ conversations, selectedConversationId,
                 <button type="submit" className="group-primary-action" disabled={pending}><Send size={15} /> {pending ? "กำลังส่ง" : "ส่งข้อความ"}</button>
                 <Feedback state={state} />
               </form>
-            </> : <div className="messages-no-selection"><MessageCircle size={32} /><h2>เลือกบทสนทนา</h2><p>เมื่อคุณติดต่อผู้เล่น บทสนทนาจะแสดงที่นี่</p></div>}
+            </> : <div className="messages-no-selection"><MessageCircle size={32} /><h2>{friendOnlyNotice ? "เพิ่มเพื่อนก่อนเริ่มคุย" : "เลือกบทสนทนา"}</h2><p>{friendOnlyNotice ? "ระบบเปิด DM เฉพาะผู้เล่นที่เป็นเพื่อนกันแล้ว ไปที่หน้าเพื่อนเพื่อส่งคำขอได้เลย" : "เมื่อคุณติดต่อผู้เล่น บทสนทนาจะแสดงที่นี่"}</p>{friendOnlyNotice ? <Link href="/friends" className="group-secondary-action">ไปจัดการเพื่อน</Link> : null}</div>}
           </section>
         </div>
 

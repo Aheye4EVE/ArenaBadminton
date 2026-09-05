@@ -1135,6 +1135,28 @@ export const marketplaceOrders = pgTable(
   ],
 );
 
+export const userFriendships = pgTable(
+  "user_friendships",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    lowUserId: uuid("low_user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    highUserId: uuid("high_user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    requestedBy: uuid("requested_by").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("pending"),
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("user_friendships_pair_uidx").on(table.lowUserId, table.highUserId),
+    index("user_friendships_low_status_idx").on(table.lowUserId, table.status, table.updatedAt, table.id),
+    index("user_friendships_high_status_idx").on(table.highUserId, table.status, table.updatedAt, table.id),
+    check("user_friendships_pair_order", sql`${table.lowUserId} < ${table.highUserId}`),
+    check("user_friendships_requester_member", sql`${table.requestedBy} = ${table.lowUserId} or ${table.requestedBy} = ${table.highUserId}`),
+    check("user_friendships_status_allowed", sql`${table.status} in ('pending', 'accepted', 'declined')`),
+  ],
+);
+
 export const directConversations = pgTable(
   "direct_conversations",
   {

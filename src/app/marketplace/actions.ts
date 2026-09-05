@@ -39,7 +39,7 @@ export async function requestMarketplacePurchaseAction(_previousState: Marketpla
   const row = returned(data);
   revalidatePath(`/marketplace/${listingId.data}`);
   revalidatePath("/marketplace");
-  return { message: "ส่งคำขอซื้อแล้ว ผู้ขายจะติดต่อกลับผ่าน Messages", orderId: typeof row?.id === "string" ? row.id : undefined };
+  return { message: "ส่งคำขอซื้อแล้ว ผู้ขายจะติดต่อกลับผ่าน Messenger", orderId: typeof row?.id === "string" ? row.id : undefined };
 }
 
 export async function updateMarketplaceOrderAction(_previousState: MarketplaceActionState, formData: FormData): Promise<MarketplaceActionState> {

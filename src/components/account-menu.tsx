@@ -18,6 +18,7 @@ import {
   LockKeyhole,
   LogOut,
   Medal,
+  MessageCircle,
   Sparkles,
   ShieldCheck,
   Trophy,
@@ -282,6 +283,19 @@ function ProfileSummaryCard({ account, onClose }: { account: HeaderProfileSummar
         <div><Users size={19} /><strong>{formatNumber(account.stats.createdGroups)}</strong><span>ก๊วนที่จัด</span></div>
         <div><CalendarDays size={19} /><strong>{formatNumber(account.stats.joinedGroups)}</strong><span>เข้าร่วมกิจกรรม</span></div>
         <div><Trophy size={19} /><strong>{formatNumber(account.stats.matchesPlayed)}</strong><span>แมตช์แข่งขัน</span></div>
+      </div>
+
+      <div className="account-profile__social-grid">
+        <Link href="/friends" className="account-profile__social-link" onClick={onClose}>
+          <Users size={17} />
+          <span><strong>เพื่อน</strong><small>{account.pendingFriendRequestCount > 0 ? `${formatNumber(account.pendingFriendRequestCount)} คำขอใหม่` : "จัดการเพื่อน"}</small></span>
+          {account.pendingFriendRequestCount > 0 ? <b>{Math.min(99, account.pendingFriendRequestCount)}</b> : <ArrowRight size={14} />}
+        </Link>
+        <Link href="/messages" className="account-profile__social-link" onClick={onClose}>
+          <MessageCircle size={17} />
+          <span><strong>ข้อความ</strong><small>{account.unreadMessageCount > 0 ? `${formatNumber(account.unreadMessageCount)} ข้อความใหม่` : "Messenger ของคุณ"}</small></span>
+          {account.unreadMessageCount > 0 ? <b>{Math.min(99, account.unreadMessageCount)}</b> : <ArrowRight size={14} />}
+        </Link>
       </div>
 
       <Link href="/profile" className="account-profile__cta" onClick={onClose}>โปรไฟล์ของฉัน <ArrowRight size={17} /></Link>

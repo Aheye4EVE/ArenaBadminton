@@ -248,5 +248,5 @@ export const navItems = [
   { label: "ตลาดมือสอง", href: "/marketplace", icon: "store" },
   { label: "Ranking", href: "/ranking", icon: "trophy" },
   { label: "บอร์ดพูดคุย", href: "/community", icon: "message" },
-  { label: "Messages", href: "/messages", icon: "message" },
+  { label: "เพื่อน", href: "/friends", icon: "users" },
 ];

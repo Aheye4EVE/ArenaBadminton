@@ -49,7 +49,7 @@ export default function VenueDetail({ venue, reviews, initialReview, signedIn }:
           </section>
           <aside>
             {signedIn ? <VenueReviewForm venueId={venue.id} initialRating={initialReview?.rating ?? null} initialBody={initialReview?.body ?? ""} /> : <section className="venue-review-login"><Star size={24} /><h2>ช่วยรีวิวสนามให้เพื่อน ๆ</h2><p>เข้าสู่ระบบเพื่อให้คะแนนและบันทึกประสบการณ์ของคุณ</p><Link href={`/auth/login?next=/venues/${venue.id}`} className="group-primary-action">เข้าสู่ระบบ</Link></section>}
-            <Link href="/messages" className="venue-contact-link"><MessageCircle size={16} /> คุยกับ Community เรื่องสนามนี้</Link>
+            <Link href="/friends" className="venue-contact-link"><MessageCircle size={16} /> หาเพื่อนคุยเรื่องสนามนี้</Link>
           </aside>
         </div>
 

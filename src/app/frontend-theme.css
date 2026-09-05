@@ -45,13 +45,13 @@
 .frontend-shell [lang="en"] { font-family: var(--font-fredoka), var(--font-mitr), sans-serif; }
 
 /* All customer routes share the same scene and surfaces, including auth. */
-.frontend-shell :is(.arena-page, .preview-page, .auth-page, .profile-setup-page, .groups-page, .group-detail-page, .matches-page, .shop-live-page, .profile-overview-page, .community-live-page, .notifications-page, .ranking-live-page, .guilds-page, .guild-create-page, .guild-detail-page, .guild-manage-page, .guild-invite-page, .tournament-create-page, .tournament-detail-page, .venue-detail-page, .marketplace-page, .marketplace-detail-page, .messages-page, .profile-history-page, .moderation-report-page) {
+.frontend-shell :is(.arena-page, .preview-page, .auth-page, .profile-setup-page, .groups-page, .group-detail-page, .matches-page, .shop-live-page, .profile-overview-page, .community-live-page, .notifications-page, .ranking-live-page, .guilds-page, .guild-create-page, .guild-detail-page, .guild-manage-page, .guild-invite-page, .tournament-create-page, .tournament-detail-page, .venue-detail-page, .marketplace-page, .marketplace-detail-page, .messages-page, .friends-page, .profile-history-page, .moderation-report-page) {
   background: transparent;
   color: var(--ink);
 }
-.frontend-shell[data-page="inner"] :is(.preview-page, .auth-page, .profile-setup-page, .groups-page, .group-detail-page, .matches-page, .shop-live-page, .profile-overview-page, .community-live-page, .notifications-page, .ranking-live-page, .guilds-page, .guild-create-page, .guild-detail-page, .guild-manage-page, .guild-invite-page, .tournament-create-page, .tournament-detail-page, .venue-detail-page, .marketplace-page, .marketplace-detail-page, .messages-page, .profile-history-page, .moderation-report-page) { min-height: calc(100svh - 170px); }
+.frontend-shell[data-page="inner"] :is(.preview-page, .auth-page, .profile-setup-page, .groups-page, .group-detail-page, .matches-page, .shop-live-page, .profile-overview-page, .community-live-page, .notifications-page, .ranking-live-page, .guilds-page, .guild-create-page, .guild-detail-page, .guild-manage-page, .guild-invite-page, .tournament-create-page, .tournament-detail-page, .venue-detail-page, .marketplace-page, .marketplace-detail-page, .messages-page, .friends-page, .profile-history-page, .moderation-report-page) { min-height: calc(100svh - 170px); }
 .frontend-shell .auth-page::before, .frontend-shell .auth-page__glow { display: none; }
-.frontend-shell :is(.groups-shell, .matches-shell, .shop-live-shell, .profile-overview-shell, .community-live-shell, .notifications-shell, .guilds-shell, .guild-create-shell, .guild-detail-shell, .guild-manage-shell, .tournament-create-shell, .tournament-detail-shell, .venue-detail-shell, .marketplace-shell, .marketplace-detail-shell) { width: min(1240px, calc(100% - 40px)); padding-top: 16px; }
+.frontend-shell :is(.groups-shell, .matches-shell, .shop-live-shell, .profile-overview-shell, .community-live-shell, .notifications-shell, .guilds-shell, .guild-create-shell, .guild-detail-shell, .guild-manage-shell, .tournament-create-shell, .tournament-detail-shell, .venue-detail-shell, .marketplace-shell, .marketplace-detail-shell, .friends-shell) { width: min(1240px, calc(100% - 40px)); padding-top: 16px; }
 .frontend-shell :is(.preview-header, .preview-content, .preview-footer) { width: min(1240px, calc(100% - 40px)); }
 
 /* Navigation stays accessible on every inner page. */
@@ -152,7 +152,7 @@
 .frontend-shell .join-card { background: linear-gradient(130deg, #fff8ffcf, #efe0ffe0); }
 
 /* Shared content surfaces for all frontend modules. */
-.frontend-shell :is(.preview-panel, .trophy-panel, .profile-setup-card, .auth-card, .groups-main-panel, .organizer-live-panel, .groups-side-card, .group-live-card, .organizer-side-card, .group-join-panel, .match-actions-panel, .match-team-card, .match-settlement-card, .match-list-card, .shop-live-card, .profile-overview-card, .profile-overview-next-card, .profile-overview-score-card, .profile-overview-trophy-card, .discovery-main-panel, .discovery-map-card, .discovery-tip-card, .community-composer, .community-post, .community-side-card, .notifications-panel, .guild-card, .guild-detail-panel, .guild-manage-card, .guild-invite-card, .tournament-detail-panel, .tournament-detail-side-card, .tournament-action-card, .tournament-organizer-panel, .match-mvp-panel, .venue-detail-panel, .venue-review-form, .marketplace-card, .marketplace-detail-panel, .marketplace-create-form, .messages-layout, .profile-history-panel, .moderation-report-card, .profile-card, .post-card, .venue-card) {
+.frontend-shell :is(.preview-panel, .trophy-panel, .profile-setup-card, .auth-card, .groups-main-panel, .organizer-live-panel, .groups-side-card, .group-live-card, .organizer-side-card, .group-join-panel, .match-actions-panel, .match-team-card, .match-settlement-card, .match-list-card, .shop-live-card, .profile-overview-card, .profile-overview-next-card, .profile-overview-score-card, .profile-overview-trophy-card, .discovery-main-panel, .discovery-map-card, .discovery-tip-card, .community-composer, .community-post, .community-side-card, .notifications-panel, .guild-card, .guild-detail-panel, .guild-manage-card, .guild-invite-card, .tournament-detail-panel, .tournament-detail-side-card, .tournament-action-card, .tournament-organizer-panel, .match-mvp-panel, .venue-detail-panel, .venue-review-form, .marketplace-card, .marketplace-detail-panel, .marketplace-create-form, .messages-layout, .friends-panel, .friends-tip-card, .friends-side-card, .profile-history-panel, .moderation-report-card, .profile-card, .post-card, .venue-card) {
   border: 1.5px solid #fff;
   border-radius: 25px;
   background: var(--candy-panel);
@@ -219,6 +219,137 @@
 .frontend-shell .messages-bubble--mine { border-radius: 19px 19px 5px 19px; background: linear-gradient(120deg, #edd3fa, #fcdaf0); color: #643583; }
 .frontend-shell .messages-compose textarea { font-size: .9rem; border-radius: 15px; }
 .frontend-shell .mobile-bottom-nav { background: #fffafff5; border: 1px solid #fff; box-shadow: 0 -5px 25px #7447a320; }
+
+/* Friends and Messenger keep social actions close without putting DM in the main nav. */
+.frontend-shell .friends-page { overflow-x: clip; }
+.frontend-shell .friends-shell { padding-bottom: 52px; }
+.frontend-shell .friends-hero { display: flex; align-items: center; justify-content: space-between; gap: 22px; margin: 14px 0 16px; padding: clamp(24px, 4vw, 46px); border: 2px solid #fff; border-radius: 30px; background: linear-gradient(120deg, #ffe1f5f5, #f0e8fff5 54%, #e1f9fff2); box-shadow: var(--shadow); }
+.frontend-shell .friends-hero p, .frontend-shell .friends-hero h1, .frontend-shell .friends-hero span { margin: 0; }
+.frontend-shell .friends-hero p { color: #ae52c6; font-size: .82rem; font-weight: 600; }
+.frontend-shell .friends-hero h1 { margin-top: 5px; color: #45277e; font-size: clamp(1.8rem, 4vw, 3.1rem); font-weight: 600; }
+.frontend-shell .friends-hero > div:first-child > span { display: block; margin-top: 8px; color: #725c94; font-size: .9rem; }
+.frontend-shell .friends-hero__art { display: grid; position: relative; width: 118px; height: 118px; flex: 0 0 118px; place-items: center; border: 2px solid #fff; border-radius: 35px; color: #ef70ba; background: linear-gradient(145deg, #fff8ff, #e7edff); font-size: 3.5rem; box-shadow: 0 12px 25px #8c5bc52b; transform: rotate(5deg); }
+.frontend-shell .friends-hero__art span { position: absolute; top: 8px; right: 12px; color: #ffc95d; font-size: 1.4rem; }
+.frontend-shell .friends-search-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; margin-bottom: 16px; padding: 11px; border: 2px solid #fff; border-radius: 23px; background: #fffaffed; box-shadow: var(--soft-shadow); }
+.frontend-shell .friends-search-form > div { display: flex; align-items: center; gap: 9px; min-height: 48px; padding: 0 14px; border: 1px solid #e9def4; border-radius: 17px; background: #fff; color: #9b6bd0; }
+.frontend-shell .friends-search-form input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--ink); background: transparent; font: inherit; font-size: .9rem; }
+.frontend-shell .friends-search-form input::placeholder { color: #b5a6bf; }
+.frontend-shell .friends-layout { display: grid; grid-template-columns: minmax(0, 1fr) 285px; align-items: start; gap: 16px; }
+.frontend-shell .friends-main { display: grid; gap: 16px; min-width: 0; }
+.frontend-shell .friends-panel { padding: 20px; border-radius: 25px; }
+.frontend-shell .friends-panel--requests { background: linear-gradient(135deg, #fff1f9f7, #f5edfff5); }
+.frontend-shell .friends-panel__heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+.frontend-shell .friends-panel__heading p, .frontend-shell .friends-panel__heading h2 { margin: 0; }
+.frontend-shell .friends-panel__heading p { color: #ad69c4; font-size: .7rem; }
+.frontend-shell .friends-panel__heading h2 { margin-top: 3px; color: #4e3180; font-size: 1.12rem; font-weight: 600; }
+.frontend-shell .friends-panel__heading > span { display: inline-flex; align-items: center; gap: 5px; min-width: 31px; justify-content: center; padding: 5px 9px; border-radius: 999px; color: #a248bd; background: #fff; font-family: var(--font-fredoka), sans-serif; font-size: .78rem; }
+.frontend-shell .friends-list { display: grid; gap: 9px; }
+.frontend-shell .friends-card { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 11px; border: 1px solid #eadff4; border-radius: 17px; background: #ffffffc9; }
+.frontend-shell .friends-card:hover { border-color: #dca8e8; background: #fff; box-shadow: 0 7px 18px #8d5abb12; }
+.frontend-shell .friends-card__body { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.frontend-shell .friends-card__body strong { overflow: hidden; color: #51337e; font-size: .86rem; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .friends-card__body small { overflow: hidden; color: #a18dad; font-family: var(--font-fredoka), var(--font-mitr), sans-serif; font-size: .66rem; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .friends-card__body > span { display: inline-flex; align-items: center; gap: 4px; color: #9988ad; font-size: .68rem; }
+.frontend-shell .friends-avatar { display: grid; width: 46px; height: 46px; flex: 0 0 46px; place-items: center; overflow: hidden; border: 2px solid #fff; border-radius: 16px; color: #9d72cf; background: linear-gradient(145deg, #f9e4fb, #e6eeff); object-fit: cover; box-shadow: 0 4px 10px #8d61b21c; }
+.frontend-shell .friends-avatar--fallback { border-color: #e6d9f3; }
+.frontend-shell .friends-avatar--large { width: 54px; height: 54px; flex-basis: 54px; border-radius: 19px; }
+.frontend-shell .friends-card__action, .frontend-shell .friends-request-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
+.frontend-shell .friends-card__action { flex: 0 0 auto; }
+.frontend-shell .friends-request-actions { max-width: 180px; }
+.frontend-shell .friends-button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 37px; padding: 7px 11px; border: 1px solid transparent; border-radius: 12px; cursor: pointer; font: inherit; font-size: .72rem; font-weight: 600; text-decoration: none; white-space: nowrap; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
+.frontend-shell .friends-button:hover { transform: translateY(-1px); }
+.frontend-shell .friends-button:disabled { cursor: wait; opacity: .58; transform: none; }
+.frontend-shell .friends-button--primary { color: #fff; background: linear-gradient(115deg, #ee3c9c, #bd54ce 54%, #765ee8); box-shadow: 0 7px 15px #d53d9c25; }
+.frontend-shell .friends-button--ghost { border-color: #e4d6ef; color: #8269a4; background: #fff; }
+.frontend-shell .friends-button--small { min-height: 35px; padding-inline: 10px; color: #a43dbb; border-color: #e4c8ee; background: #fff5ff; }
+.frontend-shell .friends-text-button { border: 0; color: #b17ca8; background: transparent; cursor: pointer; font: inherit; font-size: .65rem; }
+.frontend-shell .friends-status-pill { display: inline-flex; align-items: center; min-height: 34px; padding: 0 10px; border-radius: 999px; color: #8d69b8; background: #f1eaff; font-size: .68rem; white-space: nowrap; }
+.frontend-shell .friends-feedback { display: flex; align-items: center; gap: 4px; width: 100%; margin: 4px 0 0; color: #4d9c82; font-size: .65rem; line-height: 1.4; }
+.frontend-shell .friends-feedback--error { color: #c35e83; }
+.frontend-shell .friends-empty { display: grid; justify-items: center; gap: 6px; padding: 27px 15px 18px; color: #a494b3; text-align: center; }
+.frontend-shell .friends-empty > svg { color: #c17bd2; }
+.frontend-shell .friends-empty strong { color: #6b4c92; font-size: .86rem; font-weight: 600; }
+.frontend-shell .friends-empty span { max-width: 360px; font-size: .7rem; line-height: 1.55; }
+.frontend-shell .friends-side { display: grid; gap: 14px; }
+.frontend-shell .friends-tip-card, .frontend-shell .friends-side-card { padding: 20px; border-radius: 24px; }
+.frontend-shell .friends-tip-card { background: linear-gradient(145deg, #fff2fbf5, #efe7fff5); }
+.frontend-shell .friends-tip-card__icon { display: grid; width: 45px; height: 45px; place-items: center; border-radius: 16px; color: #a749c4; background: #fff; box-shadow: 0 7px 15px #a159c219; }
+.frontend-shell .friends-tip-card p, .frontend-shell .friends-tip-card h2, .frontend-shell .friends-tip-card span, .frontend-shell .friends-side-card p, .frontend-shell .friends-side-card h2 { margin: 0; }
+.frontend-shell .friends-tip-card p, .frontend-shell .friends-side-card p { margin-top: 16px; color: #a75bc4; font-size: .7rem; }
+.frontend-shell .friends-tip-card h2, .frontend-shell .friends-side-card h2 { margin-top: 5px; color: #583681; font-size: 1rem; font-weight: 600; line-height: 1.4; }
+.frontend-shell .friends-tip-card > span { display: block; margin-top: 9px; color: #816e9c; font-size: .72rem; line-height: 1.6; }
+.frontend-shell .friends-side-card { background: linear-gradient(145deg, #eafff8f5, #e9f2fff5); }
+.frontend-shell .friends-side-link { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; padding: 10px 11px; border: 1px solid #ffffff; border-radius: 13px; color: #5671a5; background: #ffffffa8; font-size: .72rem; font-weight: 600; text-decoration: none; }
+.frontend-shell .friends-side-link:hover { color: #d03b91; background: #fff; }
+
+.frontend-shell .account-profile__social-grid { display: grid; gap: 8px; margin-top: 10px; }
+.frontend-shell .account-profile__social-link { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 9px 11px; border: 1px solid #e5d8f0; border-radius: 14px; color: #644c8f; background: #fff9ffb8; text-decoration: none; }
+.frontend-shell .account-profile__social-link:hover { border-color: #dba3e9; color: #d03c91; background: #fff; }
+.frontend-shell .account-profile__social-link > svg { flex: 0 0 auto; color: #b05dca; }
+.frontend-shell .account-profile__social-link > span { display: grid; flex: 1; min-width: 0; gap: 1px; }
+.frontend-shell .account-profile__social-link strong { overflow: hidden; font-size: .75rem; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .account-profile__social-link small { overflow: hidden; color: #9d8cae; font-size: .62rem; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .account-profile__social-link > b, .frontend-shell .profile-overview-social > b { display: inline-grid; min-width: 19px; height: 19px; place-items: center; padding: 0 5px; border-radius: 999px; color: #fff; background: #ed4a9b; font-family: var(--font-fredoka), sans-serif; font-size: .62rem; }
+.frontend-shell .profile-overview-social { display: inline-flex; align-items: center; gap: 5px; padding: .58rem .7rem; border: 1px solid rgba(116, 100, 185, .13); border-radius: 11px; color: #7b68bc; background: rgba(255, 255, 255, .72); font-size: .68rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.frontend-shell .profile-overview-social:hover { color: #df5f9f; background: #fff; }
+
+.frontend-shell .messenger-widget { position: fixed; right: 24px; bottom: 24px; z-index: 120; font-family: var(--font-mitr), sans-serif; }
+.frontend-shell .messenger-fab { display: grid; position: relative; width: 58px; height: 58px; place-items: center; border: 3px solid #fff; border-radius: 22px; color: #fff; background: linear-gradient(135deg, #ed3b9b, #b64bd0 55%, #6c76e9); box-shadow: 0 12px 26px #8c4db34a; cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
+.frontend-shell .messenger-fab:hover, .frontend-shell .messenger-fab--open { box-shadow: 0 16px 32px #8c4db35c; transform: translateY(-3px) rotate(-2deg); }
+.frontend-shell .messenger-fab b { display: grid; position: absolute; top: -7px; right: -7px; min-width: 23px; height: 23px; place-items: center; padding: 0 5px; border: 2px solid #fff; border-radius: 999px; color: #fff; background: #ff4b92; font-family: var(--font-fredoka), sans-serif; font-size: .68rem; }
+.frontend-shell .messenger-panel { display: grid; position: absolute; right: 0; bottom: 70px; grid-template-rows: auto 1fr auto; width: min(365px, calc(100vw - 32px)); height: min(575px, calc(100svh - 106px)); overflow: hidden; border: 2px solid #fff; border-radius: 25px; background: #fffafff5; box-shadow: 0 23px 60px #633c9038; backdrop-filter: blur(18px); }
+.frontend-shell .messenger-panel__header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 16px 13px; background: linear-gradient(120deg, #ffe8f7, #eee7ff); }
+.frontend-shell .messenger-panel__header p, .frontend-shell .messenger-panel__header h2 { margin: 0; }
+.frontend-shell .messenger-panel__header p { color: #a14cbc; font-family: var(--font-fredoka), sans-serif; font-size: .68rem; }
+.frontend-shell .messenger-panel__header h2 { margin-top: 2px; overflow: hidden; color: #50307e; font-size: .98rem; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .messenger-panel__header > button { display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid #e1d1ef; border-radius: 50%; color: #8968aa; background: #fff; cursor: pointer; }
+.frontend-shell .messenger-panel__header > button:hover { color: #df3b91; }
+.frontend-shell .messenger-feedback { display: flex; align-items: center; gap: 5px; margin: 0; padding: 8px 13px; color: #bf5e82; background: #fff0f6; font-size: .67rem; }
+.frontend-shell .messenger-home, .frontend-shell .messenger-thread { min-height: 0; overflow: auto; }
+.frontend-shell .messenger-home { padding: 13px; }
+.frontend-shell .messenger-home__links { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 9px; color: #856f9e; font-size: .7rem; }
+.frontend-shell .messenger-home__links span, .frontend-shell .messenger-home__links a { display: inline-flex; align-items: center; gap: 4px; }
+.frontend-shell .messenger-home__links a { color: #b044bc; font-weight: 600; text-decoration: none; }
+.frontend-shell .messenger-list { display: grid; gap: 6px; }
+.frontend-shell .messenger-person { display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px; border: 1px solid transparent; border-radius: 15px; color: inherit; background: #ffffffb8; cursor: pointer; text-align: left; }
+.frontend-shell .messenger-person:hover { border-color: #e1b7eb; background: #fff; }
+.frontend-shell .messenger-person:disabled { cursor: wait; opacity: .65; }
+.frontend-shell .messenger-person > span { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.frontend-shell .messenger-person strong { overflow: hidden; color: #5d3c86; font-size: .74rem; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .messenger-person small { overflow: hidden; color: #a495ae; font-size: .61rem; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .messenger-person > svg { color: #c478d0; }
+.frontend-shell .messenger-avatar { display: grid; width: 39px; height: 39px; flex: 0 0 39px; place-items: center; overflow: hidden; border: 2px solid #fff; border-radius: 13px; color: #a06ccb; background: linear-gradient(145deg, #fae3fa, #e3edff); object-fit: cover; }
+.frontend-shell .messenger-avatar--fallback { border-color: #e6d8f2; }
+.frontend-shell .messenger-avatar--large { width: 46px; height: 46px; flex-basis: 46px; border-radius: 16px; }
+.frontend-shell .messenger-empty { display: grid; justify-items: center; gap: 6px; padding: 45px 15px 35px; color: #a295b1; text-align: center; }
+.frontend-shell .messenger-empty > svg { color: #c77bd4; }
+.frontend-shell .messenger-empty strong { color: #6a4c91; font-size: .82rem; }
+.frontend-shell .messenger-empty span { max-width: 245px; font-size: .67rem; line-height: 1.55; }
+.frontend-shell .messenger-empty__cta, .frontend-shell .messenger-all-link { display: inline-flex; align-items: center; gap: 5px; color: #b044bc; font-size: .7rem; font-weight: 600; text-decoration: none; }
+.frontend-shell .messenger-empty__cta { margin-top: 7px; padding: 8px 11px; border-radius: 11px; background: #fff; }
+.frontend-shell .messenger-recent { display: grid; gap: 5px; margin-top: 16px; padding-top: 13px; border-top: 1px solid #eee2f3; }
+.frontend-shell .messenger-recent p { margin: 0 0 2px; color: #a472bd; font-size: .68rem; }
+.frontend-shell .messenger-recent button { display: flex; justify-content: space-between; gap: 8px; border: 0; color: #6d548b; background: transparent; cursor: pointer; font: inherit; font-size: .7rem; text-align: left; }
+.frontend-shell .messenger-recent button small { color: #aa9bae; }
+.frontend-shell .messenger-all-link { margin-top: 18px; }
+.frontend-shell .messenger-thread { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; padding: 10px 12px 12px; }
+.frontend-shell .messenger-back { display: inline-flex; align-items: center; gap: 4px; width: max-content; border: 0; color: #9874b1; background: transparent; cursor: pointer; font: inherit; font-size: .68rem; }
+.frontend-shell .messenger-thread__identity { display: flex; align-items: center; gap: 9px; padding: 10px 0; }
+.frontend-shell .messenger-thread__identity > span { display: grid; gap: 2px; }
+.frontend-shell .messenger-thread__identity strong { color: #5b3b84; font-size: .78rem; }
+.frontend-shell .messenger-thread__identity small { color: #a395ae; font-size: .62rem; }
+.frontend-shell .messenger-thread__messages { display: flex; flex-direction: column; gap: 7px; min-height: 0; overflow-y: auto; padding: 5px 2px 12px; }
+.frontend-shell .messenger-loading { display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 100%; color: #a891b3; font-size: .68rem; }
+.frontend-shell .messenger-bubble { align-self: flex-start; max-width: 82%; padding: 8px 10px; border-radius: 15px 15px 15px 4px; background: #f1eafd; }
+.frontend-shell .messenger-bubble--mine { align-self: flex-end; border-radius: 15px 15px 4px 15px; background: linear-gradient(120deg, #f5dafa, #ffdeef); }
+.frontend-shell .messenger-bubble p { margin: 0; color: #62497b; font-size: .7rem; line-height: 1.45; white-space: pre-wrap; }
+.frontend-shell .messenger-bubble small { display: block; margin-top: 3px; color: #a393ac; font-size: .55rem; }
+.frontend-shell .messenger-compose { display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 6px; padding-top: 8px; border-top: 1px solid #eee1f3; }
+.frontend-shell .messenger-compose input { min-width: 0; min-height: 38px; padding: 0 10px; border: 1px solid #e4d6ef; border-radius: 13px; outline: 0; color: #5e467b; background: #fff; font: inherit; font-size: .7rem; }
+.frontend-shell .messenger-compose input:focus { border-color: #c68ade; box-shadow: 0 0 0 3px #dbaded38; }
+.frontend-shell .messenger-compose button { display: grid; width: 36px; height: 38px; place-items: center; border: 0; border-radius: 13px; color: #fff; background: linear-gradient(135deg, #e63a98, #8b5ce6); cursor: pointer; }
+.frontend-shell .messenger-compose button:disabled { cursor: not-allowed; opacity: .45; }
+.frontend-shell .messenger-panel__footer { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 10px; border-top: 1px solid #ede1f2; color: #a28eac; background: #fffaffb5; font-size: .6rem; }
 
 @media (max-width: 1500px) {
   .frontend-shell .desktop-nav__item { padding-inline: 8px; font-size: .74rem; }
@@ -302,6 +433,25 @@
   .frontend-shell :is(.group-form-field, .profile-field, .marketplace-form-grid, .guild-quest-form-grid, .ranking-filter-search, .moderation-report-card, .form-grid, .auth-field__control, .account-auth-field__control) :is(input, select, textarea) { font-size: 16px; }
   .frontend-shell :is(.group-filter-select-wrap, .group-form-select-wrap) select { font-size: 16px; }
   .frontend-shell .auth-card { padding: 24px 20px; }
+  .frontend-shell .friends-hero { align-items: flex-start; padding: 24px 20px; border-radius: 24px; }
+  .frontend-shell .friends-hero h1 { font-size: 1.85rem; }
+  .frontend-shell .friends-hero > div:first-child > span { font-size: .76rem; }
+  .frontend-shell .friends-hero__art { width: 73px; height: 73px; flex-basis: 73px; border-radius: 23px; font-size: 2.25rem; }
+  .frontend-shell .friends-hero__art span { top: 3px; right: 7px; font-size: .9rem; }
+  .frontend-shell .friends-search-form { grid-template-columns: 1fr; padding: 9px; }
+  .frontend-shell .friends-search-form input { font-size: 16px; }
+  .frontend-shell .friends-search-form .friends-button { width: 100%; }
+  .frontend-shell .friends-layout { grid-template-columns: 1fr; }
+  .frontend-shell .friends-panel { padding: 15px; border-radius: 21px; }
+  .frontend-shell .friends-card { align-items: flex-start; flex-wrap: wrap; }
+  .frontend-shell .friends-card__body { padding-top: 3px; }
+  .frontend-shell .friends-card__action, .frontend-shell .friends-request-actions { width: 100%; max-width: none; justify-content: flex-start; padding-left: 57px; }
+  .frontend-shell .friends-card__action .friends-button, .frontend-shell .friends-request-actions .friends-button { flex: 1; }
+  .frontend-shell .friends-card__action .friends-text-button { padding: 6px 2px; }
+  .frontend-shell .friends-side { grid-template-columns: 1fr; }
+  .frontend-shell .messenger-widget { right: 15px; bottom: 83px; }
+  .frontend-shell .messenger-panel { right: -3px; bottom: 69px; width: min(365px, calc(100vw - 24px)); height: min(575px, calc(100svh - 170px)); }
+  .frontend-shell .messenger-fab { width: 54px; height: 54px; border-radius: 19px; }
   .frontend-footer { width: calc(100% - 24px); padding: 15px; text-align: center; gap: 8px 16px; }
 }
 @media (prefers-reduced-motion: reduce) {

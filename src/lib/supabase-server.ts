@@ -69,7 +69,7 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
   }
 
   const { supabase, user, profile } = profileContext;
-  const [levelsResult, createdGroupsResult, joinedGroupsResult, matchesResult, winsResult, walletResult, notificationsResult, rankResult, adminResult, guildMembershipResult] = await Promise.all([
+  const [levelsResult, createdGroupsResult, joinedGroupsResult, matchesResult, winsResult, walletResult, notificationsResult, rankResult, adminResult, guildMembershipResult, directMembershipsResult, pendingFriendshipsResult] = await Promise.all([
     supabase.from("level_definitions").select("level, required_exp, label").order("level", { ascending: true }),
     supabase.from("groups").select("id", { count: "exact", head: true }).eq("owner_id", user.id),
     supabase.from("group_members").select("group_id", { count: "exact", head: true }).eq("user_id", user.id).in("membership_status", ["registered", "attended"]),
@@ -80,7 +80,14 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
     supabase.rpc("get_current_user_rank"),
     supabase.rpc("is_current_user_admin"),
     supabase.from("guild_members").select("guild_id, role").eq("user_id", user.id).eq("membership_status", "active").maybeSingle(),
+    supabase.from("direct_conversation_members").select("conversation_id").eq("user_id", user.id),
+    supabase.from("user_friendships").select("id", { count: "exact", head: true }).eq("status", "pending").neq("requested_by", user.id).or(`low_user_id.eq.${user.id},high_user_id.eq.${user.id}`),
   ]);
+
+  const directConversationIds = [...new Set(((directMembershipsResult.data ?? []) as Array<{ conversation_id: string }>).map((membership) => membership.conversation_id))];
+  const unreadMessagesResult = directConversationIds.length > 0
+    ? await supabase.from("direct_messages").select("id", { count: "exact", head: true }).in("conversation_id", directConversationIds).neq("sender_id", user.id).is("read_at", null)
+    : { count: 0 };
 
   const guildResult = guildMembershipResult.data
     ? await supabase.from("guilds").select("id, name, level").eq("id", guildMembershipResult.data.guild_id).maybeSingle()
@@ -116,6 +123,8 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
     skillBp: Math.max(1000, asNumber(profile.skill_bp, 1000)),
     gemsBalance: Math.max(0, asNumber(walletResult.data?.gems_balance)),
     unreadNotificationCount: Math.max(0, notificationsResult.count ?? 0),
+    unreadMessageCount: Math.max(0, unreadMessagesResult.count ?? 0),
+    pendingFriendRequestCount: Math.max(0, pendingFriendshipsResult.count ?? 0),
     rank,
     isAdmin: !adminResult.error && adminResult.data === true,
     isProfileComplete: Boolean(profile.profile_completed_at),

@@ -8,7 +8,7 @@ import { getAuthenticatedProfile } from "@/lib/supabase-server";
 export type MessageActionState = { error?: string; message?: string };
 const uuid = z.string().uuid();
 function text(formData: FormData, key: string) { const value = formData.get(key); return typeof value === "string" ? value : ""; }
-function messageError(error: { message?: string }) { const message = (error.message ?? "").toLowerCase(); if (message.includes("authentication")) return "เซสชันหมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง"; if (message.includes("not a member")) return "คุณไม่มีสิทธิ์ในบทสนทนานี้"; if (message.includes("invalid")) return "ข้อความไม่ถูกต้อง"; return "ส่งข้อความไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"; }
+function messageError(error: { message?: string }) { const message = (error.message ?? "").toLowerCase(); if (message.includes("authentication")) return "เซสชันหมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง"; if (message.includes("friends only")) return "ส่งข้อความได้เฉพาะเพื่อนที่รับคำขอแล้ว"; if (message.includes("not a member")) return "คุณไม่มีสิทธิ์ในบทสนทนานี้"; if (message.includes("invalid")) return "ข้อความไม่ถูกต้อง"; return "ส่งข้อความไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"; }
 async function requireUser() { const result = await getAuthenticatedProfile(); if (!result.supabase || !result.user) redirect("/auth/login?message=auth_required"); if (!result.profile?.profile_completed_at) redirect("/profile/setup"); return result; }
 
 export async function sendDirectMessageAction(_previousState: MessageActionState, formData: FormData): Promise<MessageActionState> {

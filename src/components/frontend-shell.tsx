@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { Bell, CalendarDays, Home, MessageCircle, Search, Shield, ShoppingBag, Store, Trophy, UserRound, MapPin } from "lucide-react";
+import { Bell, CalendarDays, Home, MessageCircle, Search, Shield, ShoppingBag, Store, Trophy, UserRound, MapPin, Users } from "lucide-react";
+import MessengerWidget from "@/components/messenger-widget";
 
 const links = [
   { href: "/", label: "หน้าหลัก", icon: Home },
@@ -14,8 +15,8 @@ const links = [
   { href: "/shop", label: "ร้านค้า", icon: ShoppingBag },
   { href: "/ranking", label: "Ranking", icon: Trophy },
   { href: "/community", label: "บอร์ดพูดคุย", icon: MessageCircle },
+  { href: "/friends", label: "เพื่อน", icon: Users },
   { href: "/marketplace", label: "ตลาดมือสอง", icon: Store },
-  { href: "/messages", label: "Messages", icon: MessageCircle },
 ];
 
 export default function FrontendShell({ children }: { children: ReactNode }) {
@@ -38,6 +39,7 @@ export default function FrontendShell({ children }: { children: ReactNode }) {
         <div className="frontend-navigation__actions"><Link href="/notifications" aria-label="การแจ้งเตือน"><Bell size={19} /></Link><Link href="/profile" aria-label="โปรไฟล์ของฉัน"><UserRound size={20} /></Link></div>
       </header> : null}
       <div id="arena-content" className="frontend-content" tabIndex={-1}>{children}</div>
+      <MessengerWidget />
       {!home ? <footer className="frontend-footer"><span lang="en">✦ Arena-Badminton</span><span>เจอก๊วนที่ใช่ แล้วไปตีด้วยกัน</span><Link href="/organizer">สร้างก๊วนของคุณ ↗</Link></footer> : null}
     </div>
   );
