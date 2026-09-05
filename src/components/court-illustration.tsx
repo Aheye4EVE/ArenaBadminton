@@ -1,0 +1,17 @@
+import { useId } from "react";
+
+/** Lightweight, decorative vector art; the data and links stay real HTML. */
+export default function CourtIllustration({ kind }: { kind: "racket" | "trophy" | "shuttle" }) {
+  const id = useId().replace(/:/g, "");
+  return <svg className={`court-illustration court-illustration--${kind}`} viewBox="0 0 360 145" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id={`${id}-shine`} x1="0" y1="0" x2="1" y2="1"><stop stopColor={kind === "trophy" ? "#fff2a6" : "#fff7ff"} /><stop offset=".48" stopColor={kind === "trophy" ? "#ffc052" : "#ffade3"} /><stop offset="1" stopColor={kind === "trophy" ? "#f79129" : "#b49aff"} /></linearGradient>
+      <linearGradient id={`${id}-cloud`} x2="0" y2="1"><stop stopColor="#fff" /><stop offset="1" stopColor="#f4dfff" /></linearGradient>
+    </defs>
+    <g fill="none" strokeWidth="10" opacity=".8"><path d="M35 128a70 70 0 0 1 140 0" stroke="#ffb4df" /><path d="M45 128a60 60 0 0 1 120 0" stroke="#ffe6a4" /><path d="M55 128a50 50 0 0 1 100 0" stroke="#b8f4d9" /><path d="M65 128a40 40 0 0 1 80 0" stroke="#b0e7ff" /><path d="M75 128a30 30 0 0 1 60 0" stroke="#d8bbff" /></g>
+    <g fill={`url(#${id}-cloud)`}><path d="M12 140a17 17 0 0 1 6-32 25 25 0 0 1 47-9 20 20 0 0 1 33 18 12 12 0 0 1 0 23Z" /><path d="M126 142a14 14 0 0 1 3-27 20 20 0 0 1 39-9 16 16 0 0 1 30 17 12 12 0 0 1 0 19Z" /><path d="M283 142a16 16 0 0 1 2-31 24 24 0 0 1 44-7 18 18 0 0 1 23 27 9 9 0 0 1-9 11Z" /></g>
+    <g fill="#fff1a3" stroke="#fff" strokeWidth="2"><path d="m185 16 3 9 10 3-10 4-3 10-4-10-9-4 9-3Z" /><path d="m323 33 3 8 8 3-8 3-3 8-3-8-8-3 8-3Z" /></g>
+    {kind === "racket" ? <g transform="rotate(28 248 76)"><path d="M250 98v38" stroke="#b653c1" strokeWidth="10" strokeLinecap="round" /><path d="M250 112v24" stroke="#ff90d1" strokeWidth="9" strokeLinecap="round" /><ellipse cx="250" cy="57" rx="33" ry="44" fill="#fff8ff" stroke="#fff" strokeWidth="11" /><ellipse cx="250" cy="57" rx="33" ry="44" fill="#ffdcf2" stroke="#f582ce" strokeWidth="6" /><g stroke="#d8a3e6" strokeWidth="1.2"><path d="M231 26v63m10-71v80m10-84v86m10-82v79m10-69v62M220 36h60m-63 12h66m-67 12h68m-66 12h63m-57 12h52" /></g><path d="M225 41q5-21 21-22" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" /></g> : kind === "trophy" ? <g transform="rotate(9 253 78)"><path d="M229 34h-27v17q0 35 32 35m42-52h27v17q0 35-32 35" fill="none" stroke="#fff2af" strokeWidth="11" /><path d="M229 34h-27v17q0 35 32 35m42-52h27v17q0 35-32 35" fill="none" stroke="#ffb43e" strokeWidth="5" /><path d="M218 25h69l-6 44q-4 23-28 23-25 0-29-23Z" fill={`url(#${id}-shine)`} stroke="#fff" strokeWidth="3" /><path d="M253 92v28m-24 11h49" stroke="#ffd66d" strokeWidth="12" strokeLinecap="round" /><path d="m252 43 5 11 12 2-9 9 2 13-10-6-11 6 2-13-9-9 12-2Z" fill="#fff6bc" stroke="#fff" strokeWidth="2" /><path d="m231 33 2 25" stroke="#fff9dd" strokeWidth="4" strokeLinecap="round" /></g> : <g transform="rotate(31 254 75)"><path d="m246 104-37-57q-10-20 2-27 13-7 20 18l19 61-15-65q-5-23 10-25 14-1 14 25l-2 65 8-63q3-25 17-20 12 5 3 29l-23 58 31-52q12-20 22-10 9 10-6 24l-43 43Z" fill={`url(#${id}-cloud)`} stroke="#d9c7ed" strokeWidth="2" /><path d="m233 97 34 7-2 12q-4 19-23 17-19-5-12-23Z" fill={`url(#${id}-shine)`} stroke="#fff" strokeWidth="3" /><path d="m231 106 33 8" stroke="#a68ce4" strokeWidth="6" /></g>}
+    <g fill="#fff"><path d="m26 45 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" /><circle cx="144" cy="27" r="3" /><circle cx="314" cy="89" r="3" /><circle cx="104" cy="55" r="2" /></g>
+  </svg>;
+}

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import {
   ArrowRight,
   BarChart3,
@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { brands, courts as demoCourts, events as demoEvents, groups, navItems, type Court, type Event, type Group } from "@/lib/demo-data";
 import AccountMenu from "@/components/account-menu";
+import CourtIllustration from "@/components/court-illustration";
 import ThaiAreaSelect from "@/components/thai-area-select";
 import type { HomepageStats } from "@/lib/home-data";
 import type { HeaderProfileSummary } from "@/types/profile";
@@ -268,24 +269,14 @@ export default function ArenaHome({
   return (
     <div className="arena-page">
       <section className="hero-stage">
-        <Image
-          src="/assets/hero-scene.png"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="hero-scene"
-        />
-        <div className="hero-scene-overlay" />
-        <div className="hero-glow hero-glow--left" />
-        <div className="hero-glow hero-glow--right" />
-
-        <div className="relative z-10 mx-auto max-w-[1540px] px-4 pb-16 pt-5 sm:px-6 lg:px-8">
+        <div className="hero-container relative z-10 mx-auto max-w-[1540px] px-4 pb-16 pt-5 sm:px-6 lg:px-8">
           <header className="arena-header flex items-center gap-3">
             <button
               type="button"
               className="menu-button"
               aria-label={mobileMenuOpen ? "ปิดเมนู" : "เปิดเมนู"}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="arena-menu"
               onClick={() => setMobileMenuOpen((open) => !open)}
             >
               {mobileMenuOpen ? <X size={22} /> : <Menu size={23} />}
@@ -294,14 +285,14 @@ export default function ArenaHome({
             <Link href="/" className="brand-lockup" aria-label="Arena Badminton หน้าหลัก">
               <span className="brand-lockup__word">Arena</span>
               <span className="brand-lockup__sub">Badminton</span>
-              <span className="brand-lockup__tag"><span className="font-english" lang="en">Community</span> การตีแบดที่เต็มครบทุกครอส</span>
+              <span className="brand-lockup__tag"><span className="font-english" lang="en">Community</span> ของคนรักแบดมินตัน</span>
             </Link>
 
             <nav className="desktop-nav" aria-label="เมนูหลัก">
-              {navItems.map((item, index) => (
-                <Link key={item.href + item.label} href={item.href} className={cx("desktop-nav__item", index === 0 && "desktop-nav__item--active")}>
+              {navItems.filter((item) => !["/marketplace", "/messages"].includes(item.href)).map((item, index) => (
+                <Link key={item.href + item.label} href={item.href} aria-label={item.label} aria-current={index === 0 ? "page" : undefined} className={cx("desktop-nav__item", index === 0 && "desktop-nav__item--active")}>
                   <NavIcon name={item.icon} size={17} />
-                  <span lang={item.label === "Ranking" || item.label === "Messages" ? "en" : "th"}>{item.label}</span>
+                  <span lang={/^[A-Za-z]+$/.test(item.label) ? "en" : "th"}>{item.label}</span>
                 </Link>
               ))}
             </nav>
@@ -325,7 +316,9 @@ export default function ArenaHome({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 className="mobile-menu"
-                aria-label="เมนูมือถือ"
+                id="arena-menu"
+                aria-label="เมนูทั้งหมด"
+                onKeyDown={(event) => { if (event.key === "Escape") setMobileMenuOpen(false); }}
               >
                 {navItems.map((item) => (
                   <Link key={item.href + item.label} href={item.href} onClick={() => setMobileMenuOpen(false)}>
@@ -350,8 +343,9 @@ export default function ArenaHome({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, delay: 0.08 }}
               className="hero-title"
+              aria-label="Arena-Badminton"
             >
-              Arena-Badminton
+              {Array.from("Arena-Badminton").map((letter, index) => <span key={index} aria-hidden="true" style={{ "--letter-color": ["#ff4f9e", "#ff6da9", "#ff8587", "#ffa54c", "#ffc642", "#ffcc4b", "#abcf41", "#47cdb6", "#29c6e5", "#4bafff", "#7094ff", "#9280f2", "#a871ed", "#a260e8", "#aa5fe3"][index] } as CSSProperties}>{letter}</span>)}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 12 }}
@@ -508,6 +502,7 @@ export default function ArenaHome({
               <div className="dashboard-columns">
                 <section className="dashboard-card dashboard-card--pink">
                   <SectionHeading eyebrow="ชุมชนของเรา" title="ก๊วนแนะนำ" href="/groups" tone="pink" />
+                  <CourtIllustration kind="racket" />
                   <div className="space-y-2">
                     {visibleGroups.slice(0, 5).map((group) => <GroupCard key={group.id} group={group} onJoin={(selectedGroup) => router.push(selectedGroup.detailHref ?? "/groups")} />)}
                     {visibleGroups.length === 0 ? <div className="empty-card"><Sparkles size={21} /><p>ยังไม่พบก๊วนจากตัวกรองนี้</p></div> : null}
@@ -516,6 +511,7 @@ export default function ArenaHome({
 
                 <section className="dashboard-card dashboard-card--lavender">
                   <SectionHeading eyebrow="Play more, feel more" title="กิจกรรม & ทัวร์นาเมนต์" href="/events" tone="purple" />
+                  <CourtIllustration kind="trophy" />
                   <div className="space-y-2">
                     {homeDataErrors?.events ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลกิจกรรมจริงไม่สำเร็จ ลองเปิดหน้ากิจกรรมอีกครั้ง</p><Link href="/events" className="section-link">เปิดกิจกรรม <ArrowRight size={14} /></Link></div> : homepageEvents.length > 0 ? homepageEvents.map((event) => <EventCard key={event.id} event={event} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีกิจกรรมที่เปิดรับสมัคร" : "ยังไม่พบกิจกรรม"}</p></div>}
                   </div>
@@ -523,6 +519,7 @@ export default function ArenaHome({
 
                 <section className="dashboard-card dashboard-card--mint">
                   <SectionHeading eyebrow="Find your court" title="สนามแบดแนะนำ" href="/venues" tone="mint" />
+                  <CourtIllustration kind="shuttle" />
                   <div className="space-y-2">
                     {homeDataErrors?.venues ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลสนามจริงไม่สำเร็จ ลองเปิดหน้าสนามอีกครั้ง</p><Link href="/venues" className="section-link">เปิดสนาม <ArrowRight size={14} /></Link></div> : homepageCourts.length > 0 ? homepageCourts.map((court, index) => <CourtCard key={court.id} court={court} index={index} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีสนามที่เปิดให้ค้นหา" : "ยังไม่พบสนาม"}</p></div>}
                   </div>
@@ -532,12 +529,12 @@ export default function ArenaHome({
               <section className="feature-actions">
                 <Link href="/organizer" className="feature-action">
                   <span className="feature-action__icon feature-action__icon--purple"><Users size={21} /></span>
-                  <span><strong>สร้างก๊วนของคุณ</strong><small>นัดเพื่อนง่าย ได้โต๊ะทันที</small></span>
+                  <span><strong>สร้างก๊วนของคุณ</strong><small>นัดเพื่อนง่าย ไปตีด้วยกัน</small></span>
                   <ArrowRight size={17} />
                 </Link>
                 <Link href="/venues" className="feature-action">
                   <span className="feature-action__icon feature-action__icon--pink"><CalendarDays size={21} /></span>
-                  <span><strong>เช็กสนามว่าง</strong><small>จองง่าย ไม่พลาดคิว</small></span>
+                  <span><strong>ค้นหาสนามใกล้คุณ</strong><small>เลือกสนาม แล้วนัดก๊วนได้เลย</small></span>
                   <ArrowRight size={17} />
                 </Link>
                 <Link href="/community" className="feature-action">
@@ -557,9 +554,9 @@ export default function ArenaHome({
               <section className="download-card">
                 <div>
                   <p className="download-card__eyebrow">Arena in your pocket</p>
-                  <h2>โหลดแอป<br /><span className="font-english" lang="en">Arena-Badminton</span></h2>
-                  <p>สะดวกครบ จบในแอปเดียว!</p>
-                  <div className="store-badges"><span>▶ Google Play</span><span>● App Store</span></div>
+                  <h2>พกก๊วนไปทุกที่<br /><span className="font-english" lang="en">Arena-Badminton</span></h2>
+                  <p>เปิดเว็บบนมือถือ แล้วนัดตีได้เลย!</p>
+                  <Link className="download-card__cta" href="/groups">หาก๊วนถัดไป <ArrowRight size={14} /></Link>
                 </div>
                 <div className="phone-mock" aria-hidden="true"><div className="phone-mock__screen"><span>🏸</span><strong lang="en">Arena</strong><small lang="en">Badminton</small></div></div>
               </section>
@@ -577,9 +574,11 @@ export default function ArenaHome({
 
               <Link href="/messages" className="chat-card">
                 <span className="chat-card__icon"><MessageCircle size={22} /></span>
-                <span><strong>บอร์ดพูดคุย</strong><small>คุยเรื่องแบดกับเพื่อน ๆ</small></span>
+                <span><strong>ข้อความของฉัน</strong><small>คุยกับเพื่อนนักแบด</small></span>
                 <ArrowRight size={18} />
               </Link>
+
+              <Link href="/marketplace" className="chat-card chat-card--market"><span className="chat-card__icon"><Store size={22} /></span><span><strong>ตลาดมือสอง</strong><small>ส่งต่ออุปกรณ์ให้เพื่อนนักแบด</small></span><ArrowRight size={18} /></Link>
 
               <section className="join-card">
                 <div className="join-card__bubble">ชวนเพื่อน<br />มาตีแบดกัน!</div>

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Fredoka, Mitr } from "next/font/google";
 import type { ReactNode } from "react";
+import FrontendShell from "@/components/frontend-shell";
 import "./globals.css";
+import "./frontend-theme.css";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -25,7 +27,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="th" data-scroll-behavior="smooth" className={`${fredoka.variable} ${mitr.variable}`}>
-      <body>{children}</body>
+      <body><FrontendShell>{children}</FrontendShell></body>
     </html>
   );
 }
