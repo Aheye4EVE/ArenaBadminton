@@ -11,6 +11,7 @@ import {
   Crown,
   MapPin,
   ShieldCheck,
+  ShieldAlert,
   Trophy,
   UserRound,
   Users,
@@ -18,6 +19,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { joinTournamentAction, type TournamentActionState, withdrawTournamentAction } from "@/app/events/actions";
+import TournamentBracket, { type TournamentBracketMatchData } from "@/components/tournament-bracket";
+import TournamentOrganizerPanel from "@/components/tournament-organizer-panel";
 
 export type TournamentEntry = {
   userId: string;
@@ -136,7 +139,7 @@ function RegistrationControl({ tournament, currentStatus }: { tournament: Tourna
   );
 }
 
-export default function TournamentDetail({ tournament, entries, rewards, currentUserId }: { tournament: Tournament; entries: TournamentEntry[]; rewards: TournamentReward[]; currentUserId: string }) {
+export default function TournamentDetail({ tournament, entries, rewards, bracketMatches, bracketStatus, rewardItems, isOrganizer, currentUserId }: { tournament: Tournament; entries: TournamentEntry[]; rewards: TournamentReward[]; bracketMatches: TournamentBracketMatchData[]; bracketStatus: string; rewardItems: Array<{ id: string; name: string; icon: string }>; isOrganizer: boolean; currentUserId: string }) {
   const registeredEntries = entries.filter((entry) => entry.status === "registered" || entry.status === "winner");
   const waitlistedEntries = entries.filter((entry) => entry.status === "waitlisted");
   const currentEntry = entries.find((entry) => entry.userId === currentUserId);
@@ -159,12 +162,14 @@ export default function TournamentDetail({ tournament, entries, rewards, current
 
           <section className="tournament-detail-panel"><div className="tournament-detail-panel__heading"><div><p lang="en">Roster</p><h2><Users size={19} /> รายชื่อผู้สมัคร</h2></div><span>{registeredCount} ยืนยัน · {waitlistedEntries.length} คิวรอ</span></div>{entries.length > 0 ? <div className="tournament-entry-list">{entries.map((entry) => <div className="tournament-entry-row" key={entry.userId}><PlayerAvatar entry={entry} /><div><strong>{entry.displayName}</strong><span>@{entry.handle} · Level {entry.level}</span></div><em className={entry.status === "waitlisted" ? "tournament-entry-status tournament-entry-status--waitlist" : "tournament-entry-status"}>{entry.seed ? `Seed ${entry.seed}` : entryStatusLabel(entry.status)}</em></div>)}</div> : <div className="tournament-empty-state"><Users size={27} /><strong>ยังไม่มีผู้สมัคร</strong><span>เป็นคนแรกที่ลงชื่อในกิจกรรมนี้ได้เลย</span></div>}</section>
 
-          <section className="tournament-detail-panel"><div className="tournament-detail-panel__heading"><div><p lang="en">Rules & rewards</p><h2><ShieldCheck size={19} /> กติกาและรางวัล</h2></div></div><div className="tournament-rules-copy">{tournament.rules ? <p>{tournament.rules}</p> : <p className="tournament-muted-copy">ผู้จัดยังไม่ได้เพิ่มกติกาเพิ่มเติม</p>}</div>{rewards.length > 0 ? <div className="tournament-reward-list">{rewards.map((reward) => <div className="tournament-reward-row" key={reward.id}><span className="tournament-reward-place">#{reward.placement}</span><div><strong>{reward.label || `อันดับ ${reward.placement}`}</strong><span>{formatNumber(reward.expReward)} EXP · {formatNumber(reward.bpReward)} BP</span></div></div>)}</div> : <div className="tournament-bracket-placeholder"><Trophy size={23} /><div><strong>Bracket และรางวัลจะปรากฏที่นี่</strong><span>ตอนนี้ระบบรองรับการเปิดกิจกรรมและรับสมัครก่อน ส่วนการจับสาย/ยืนยันผล/แจก Reward จะเปิดใน workflow ถัดไป</span></div></div>}</section>
+          <section className="tournament-detail-panel"><div className="tournament-detail-panel__heading"><div><p lang="en">Rules & rewards</p><h2><ShieldCheck size={19} /> กติกาและรางวัล</h2></div></div><div className="tournament-rules-copy">{tournament.rules ? <p>{tournament.rules}</p> : <p className="tournament-muted-copy">ผู้จัดยังไม่ได้เพิ่มกติกาเพิ่มเติม</p>}</div>{rewards.length > 0 ? <div className="tournament-reward-list">{rewards.map((reward) => <div className="tournament-reward-row" key={reward.id}><span className="tournament-reward-place">#{reward.placement}</span><div><strong>{reward.label || `อันดับ ${reward.placement}`}</strong><span>{formatNumber(reward.expReward)} EXP · {formatNumber(reward.bpReward)} BP</span></div></div>)}</div> : <p className="tournament-muted-copy tournament-reward-empty">ผู้จัดยังไม่ได้กำหนดรางวัล</p>}</section>
+          <section className="tournament-detail-panel"><div className="tournament-detail-panel__heading"><div><p lang="en">Live bracket</p><h2><Trophy size={19} /> สายการแข่งขัน</h2></div><span>{bracketStatus === "completed" ? "จบการแข่งขันแล้ว" : bracketMatches.length > 0 ? "กำลังดำเนินการ" : "ยังไม่เปิดสาย"}</span></div><TournamentBracket matches={bracketMatches} currentUserId={currentUserId} isOrganizer={isOrganizer} /></section>
+          {isOrganizer ? <TournamentOrganizerPanel tournamentId={tournament.id} items={rewardItems} /> : null}
         </section>
 
         <aside className="tournament-detail-sidebar"><RegistrationControl tournament={tournament} currentStatus={currentEntry?.status ?? null} /><section className="tournament-detail-side-card"><p lang="en">Organizer note</p><h2>กิจกรรมจากผู้จัดจริง</h2><span>ข้อมูลกิจกรรมและจำนวนผู้สมัครมาจาก Supabase โดยตรง ผู้จัดยังไม่สามารถเรียกเก็บค่าสมัครผ่านหน้านี้</span><Link href="/events/create" className="group-secondary-action">สร้างกิจกรรมของคุณ <ArrowRight size={15} /></Link></section><Link href="/events" className="tournament-detail-back"><ArrowLeft size={15} /> กลับไปค้นหากิจกรรม</Link></aside>
       </div>
-      <footer className="tournament-detail-footer"><span>© Arena-Badminton</span><span>Registration protected by Supabase transaction</span></footer>
+      <footer className="tournament-detail-footer"><span>© Arena-Badminton</span><span className="tournament-detail-footer__links"><Link href={`/moderation/report?targetType=tournament&targetId=${tournament.id}&returnTo=/events/${tournament.id}`} className="venue-review-report"><ShieldAlert size={13} /> รายงานกิจกรรม</Link><span>Registration protected by Supabase transaction</span></span></footer>
     </>
   );
 }

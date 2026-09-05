@@ -13,6 +13,7 @@ export type GuildActionState = {
   inviteToken?: string;
   guildId?: string;
   fieldErrors?: Record<string, string[] | undefined>;
+  questId?: string;
 };
 
 const optionalText = (max: number) => z.preprocess(
@@ -57,6 +58,10 @@ function guildError(error: { code?: string; message?: string }) {
   if (message.includes("invite")) return "คำเชิญ Guild ไม่ถูกต้องหรือหมดอายุแล้ว";
   if (message.includes("banned")) return "บัญชีนี้ถูกระงับจาก Guild นี้";
   if (message.includes("manager")) return "เฉพาะ Guild Master หรือ Officer เท่านั้นที่ทำรายการนี้ได้";
+  if (message.includes("quest target")) return "ภารกิจนี้ยังทำไม่ครบตามเป้าหมาย";
+  if (message.includes("quest is not active")) return "ภารกิจนี้หมดเวลา หรือยังไม่เปิดใช้งาน";
+  if (message.includes("quest reward item")) return "Item รางวัลนี้ไม่พร้อมใช้งานแล้ว";
+  if (message.includes("active guild member")) return "ต้องเป็นสมาชิก Guild ที่ยัง active จึงจะรับรางวัลได้";
   if (error.code === "23505") return "รายการนี้ถูกสร้างไปแล้ว กรุณารีเฟรชหน้าอีกครั้ง";
   if (error.code === "22023") return "ข้อมูล Guild ไม่ถูกต้องหรือไม่อยู่ในสถานะที่ทำรายการได้";
   return "ไม่สามารถดำเนินการกับ Guild ได้ กรุณาลองใหม่อีกครั้ง";
@@ -270,4 +275,47 @@ export async function acceptGuildInviteAction(_previousState: GuildActionState, 
   revalidatePath("/guilds");
   revalidatePath(`/guilds/${row.guild_id}`);
   return { message: "เข้าร่วม Guild จากคำเชิญแล้ว", guildId: row.guild_id };
+}
+
+export async function createGuildQuestAction(_previousState: GuildActionState, formData: FormData): Promise<GuildActionState> {
+  const parsed = z.object({
+    guildId: uuidField,
+    title: z.string().trim().min(2).max(160),
+    description: optionalText(1000),
+    questType: z.enum(["match_played", "match_wins", "members_joined", "guild_exp"]),
+    targetValue: z.coerce.number().int().min(1).max(1_000_000),
+    rewardGuildExp: z.coerce.number().int().min(0).max(100_000_000),
+    rewardExp: z.coerce.number().int().min(0).max(100_000_000),
+    rewardItemId: z.preprocess((value) => (typeof value === "string" && value.trim() === "" ? null : value), z.string().uuid().nullable()),
+    startsAt: z.string().optional(),
+    endsAt: z.string().optional(),
+  }).safeParse({
+    guildId: readText(formData, "guildId"), title: readText(formData, "title"), description: readText(formData, "description"), questType: readText(formData, "questType"), targetValue: readText(formData, "targetValue"), rewardGuildExp: readText(formData, "rewardGuildExp"), rewardExp: readText(formData, "rewardExp"), rewardItemId: readText(formData, "rewardItemId"), startsAt: readText(formData, "startsAt"), endsAt: readText(formData, "endsAt"),
+  });
+  if (!parsed.success) return { error: "กรุณากรอกรายละเอียดภารกิจให้ถูกต้อง" };
+  const startsDate = parsed.data.startsAt ? new Date(parsed.data.startsAt) : new Date();
+  const endsDate = parsed.data.endsAt ? new Date(parsed.data.endsAt) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  if (Number.isNaN(startsDate.getTime()) || Number.isNaN(endsDate.getTime()) || endsDate <= startsDate) return { error: "ช่วงเวลาภารกิจไม่ถูกต้อง" };
+  const startsAt = startsDate.toISOString();
+  const endsAt = endsDate.toISOString();
+  const { supabase } = await requireCompletedProfile();
+  const { data, error } = await supabase.rpc("create_guild_quest", { p_guild_id: parsed.data.guildId, p_title: parsed.data.title, p_description: parsed.data.description ?? "", p_quest_type: parsed.data.questType, p_target_value: parsed.data.targetValue, p_reward_guild_exp: parsed.data.rewardGuildExp, p_reward_exp: parsed.data.rewardExp, p_reward_item_id: parsed.data.rewardItemId, p_starts_at: startsAt, p_ends_at: endsAt });
+  if (error) return { error: guildError(error) };
+  const row = returnedRow(data);
+  revalidatePath(`/guilds/${parsed.data.guildId}`);
+  revalidatePath(`/guilds/${parsed.data.guildId}/manage`);
+  return { message: "สร้างภารกิจ Guild แล้ว", questId: typeof row?.id === "string" ? row.id : undefined };
+}
+
+export async function claimGuildQuestAction(_previousState: GuildActionState, formData: FormData): Promise<GuildActionState> {
+  const questId = uuidField.safeParse(readText(formData, "questId"));
+  const guildId = uuidField.safeParse(readText(formData, "guildId"));
+  if (!questId.success || !guildId.success) return { error: "ภารกิจไม่ถูกต้อง" };
+  const { supabase } = await requireCompletedProfile();
+  const { error } = await supabase.rpc("claim_guild_quest", { p_quest_id: questId.data });
+  if (error) return { error: guildError(error) };
+  revalidatePath(`/guilds/${guildId.data}`);
+  revalidatePath("/profile");
+  revalidatePath("/shop");
+  return { message: "รับรางวัลภารกิจแล้ว", questId: questId.data };
 }

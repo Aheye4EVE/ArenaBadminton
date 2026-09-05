@@ -882,3 +882,297 @@ export const guildAuditLogs = pgTable(
   },
   (table) => [index("guild_audit_logs_guild_created_idx").on(table.guildId, table.createdAt, table.id)],
 );
+
+export const venueReviews = pgTable(
+  "venue_reviews",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    venueId: uuid("venue_id").notNull().references(() => venues.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    rating: smallint("rating").notNull(),
+    body: text("body").notNull().default(""),
+    status: text("status").notNull().default("published"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("venue_reviews_venue_user_uidx").on(table.venueId, table.userId),
+    index("venue_reviews_venue_status_created_idx").on(table.venueId, table.status, table.createdAt, table.id),
+    index("venue_reviews_user_created_idx").on(table.userId, table.createdAt, table.id),
+    check("venue_reviews_rating_range", sql`${table.rating} between 1 and 5`),
+    check("venue_reviews_body_length", sql`char_length(${table.body}) <= 1000`),
+    check("venue_reviews_status_allowed", sql`${table.status} in ('published', 'hidden', 'deleted')`),
+  ],
+);
+
+export const playerRankingStats = pgTable(
+  "player_ranking_stats",
+  {
+    userId: uuid("user_id").primaryKey().references(() => profiles.id, { onDelete: "cascade" }),
+    displayName: text("display_name").notNull(),
+    handle: text("handle").notNull(),
+    avatarUrl: text("avatar_url"),
+    level: smallint("level").notNull().default(1),
+    expTotal: bigint("exp_total", { mode: "number" }).notNull().default(0),
+    skillBp: integer("skill_bp").notNull().default(1000),
+    province: text("province"),
+    district: text("district"),
+    subdistrict: text("subdistrict"),
+    matchesPlayed: integer("matches_played").notNull().default(0),
+    wins: integer("wins").notNull().default(0),
+    losses: integer("losses").notNull().default(0),
+    winRate: numeric("win_rate", { precision: 5, scale: 2 }).notNull().default("0"),
+    lastMatchAt: timestamp("last_match_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("player_ranking_scope_bp_idx").on(table.province, table.district, table.subdistrict, table.skillBp, table.matchesPlayed, table.winRate, table.level, table.expTotal, table.userId),
+    index("player_ranking_bp_idx").on(table.skillBp, table.matchesPlayed, table.winRate, table.level, table.expTotal, table.userId),
+    check("player_ranking_level_range", sql`${table.level} between 1 and 99`),
+    check("player_ranking_exp_nonnegative", sql`${table.expTotal} >= 0`),
+    check("player_ranking_bp_floor", sql`${table.skillBp} >= 1000`),
+    check("player_ranking_matches_nonnegative", sql`${table.matchesPlayed} >= 0 and ${table.wins} >= 0 and ${table.losses} >= 0`),
+    check("player_ranking_win_rate_range", sql`${table.winRate} between 0 and 100`),
+  ],
+);
+
+export const tournamentBrackets = pgTable(
+  "tournament_brackets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tournamentId: uuid("tournament_id").notNull().unique().references(() => tournaments.id, { onDelete: "cascade" }),
+    bracketType: text("bracket_type").notNull().default("single_elimination"),
+    status: text("status").notNull().default("active"),
+    createdBy: uuid("created_by").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check("tournament_brackets_type_allowed", sql`${table.bracketType} = 'single_elimination'`),
+    check("tournament_brackets_status_allowed", sql`${table.status} in ('active', 'completed', 'cancelled')`),
+  ],
+);
+
+export const tournamentBracketMatches = pgTable(
+  "tournament_bracket_matches",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    bracketId: uuid("bracket_id").notNull().references(() => tournamentBrackets.id, { onDelete: "cascade" }),
+    tournamentId: uuid("tournament_id").notNull().references(() => tournaments.id, { onDelete: "cascade" }),
+    roundNumber: smallint("round_number").notNull(),
+    matchNumber: smallint("match_number").notNull(),
+    playerAId: uuid("player_a_id").references(() => profiles.id, { onDelete: "set null" }),
+    playerBId: uuid("player_b_id").references(() => profiles.id, { onDelete: "set null" }),
+    winnerId: uuid("winner_id").references(() => profiles.id, { onDelete: "set null" }),
+    scoreA: smallint("score_a"),
+    scoreB: smallint("score_b"),
+    status: text("status").notNull().default("scheduled"),
+    submittedBy: uuid("submitted_by").references(() => profiles.id, { onDelete: "set null" }),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    confirmedBy: uuid("confirmed_by").references(() => profiles.id, { onDelete: "set null" }),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("tournament_bracket_matches_round_number_uidx").on(table.bracketId, table.roundNumber, table.matchNumber),
+    index("tournament_bracket_matches_tournament_round_idx").on(table.tournamentId, table.roundNumber, table.matchNumber),
+    index("tournament_bracket_matches_player_idx").on(table.playerAId, table.playerBId, table.status),
+    check("tournament_bracket_matches_round_positive", sql`${table.roundNumber} > 0`),
+    check("tournament_bracket_matches_number_positive", sql`${table.matchNumber} > 0`),
+    check("tournament_bracket_matches_score_range", sql`(${table.scoreA} is null or ${table.scoreA} between 0 and 30) and (${table.scoreB} is null or ${table.scoreB} between 0 and 30)`),
+    check("tournament_bracket_matches_status_allowed", sql`${table.status} in ('scheduled', 'live', 'awaiting_confirmation', 'confirmed', 'bye', 'cancelled')`),
+    check("tournament_bracket_matches_players_distinct", sql`${table.playerAId} is null or ${table.playerBId} is null or ${table.playerAId} <> ${table.playerBId}`),
+  ],
+);
+
+export const tournamentRewardAwards = pgTable(
+  "tournament_reward_awards",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tournamentId: uuid("tournament_id").notNull().references(() => tournaments.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    placement: smallint("placement").notNull(),
+    expReward: bigint("exp_reward", { mode: "number" }).notNull().default(0),
+    bpReward: integer("bp_reward").notNull().default(0),
+    itemId: uuid("item_id").references(() => shopItems.id, { onDelete: "restrict" }),
+    label: text("label").notNull().default(""),
+    awardedAt: timestamp("awarded_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("tournament_reward_awards_tournament_user_uidx").on(table.tournamentId, table.userId),
+    index("tournament_reward_awards_user_idx").on(table.userId, table.awardedAt, table.id),
+    check("tournament_reward_awards_placement_positive", sql`${table.placement} > 0`),
+    check("tournament_reward_awards_exp_nonnegative", sql`${table.expReward} >= 0`),
+    check("tournament_reward_awards_bp_nonnegative", sql`${table.bpReward} >= 0`),
+  ],
+);
+
+export const matchMvpVotes = pgTable(
+  "match_mvp_votes",
+  {
+    matchId: uuid("match_id").notNull().references(() => matches.id, { onDelete: "cascade" }),
+    voterId: uuid("voter_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    candidateUserId: uuid("candidate_user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.matchId, table.voterId], name: "match_mvp_votes_pkey" }),
+    index("match_mvp_votes_match_candidate_idx").on(table.matchId, table.candidateUserId, table.createdAt),
+  ],
+);
+
+export const matchMvpAwards = pgTable(
+  "match_mvp_awards",
+  {
+    matchId: uuid("match_id").primaryKey().references(() => matches.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    voteCount: integer("vote_count").notNull(),
+    bonusExp: bigint("bonus_exp", { mode: "number" }).notNull().default(50),
+    bonusBp: integer("bonus_bp").notNull().default(10),
+    awardedAt: timestamp("awarded_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("match_mvp_awards_user_idx").on(table.userId, table.awardedAt, table.matchId),
+    check("match_mvp_awards_votes_positive", sql`${table.voteCount} > 0`),
+    check("match_mvp_awards_exp_nonnegative", sql`${table.bonusExp} >= 0`),
+    check("match_mvp_awards_bp_nonnegative", sql`${table.bonusBp} >= 0`),
+  ],
+);
+
+export const guildQuests = pgTable(
+  "guild_quests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    guildId: uuid("guild_id").notNull().references(() => guilds.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    questType: text("quest_type").notNull(),
+    targetValue: integer("target_value").notNull(),
+    rewardGuildExp: bigint("reward_guild_exp", { mode: "number" }).notNull().default(0),
+    rewardExp: bigint("reward_exp", { mode: "number" }).notNull().default(0),
+    rewardItemId: uuid("reward_item_id").references(() => shopItems.id, { onDelete: "restrict" }),
+    status: text("status").notNull().default("active"),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull().defaultNow(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    createdBy: uuid("created_by").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("guild_quests_guild_status_dates_idx").on(table.guildId, table.status, table.startsAt, table.endsAt, table.createdAt, table.id),
+    check("guild_quests_type_allowed", sql`${table.questType} in ('match_played', 'match_wins', 'members_joined', 'guild_exp')`),
+    check("guild_quests_target_positive", sql`${table.targetValue} > 0`),
+    check("guild_quests_rewards_nonnegative", sql`${table.rewardGuildExp} >= 0 and ${table.rewardExp} >= 0`),
+    check("guild_quests_status_allowed", sql`${table.status} in ('active', 'paused', 'completed', 'expired')`),
+  ],
+);
+
+export const guildQuestClaims = pgTable(
+  "guild_quest_claims",
+  {
+    questId: uuid("quest_id").notNull().references(() => guildQuests.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    progressSnapshot: integer("progress_snapshot").notNull(),
+    rewardGuildExp: bigint("reward_guild_exp", { mode: "number" }).notNull().default(0),
+    rewardExp: bigint("reward_exp", { mode: "number" }).notNull().default(0),
+    rewardItemId: uuid("reward_item_id").references(() => shopItems.id, { onDelete: "restrict" }),
+    claimedAt: timestamp("claimed_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.questId, table.userId], name: "guild_quest_claims_pkey" }),
+    index("guild_quest_claims_user_claimed_idx").on(table.userId, table.claimedAt, table.questId),
+    check("guild_quest_claims_progress_nonnegative", sql`${table.progressSnapshot} >= 0`),
+    check("guild_quest_claims_rewards_nonnegative", sql`${table.rewardGuildExp} >= 0 and ${table.rewardExp} >= 0`),
+  ],
+);
+
+export const marketplaceListings = pgTable(
+  "marketplace_listings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    sellerId: uuid("seller_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    category: text("category").notNull().default("equipment"),
+    conditionGrade: text("condition_grade").notNull().default("good"),
+    price: numeric("price", { precision: 12, scale: 2 }).notNull().default("0"),
+    province: text("province"),
+    district: text("district"),
+    subdistrict: text("subdistrict"),
+    imageUrl: text("image_url"),
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("marketplace_listings_discovery_idx").on(table.status, table.province, table.district, table.subdistrict, table.createdAt, table.id),
+    index("marketplace_listings_seller_idx").on(table.sellerId, table.status, table.createdAt, table.id),
+    check("marketplace_listings_price_nonnegative", sql`${table.price} >= 0`),
+    check("marketplace_listings_category_allowed", sql`${table.category} in ('racket', 'shoes', 'bag', 'apparel', 'equipment', 'other')`),
+    check("marketplace_listings_condition_allowed", sql`${table.conditionGrade} in ('new', 'like_new', 'good', 'fair', 'for_parts')`),
+    check("marketplace_listings_status_allowed", sql`${table.status} in ('active', 'reserved', 'sold', 'hidden', 'cancelled')`),
+  ],
+);
+
+export const marketplaceOrders = pgTable(
+  "marketplace_orders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    listingId: uuid("listing_id").notNull().references(() => marketplaceListings.id, { onDelete: "restrict" }),
+    buyerId: uuid("buyer_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    sellerId: uuid("seller_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("requested"),
+    message: text("message").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("marketplace_orders_listing_buyer_uidx").on(table.listingId, table.buyerId),
+    index("marketplace_orders_seller_status_idx").on(table.sellerId, table.status, table.createdAt, table.id),
+    index("marketplace_orders_buyer_status_idx").on(table.buyerId, table.status, table.createdAt, table.id),
+    check("marketplace_orders_status_allowed", sql`${table.status} in ('requested', 'accepted', 'rejected', 'cancelled', 'completed')`),
+  ],
+);
+
+export const directConversations = pgTable(
+  "direct_conversations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    directKey: text("direct_key").notNull(),
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("direct_conversations_key_uidx").on(table.directKey)],
+);
+
+export const directConversationMembers = pgTable(
+  "direct_conversation_members",
+  {
+    conversationId: uuid("conversation_id").notNull().references(() => directConversations.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.conversationId, table.userId], name: "direct_conversation_members_pkey" }),
+    index("direct_conversation_members_user_idx").on(table.userId, table.joinedAt, table.conversationId),
+  ],
+);
+
+export const directMessages = pgTable(
+  "direct_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    conversationId: uuid("conversation_id").notNull().references(() => directConversations.id, { onDelete: "cascade" }),
+    senderId: uuid("sender_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("direct_messages_conversation_created_idx").on(table.conversationId, table.createdAt, table.id),
+    index("direct_messages_sender_created_idx").on(table.senderId, table.createdAt, table.id),
+    check("direct_messages_body_length", sql`char_length(btrim(${table.body})) between 1 and 2000`),
+  ],
+);

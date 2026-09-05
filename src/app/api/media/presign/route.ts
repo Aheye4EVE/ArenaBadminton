@@ -11,7 +11,7 @@ const uploadRequestSchema = z.object({
   filename: z.string().trim().min(1).max(120),
   contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]),
   size: z.number().int().positive().max(10 * 1024 * 1024),
-  purpose: z.enum(["community", "avatar", "guild-logo"]).default("community"),
+  purpose: z.enum(["community", "avatar", "guild-logo", "marketplace"]).default("community"),
   guildId: z.string().uuid().optional(),
 });
 
@@ -58,6 +58,8 @@ export async function POST(request: Request) {
       ? `avatars/${user.id}/${crypto.randomUUID()}-${safeFilename(body.filename)}`
       : body.purpose === "guild-logo"
         ? `guilds/${body.guildId}/logo/${crypto.randomUUID()}-${safeFilename(body.filename)}`
+        : body.purpose === "marketplace"
+          ? `marketplace/${user.id}/${crypto.randomUUID()}-${safeFilename(body.filename)}`
         : `media/${user.id}/${crypto.randomUUID()}-${safeFilename(body.filename)}`;
     const client = new S3Client({
       region: "auto",

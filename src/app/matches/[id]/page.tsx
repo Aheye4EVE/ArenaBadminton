@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import MatchDetail from "@/components/match-detail";
+import type { MatchMvpCandidate } from "@/components/match-mvp-panel";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 
 export const metadata: Metadata = { title: "รายละเอียดแมตช์ | Arena-Badminton" };
@@ -68,16 +69,37 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   if (matchError || !matchData) notFound();
   const match = matchData as MatchRow;
 
-  const [groupResult, participantResult, settlementResult] = await Promise.all([
+  const [groupResult, participantResult, settlementResult, mvpVotesResult, mvpAwardResult] = await Promise.all([
     supabase.from("groups").select("id, title, starts_at, location_text").eq("id", match.group_id).maybeSingle(),
     supabase.from("public_match_participants").select("match_id, user_id, team, display_name, handle, avatar_url, level, check_in_status, checked_in_at").eq("match_id", id).order("team", { ascending: true }).order("display_name", { ascending: true }),
     supabase.from("match_settlements").select("rule_version, winner_team, winner_level, loser_level, winner_bp_delta, loser_bp_delta, winner_exp_reward, loser_exp_reward, winner_item_bonus_exp, loser_item_bonus_exp").eq("match_id", id).maybeSingle(),
+    supabase.from("match_mvp_votes").select("voter_id, candidate_user_id").eq("match_id", id),
+    supabase.from("match_mvp_awards").select("user_id, vote_count, bonus_exp, bonus_bp").eq("match_id", id).maybeSingle(),
   ]);
 
   if (groupResult.error || !groupResult.data) notFound();
   const group = groupResult.data as GroupRow;
   const participants = (participantResult.data ?? []) as ParticipantRow[];
   const settlement = (settlementResult.data as SettlementRow | null) ?? null;
+  const votes = (mvpVotesResult.data ?? []) as Array<{ voter_id: string; candidate_user_id: string }>;
+  const voteCounts = new Map<string, number>();
+  let myVoteCandidateId: string | null = null;
+  for (const vote of votes) {
+    voteCounts.set(vote.candidate_user_id, (voteCounts.get(vote.candidate_user_id) ?? 0) + 1);
+    if (vote.voter_id === user.id) myVoteCandidateId = vote.candidate_user_id;
+  }
+  const mvpCandidates: MatchMvpCandidate[] = participants.map((participant) => ({
+    userId: participant.user_id,
+    displayName: participant.display_name,
+    handle: participant.handle,
+    voteCount: voteCounts.get(participant.user_id) ?? 0,
+  }));
+  const mvpAward = mvpAwardResult.data ? {
+    userId: mvpAwardResult.data.user_id,
+    voteCount: Number(mvpAwardResult.data.vote_count),
+    bonusExp: Number(mvpAwardResult.data.bonus_exp),
+    bonusBp: Number(mvpAwardResult.data.bonus_bp),
+  } : null;
 
-  return <MatchDetail match={{ id: match.id, groupId: match.group_id, matchNumber: Number(match.match_number), format: match.format, status: match.status, createdBy: match.created_by, expWinReward: Number(match.exp_win_reward), expLossReward: Number(match.exp_loss_reward), teamAScore: match.team_a_score === null ? null : Number(match.team_a_score), teamBScore: match.team_b_score === null ? null : Number(match.team_b_score), winnerTeam: match.winner_team, resultSubmittedBy: match.result_submitted_by }} group={{ id: group.id, title: group.title, startsAt: group.starts_at, locationText: group.location_text }} participants={participants} settlement={settlement} currentUserId={user.id} />;
+  return <MatchDetail match={{ id: match.id, groupId: match.group_id, matchNumber: Number(match.match_number), format: match.format, status: match.status, createdBy: match.created_by, expWinReward: Number(match.exp_win_reward), expLossReward: Number(match.exp_loss_reward), teamAScore: match.team_a_score === null ? null : Number(match.team_a_score), teamBScore: match.team_b_score === null ? null : Number(match.team_b_score), winnerTeam: match.winner_team, resultSubmittedBy: match.result_submitted_by }} group={{ id: group.id, title: group.title, startsAt: group.starts_at, locationText: group.location_text }} participants={participants} settlement={settlement} mvpCandidates={mvpCandidates} myVoteCandidateId={myVoteCandidateId} mvpAward={mvpAward} currentUserId={user.id} />;
 }

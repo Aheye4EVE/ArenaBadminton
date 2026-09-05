@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 import TournamentDetail, { type TournamentEntry, type TournamentReward } from "@/components/tournament-detail";
+import type { TournamentBracketMatchData } from "@/components/tournament-bracket";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 import { safeMediaUrl } from "@/lib/safe-media-url";
 
@@ -39,16 +40,21 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     .maybeSingle();
   if (tournamentError || !tournament) notFound();
 
-  const [{ data: venue }, { data: entryRows }, { data: rewardRows }] = await Promise.all([
+  const [{ data: venue }, { data: entryRows }, { data: rewardRows }, { data: bracket }, { data: bracketMatchRows }, { data: rewardItems }] = await Promise.all([
     tournament.venue_id
       ? supabase.from("venues").select("id, name, address, province, district, subdistrict, latitude, longitude").eq("id", tournament.venue_id).maybeSingle()
       : Promise.resolve({ data: null }),
     supabase.from("tournament_entries").select("user_id, entry_status, seed, joined_at").eq("tournament_id", id).in("entry_status", ["registered", "waitlisted", "winner", "eliminated"]).order("joined_at", { ascending: true }),
     supabase.from("tournament_rewards").select("id, placement, exp_reward, bp_reward, item_id, label").eq("tournament_id", id).order("placement", { ascending: true }),
+    supabase.from("tournament_brackets").select("id, status").eq("tournament_id", id).maybeSingle(),
+    supabase.from("tournament_bracket_matches").select("id, round_number, match_number, player_a_id, player_b_id, winner_id, score_a, score_b, status, submitted_by").eq("tournament_id", id).order("round_number", { ascending: true }).order("match_number", { ascending: true }),
+    supabase.from("shop_items").select("id, name, icon").eq("is_active", true).order("sort_order", { ascending: true }).limit(100),
   ]);
 
   const rawEntries = (entryRows ?? []) as Array<Record<string, unknown>>;
-  const userIds = [...new Set([tournament.created_by, ...rawEntries.map((entry) => textValue(entry.user_id)).filter(Boolean)])];
+  const rawBracketMatches = (bracketMatchRows ?? []) as Array<Record<string, unknown>>;
+  const bracketPlayerIds = rawBracketMatches.flatMap((match) => [textValue(match.player_a_id), textValue(match.player_b_id), textValue(match.winner_id)]).filter(Boolean);
+  const userIds = [...new Set([tournament.created_by, ...rawEntries.map((entry) => textValue(entry.user_id)).filter(Boolean), ...bracketPlayerIds])];
   const { data: publicProfiles } = userIds.length > 0
     ? await supabase.from("public_profile_directory").select("id, display_name, handle, avatar_url, level").in("id", userIds)
     : { data: [] };
@@ -74,6 +80,29 @@ export default async function TournamentDetailPage({ params }: { params: Promise
     bpReward: numberValue(reward.bp_reward),
     label: textValue(reward.label),
   }));
+  const bracketMatches: TournamentBracketMatchData[] = rawBracketMatches.map((match) => {
+    const player = (key: string) => {
+      const playerId = textValue(match[key]);
+      const row = profileMap.get(playerId);
+      return {
+        id: playerId || null,
+        name: textValue(row?.display_name, playerId ? "ผู้เล่น Arena" : "รอผู้ชนะ"),
+        handle: textValue(row?.handle, "arena_player"),
+      };
+    };
+    return {
+      id: textValue(match.id),
+      roundNumber: numberValue(match.round_number, 1),
+      matchNumber: numberValue(match.match_number, 1),
+      playerA: player("player_a_id"),
+      playerB: player("player_b_id"),
+      winnerId: textValue(match.winner_id) || null,
+      scoreA: match.score_a === null || match.score_a === undefined ? null : numberValue(match.score_a),
+      scoreB: match.score_b === null || match.score_b === undefined ? null : numberValue(match.score_b),
+      status: textValue(match.status, "scheduled"),
+      submittedBy: textValue(match.submitted_by) || null,
+    };
+  });
 
   return (
     <main className="tournament-detail-page">
@@ -110,6 +139,10 @@ export default async function TournamentDetailPage({ params }: { params: Promise
           }}
           entries={entries}
           rewards={rewards}
+          bracketMatches={bracketMatches}
+          bracketStatus={textValue(bracket?.status)}
+          rewardItems={((rewardItems ?? []) as Array<Record<string, unknown>>).map((item) => ({ id: textValue(item.id), name: textValue(item.name), icon: textValue(item.icon, "🎁") }))}
+          isOrganizer={tournament.created_by === user.id}
           currentUserId={user.id}
         />
       </div>

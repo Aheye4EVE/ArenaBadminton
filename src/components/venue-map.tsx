@@ -43,7 +43,7 @@ function makePopup(court: Court) {
       <span>${escapeHtml(address || court.address || "ยังไม่มีข้อมูลที่อยู่")}</span>
       <small>${escapeHtml(`${court.rating} ดาว · ${court.courtCount} คอร์ท · ${court.distance}`)}</small>
       <div class="venue-map-popup__actions">
-        <a href="/venues#${encodeURIComponent(court.id)}">ดูรายละเอียด</a>
+        <a href="/venues/${encodeURIComponent(court.id)}">ดูรายละเอียด</a>
         <a href="${googleMapsUrl(court)}" target="_blank" rel="noreferrer">เปิด Google Maps</a>
       </div>
     </div>

@@ -10,6 +10,7 @@ export type TournamentActionState = {
   message?: string;
   fieldErrors?: Record<string, string[] | undefined>;
   entryStatus?: "registered" | "waitlisted" | "withdrawn";
+  bracketMatchId?: string;
 };
 
 const uuidSchema = z.string().uuid("กิจกรรมไม่ถูกต้อง");
@@ -79,6 +80,12 @@ function tournamentErrorMessage(error: { code?: string; message?: string }) {
   if (message.includes("active tournament entry not found")) return "ยังไม่มีชื่อคุณในกิจกรรมนี้";
   if (message.includes("entry cannot be reopened")) return "สถานะการแข่งขันนี้ไม่สามารถสมัครซ้ำได้";
   if (message.includes("tournament not found")) return "ไม่พบกิจกรรมนี้";
+  if (message.includes("only the tournament organizer")) return "เฉพาะผู้จัดกิจกรรมหรือ Admin เท่านั้นที่จัดการ Bracket ได้";
+  if (message.includes("at least two registered")) return "ต้องมีผู้สมัครที่ยืนยันแล้วอย่างน้อย 2 คนก่อนสร้างสายแข่ง";
+  if (message.includes("tournament match is not ready")) return "แมตช์นี้ยังไม่พร้อมรับผลการแข่งขัน";
+  if (message.includes("tournament result is not ready")) return "ผลแมตช์นี้ยังไม่พร้อมให้ยืนยัน หรือคุณเป็นผู้ส่งผลเอง";
+  if (message.includes("tournament match not found")) return "ไม่พบแมตช์ในสายการแข่งขัน";
+  if (message.includes("reward")) return "ข้อมูลรางวัลไม่ถูกต้องหรือไม่สามารถแจกซ้ำได้";
   if (error.code === "23505") return "ข้อมูลกิจกรรมซ้ำ กรุณาลองใหม่อีกครั้ง";
   if (error.code === "22023") return "ข้อมูลกิจกรรมไม่ถูกต้องหรือไม่อยู่ในสถานะที่ทำรายการได้";
   return "ไม่สามารถดำเนินการกับกิจกรรมได้ กรุณาลองใหม่อีกครั้ง";
@@ -171,4 +178,99 @@ export async function withdrawTournamentAction(
   revalidatePath("/events");
   revalidatePath(`/events/${tournamentId.data}`);
   return { entryStatus: "withdrawn", message: "ถอนชื่อจากกิจกรรมแล้ว หากมีคิวรอ ระบบจะเลื่อนสมาชิกถัดไปเข้าแทน" };
+}
+
+export async function generateTournamentBracketAction(
+  _previousState: TournamentActionState,
+  formData: FormData,
+): Promise<TournamentActionState> {
+  const tournamentId = uuidSchema.safeParse(formText(formData, "tournamentId"));
+  if (!tournamentId.success) return { error: "กิจกรรมไม่ถูกต้อง" };
+  const { supabase } = await requireCompletedProfile();
+  const { error } = await supabase.rpc("create_tournament_bracket", { p_tournament_id: tournamentId.data });
+  if (error) return { error: tournamentErrorMessage(error) };
+  revalidatePath(`/events/${tournamentId.data}`);
+  revalidatePath("/events");
+  return { message: "สร้างสายการแข่งขันแล้ว พร้อมเริ่มแข่งได้เลย" };
+}
+
+export async function upsertTournamentRewardAction(
+  _previousState: TournamentActionState,
+  formData: FormData,
+): Promise<TournamentActionState> {
+  const parsed = z.object({
+    tournamentId: uuidSchema,
+    placement: integerField(1, 256),
+    expReward: integerField(0, 100_000_000),
+    bpReward: integerField(0, 1_000_000),
+    itemId: z.preprocess((value) => (typeof value === "string" && value.trim() === "" ? null : value), z.string().uuid().nullable()),
+    label: optionalText(160),
+  }).safeParse({
+    tournamentId: formText(formData, "tournamentId"),
+    placement: formText(formData, "placement"),
+    expReward: formText(formData, "expReward"),
+    bpReward: formText(formData, "bpReward"),
+    itemId: formText(formData, "itemId"),
+    label: formText(formData, "label"),
+  });
+  if (!parsed.success) return { error: "กรุณากรอกข้อมูลรางวัลให้ถูกต้อง" };
+  const { supabase } = await requireCompletedProfile();
+  const { error } = await supabase.rpc("upsert_tournament_reward", {
+    p_tournament_id: parsed.data.tournamentId,
+    p_placement: parsed.data.placement,
+    p_exp_reward: parsed.data.expReward,
+    p_bp_reward: parsed.data.bpReward,
+    p_item_id: parsed.data.itemId,
+    p_label: parsed.data.label ?? "",
+  });
+  if (error) return { error: tournamentErrorMessage(error) };
+  revalidatePath(`/events/${parsed.data.tournamentId}`);
+  return { message: `บันทึกรางวัลอันดับ ${parsed.data.placement} แล้ว` };
+}
+
+export async function recordTournamentBracketResultAction(
+  _previousState: TournamentActionState,
+  formData: FormData,
+): Promise<TournamentActionState> {
+  const parsed = z.object({
+    matchId: uuidSchema,
+    scoreA: integerField(0, 30),
+    scoreB: integerField(0, 30),
+  }).safeParse({
+    matchId: formText(formData, "matchId"),
+    scoreA: formText(formData, "scoreA"),
+    scoreB: formText(formData, "scoreB"),
+  });
+  if (!parsed.success) return { error: "กรุณากรอกคะแนนแบดมินตันให้ถูกต้อง" };
+  const { supabase } = await requireCompletedProfile();
+  const { data, error } = await supabase.rpc("record_tournament_bracket_result", {
+    p_match_id: parsed.data.matchId,
+    p_score_a: parsed.data.scoreA,
+    p_score_b: parsed.data.scoreB,
+  });
+  if (error) return { error: tournamentErrorMessage(error) };
+  const row = getReturnedRow(data);
+  const tournamentId = typeof row?.tournament_id === "string" ? row.tournament_id : null;
+  if (tournamentId) revalidatePath(`/events/${tournamentId}`);
+  return { message: "ส่งผลการแข่งขันแล้ว รออีกฝั่งหรือผู้จัดยืนยันผล", bracketMatchId: parsed.data.matchId };
+}
+
+export async function confirmTournamentBracketResultAction(
+  _previousState: TournamentActionState,
+  formData: FormData,
+): Promise<TournamentActionState> {
+  const matchId = uuidSchema.safeParse(formText(formData, "matchId"));
+  if (!matchId.success) return { error: "แมตช์ไม่ถูกต้อง" };
+  const { supabase } = await requireCompletedProfile();
+  const { data, error } = await supabase.rpc("confirm_tournament_bracket_result", { p_match_id: matchId.data });
+  if (error) return { error: tournamentErrorMessage(error) };
+  const row = getReturnedRow(data);
+  const tournamentId = typeof row?.tournament_id === "string" ? row.tournament_id : null;
+  if (tournamentId) {
+    revalidatePath(`/events/${tournamentId}`);
+    revalidatePath("/events");
+  }
+  revalidatePath("/profile");
+  revalidatePath("/ranking");
+  return { message: "ยืนยันผลการแข่งขันแล้ว ระบบเดินสายและแจก Reward ตามเงื่อนไขให้เรียบร้อย" };
 }

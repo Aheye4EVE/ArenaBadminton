@@ -2,7 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Heart, ImagePlus, LoaderCircle, MessageCircle, Plus, Send, Sparkles, Trophy, UserRound } from "lucide-react";
+import { Check, Heart, ImagePlus, LoaderCircle, MessageCircle, Plus, Send, ShieldAlert, Sparkles, Trophy, UserRound } from "lucide-react";
 import {
   createCommentAction,
   createPostAction,
@@ -71,6 +71,7 @@ function PostCard({ post }: { post: CommunityPost }) {
       <form action={likeAction}><input type="hidden" name="postId" value={post.id} /><button type="submit" className={post.isLiked ? "community-post-action community-post-action--liked" : "community-post-action"} disabled={isLiking}><Heart size={16} fill={post.isLiked ? "currentColor" : "none"} /> {post.likeCount}</button></form>
       <span className="community-post-action"><MessageCircle size={16} /> {post.commentCount}</span>
       <Link href="/shop" className="community-post-action"><Trophy size={16} /> ส่ง Trophy</Link>
+      <Link href={`/moderation/report?targetType=post&targetId=${post.id}&returnTo=/community`} className="community-post-action" aria-label="รายงานโพสต์นี้"><ShieldAlert size={16} /> รายงาน</Link>
     </div>
     <Feedback state={likeState} />
     {post.comments.length > 0 ? <div className="community-comments">{post.comments.map((comment) => <div className="community-comment" key={comment.id}><Avatar profile={comment.author} /><div><strong>{comment.author.displayName}</strong><p>{comment.body}</p><small>{formatDate(comment.createdAt)}</small></div></div>)}</div> : null}

@@ -245,6 +245,8 @@ export const navItems = [
   { label: "สนามแบด", href: "/venues", icon: "map" },
   { label: "กิจกรรม", href: "/events", icon: "calendar" },
   { label: "ร้านค้า", href: "/shop", icon: "shopping-cart" },
+  { label: "ตลาดมือสอง", href: "/marketplace", icon: "store" },
   { label: "Ranking", href: "/ranking", icon: "trophy" },
   { label: "บอร์ดพูดคุย", href: "/community", icon: "message" },
+  { label: "Messages", href: "/messages", icon: "message" },
 ];

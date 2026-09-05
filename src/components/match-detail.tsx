@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { ArrowLeft, BadgeCheck, CalendarDays, Coins, Crown, ShieldCheck, Swords, Trophy, Users } from "lucide-react";
+import { ArrowLeft, BadgeCheck, CalendarDays, Coins, Crown, ShieldAlert, ShieldCheck, Swords, Trophy, Users } from "lucide-react";
 import MatchActions from "@/components/match-actions";
+import MatchMvpPanel, { type MatchMvpCandidate } from "@/components/match-mvp-panel";
 import { safeMediaUrl } from "@/lib/safe-media-url";
 
 type MatchData = {
@@ -76,12 +77,18 @@ export default function MatchDetail({
   group,
   participants,
   settlement,
+  mvpCandidates,
+  myVoteCandidateId,
+  mvpAward,
   currentUserId,
 }: {
   match: MatchData;
   group: { id: string; title: string; startsAt: string; locationText: string };
   participants: MatchParticipant[];
   settlement: Settlement | null;
+  mvpCandidates: MatchMvpCandidate[];
+  myVoteCandidateId: string | null;
+  mvpAward: { userId: string; voteCount: number; bonusExp: number; bonusBp: number } | null;
   currentUserId: string;
 }) {
   const isOwner = match.createdBy === currentUserId;
@@ -106,7 +113,9 @@ export default function MatchDetail({
 
         {settlement ? <section className="match-settlement-card"><div className="match-settlement-card__icon"><Trophy size={22} /></div><div><p lang="en">Settlement receipt · {settlement.rule_version}</p><h2>ระบบบันทึก EXP และ BP ให้แล้ว</h2><span>ทีม {settlement.winner_team.toUpperCase()} ชนะ · ค่าเฉลี่ย Level ฝั่งชนะ {settlement.winner_level} vs ฝั่งแพ้ {settlement.loser_level}</span></div><div className="match-settlement-card__values"><strong>BP {settlement.winner_bp_delta > 0 ? "+" : ""}{settlement.winner_bp_delta}</strong><small>ผู้ชนะ</small><strong>BP {settlement.loser_bp_delta}</strong><small>ผู้แพ้</small></div><div className="match-settlement-card__exp"><div><strong>{(Number(settlement.winner_exp_reward) + Number(settlement.winner_item_bonus_exp)).toLocaleString("th-TH")} EXP</strong><small>ผู้ชนะ · Base {Number(settlement.winner_exp_reward).toLocaleString("th-TH")} + Item {Number(settlement.winner_item_bonus_exp).toLocaleString("th-TH")}</small></div><div><strong>{(Number(settlement.loser_exp_reward) + Number(settlement.loser_item_bonus_exp)).toLocaleString("th-TH")} EXP</strong><small>ผู้แพ้ · Base {Number(settlement.loser_exp_reward).toLocaleString("th-TH")} + Item {Number(settlement.loser_item_bonus_exp).toLocaleString("th-TH")}</small></div></div></section> : null}
 
-        <div className="match-detail-footer"><Link href={`/groups/${group.id}`} className="group-secondary-action"><ArrowLeft size={15} /> กลับหน้าก๊วน</Link>{isOwner ? <Link href={`/groups/${group.id}/matches/new`} className="group-primary-action"><Swords size={15} /> สร้างแมตช์ถัดไป</Link> : null}</div>
+        {settlement ? <MatchMvpPanel matchId={match.id} candidates={mvpCandidates} myVoteCandidateId={myVoteCandidateId} isOrganizer={isOwner} award={mvpAward} /> : null}
+
+        <div className="match-detail-footer"><Link href={`/groups/${group.id}`} className="group-secondary-action"><ArrowLeft size={15} /> กลับหน้าก๊วน</Link><Link href={`/moderation/report?targetType=match&targetId=${match.id}&returnTo=/matches/${match.id}`} className="venue-review-report"><ShieldAlert size={14} /> รายงานแมตช์</Link>{isOwner ? <Link href={`/groups/${group.id}/matches/new`} className="group-primary-action"><Swords size={15} /> สร้างแมตช์ถัดไป</Link> : null}</div>
         <p className="match-detail-safety"><ShieldCheck size={16} /> EXP/BP ถูกคำนวณใน database transaction และมี ledger อ้างอิงแมตช์เดียว ป้องกันการ settle ซ้ำ</p>
       </div>
     </main>

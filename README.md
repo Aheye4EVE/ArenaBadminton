@@ -41,7 +41,16 @@
 - Roadmap foundation เพิ่มแล้วสำหรับ Trophy record, Community feed (โพสต์/รูป/Comment/Like), Notification center, live Ranking, live Tournament ingest และ Admin BP rule editor
 - Live Ranking ใน Profile ใช้ `get_current_user_rank()` และ Admin มีหน้าแจก Trophy ที่เรียกผ่าน Admin RPC เท่านั้น
 - Tournament registration รุ่นแรก: ผู้ใช้ที่กรอก Profile แล้วสร้างกิจกรรมฟรีแบบ Published, เปิดหน้ารายละเอียด, สมัคร, ถอนชื่อ และเข้าคิวรอผ่าน Supabase RPC transaction; direct write ของ Tournament ถูกปิดไว้
-- ยังไม่มี Payment Gateway/webhook จริง, tournament bracket/reward workflow หรือ moderation console; interactive Google Maps ยังต้องใส่ API Key และเปิด API ที่จำเป็นใน Google Cloud
+- Tournament competition workflow: ผู้จัดสร้าง Single Elimination bracket, กรอกผลแบบรอยืนยัน, เลื่อนผู้ชนะขึ้นรอบถัดไป, แจก EXP/BP/Item ตามอันดับที่ตั้งค่า และบันทึก Tournament Award เป็น Record ของผู้เล่น
+- Match MVP: สมาชิกก๊วนที่เข้าร่วมแมตช์โหวตได้คนละหนึ่งครั้ง ผู้จัด Finalize ผล และระบบแจก Bonus EXP/BP ผ่าน transaction พร้อมบันทึก Award
+- Ranking directory: กรองระดับตำบล/อำเภอ/จังหวัด/ประเทศ พร้อม tie-break จาก BP, จำนวนแมตช์, Win Rate, Level และ EXP โดยสถิติถูก refresh หลัง settlement
+- Venue detail/review: ดูคะแนนและรีวิวสนาม, เขียน/แก้รีวิวของตัวเอง, เปิด Google Maps และแจ้งรายงานสนามหรือรีวิวได้
+- Guild Quest: ผู้ดูแล Guild สร้างภารกิจตามช่วงเวลา, สมาชิกดู progress และ Claim รางวัล Guild EXP/EXP/Item ผ่าน RPC
+- Community safety: ผู้ใช้รายงาน Post, Comment, Group, Match, Tournament, Venue, Venue Review, Guild, Profile และ Marketplace Listing; Admin มี Moderation Queue สำหรับตรวจสอบ/ปิดเคส
+- Marketplace: ลงขายอุปกรณ์มือสองพร้อมรูปจาก R2, กรองตามพื้นที่/หมวดหมู่/ราคา, ส่งคำขอซื้อ, รับ/ปฏิเสธ/ยกเลิก/ปิดการขาย และแจ้งเตือนคู่ซื้อขาย
+- Direct Messages: สร้างบทสนทนาแบบ one-to-one, ส่ง/อ่านข้อความผ่าน RPC และรับข้อความใหม่ด้วย Supabase Realtime
+- Payment-ready shop foundation: Shop/Gems/Inventory ใช้ ledger และ idempotency แล้ว แต่ยังไม่มี Payment Gateway/webhook จริง จึงไม่เปิดช่องเติมเงินจริงจนกว่าจะเลือก provider และตั้งค่า signature verification
+- interactive Google Maps ยังต้องใส่ API Key และเปิด API ที่จำเป็นใน Google Cloud
 - Migration 0013_venue_discovery_metadata.sql เพิ่มจังหวัด/อำเภอ/ตำบล/คะแนน/สถานะคิว และหน้า /venues อ่านสนาม active จาก Supabase เมื่อมี session
 - Migration 0017_profile_edit_rpc.sql รวมการแก้ Profile เป็น authenticated RPC เดียวแบบ atomic; ไม่เปิด direct update และไม่แตะ Level, EXP, BP, provider subject หรือ completion state
 - QA seed ที่ขึ้นต้น [QA ONLY] ถูกซ่อนจากหน้าผู้ใช้โดย default; เปิดเฉพาะ staging ด้วย ARENA_SHOW_QA_DATA=true
@@ -118,11 +127,12 @@ supabase/migrations/     Phase 1–7 migration ที่ apply กับ Supabas
 public/assets/           artwork ที่ใช้ในหน้า Home
 ```
 
-## ลำดับงานถัดไป
+## งานที่ยังต้องตั้งค่าก่อนเปิดใช้งานจริง
 
 1. ยืนยัน/คัดลอก R2 Access Key ID และ Secret ไปไว้ใน local/Vercel secret โดยไม่ส่งผ่านแชต และตั้ง `R2_PUBLIC_BASE_URL` + CORS ของ bucket
 2. ตั้ง Google/LINE provider, SMTP และ redirect URL ใน Supabase Dashboard; ใส่ Google Maps API Key และจำกัด referrer ก่อนใช้ interactive map
 3. ตั้งค่า SMTP/LINE/Google Maps/R2 public URL ตามบริการที่เลือก และทดสอบ login, profile edit และ upload ด้วย test account บน Vercel
-4. ทดสอบ Guild ด้วยบัญชีจริง: สร้าง/ใช้ Item, อัปโหลด Logo, Join Request/Invite, อนุมัติสมาชิก, ผูกก๊วน และยืนยัน Match ให้ Guild EXP
-5. ทำ tournament bracket/reward workflow แบบ atomic และ moderation console ก่อนเปิดใช้งานจริง; ตอนนี้ create/join/withdraw รุ่นแรกพร้อมแล้วและเปิดเฉพาะกิจกรรมฟรี
-6. เชื่อม Payment Gateway/webhook แบบ server-only พร้อม signature verification, idempotency, refund และ reconciliation
+4. ทดสอบ Guild ด้วยบัญชีจริง: สร้าง/ใช้ Item, อัปโหลด Logo, Join Request/Invite, อนุมัติสมาชิก, สร้าง Quest, ผูกก๊วน และยืนยัน Match ให้ Guild EXP
+5. ทดสอบ Tournament: สมัครอย่างน้อย 4 คน, Generate Bracket, ส่ง/ยืนยันผลทุกคู่, ตรวจ Award/Record และ MVP bonus
+6. ทดสอบ Marketplace, Messages, Venue Review และ Moderation ด้วยบัญชีทดสอบอย่างน้อย 2 บัญชี
+7. เชื่อม Payment Gateway/webhook แบบ server-only พร้อม signature verification, idempotency, refund และ reconciliation เมื่อเลือกผู้ให้บริการและมี credentials แล้ว

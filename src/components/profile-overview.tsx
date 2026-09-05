@@ -115,6 +115,7 @@ export default function ProfileOverview({ summary, province, trophies }: { summa
 
             <div className="profile-overview-actions">
               <Link href="/groups" className="profile-overview-primary">ค้นหาก๊วนถัดไป <ArrowRight size={18} /></Link>
+              <Link href="/profile/history" className="profile-overview-secondary"><Trophy size={15} /> ดูประวัติการเล่น <ArrowRight size={15} /></Link>
               <span><ShieldCheck size={15} /> ข้อมูลนี้มาจากการแข่งขันที่ยืนยันแล้ว</span>
             </div>
           </section>

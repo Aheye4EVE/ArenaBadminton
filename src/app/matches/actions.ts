@@ -9,6 +9,7 @@ export type MatchActionState = {
   error?: string;
   message?: string;
   fieldErrors?: Record<string, string[] | undefined>;
+  mvpUserId?: string;
 };
 
 const uuidSchema = z.string().uuid("รหัสไม่ถูกต้อง");
@@ -89,6 +90,13 @@ function matchErrorMessage(error: { code?: string; message?: string }) {
   if (message.includes("same result")) return "ผู้ส่งผลไม่สามารถยืนยันผลของตัวเองซ้ำได้";
   if (message.includes("bp rule")) return "ระบบยังไม่พร้อมคำนวณ BP กรุณาติดต่อผู้ดูแลระบบ";
   if (message.includes("not found")) return "ไม่พบแมตช์นี้";
+  if (message.includes("mvp voting is open")) return "การโหวต MVP เปิดหลังแมตช์ยืนยันผลแล้วเท่านั้น";
+  if (message.includes("only group members")) return "เฉพาะสมาชิกก๊วนที่มีชื่อในกิจกรรมเท่านั้นที่โหวตได้";
+  if (message.includes("mvp candidate")) return "ผู้เล่นคนนี้ไม่ได้อยู่ในแมตช์นี้";
+  if (message.includes("mvp has already")) return "แมตช์นี้ประกาศ MVP ไปแล้ว";
+  if (message.includes("only the match organizer")) return "เฉพาะผู้จัดก๊วนหรือ Admin เท่านั้นที่ประกาศ MVP ได้";
+  if (message.includes("must be confirmed before mvp")) return "ต้องยืนยันผลแมตช์ก่อนประกาศ MVP";
+  if (message.includes("no mvp votes")) return "ยังไม่มีผู้เล่นโหวต MVP";
   if (error.code === "23505") return "ข้อมูลแมตช์ซ้ำ กรุณาลองใหม่อีกครั้ง";
   if (error.code === "22023") return "ข้อมูลการแข่งขันไม่ถูกต้องหรือไม่อยู่ในสถานะที่ทำรายการได้";
   return "ไม่สามารถดำเนินการกับแมตช์ได้ กรุณาลองใหม่อีกครั้ง";
@@ -194,4 +202,28 @@ export async function confirmMatchResultAction(_previousState: MatchActionState,
   revalidatePath("/profile");
   revalidatePath("/ranking");
   return { message: "ยืนยันผลแล้ว ระบบบันทึก EXP และ BP ให้ผู้เล่นเรียบร้อย" };
+}
+
+export async function castMatchMvpVoteAction(_previousState: MatchActionState, formData: FormData): Promise<MatchActionState> {
+  const matchId = matchIdSchema.safeParse(readFormText(formData, "matchId"));
+  const candidateUserId = uuidSchema.safeParse(readFormText(formData, "candidateUserId"));
+  if (!matchId.success || !candidateUserId.success) return { error: "ข้อมูลการโหวตไม่ถูกต้อง" };
+  const { supabase } = await requireCompletedProfile();
+  const { error } = await supabase.rpc("cast_match_mvp_vote", { p_match_id: matchId.data, p_candidate_user_id: candidateUserId.data });
+  if (error) return { error: matchErrorMessage(error) };
+  revalidatePath(`/matches/${matchId.data}`);
+  return { message: "บันทึกเสียงโหวต MVP แล้ว", mvpUserId: candidateUserId.data };
+}
+
+export async function finalizeMatchMvpAction(_previousState: MatchActionState, formData: FormData): Promise<MatchActionState> {
+  const matchId = matchIdSchema.safeParse(readFormText(formData, "matchId"));
+  if (!matchId.success) return { error: "แมตช์ไม่ถูกต้อง" };
+  const { supabase } = await requireCompletedProfile();
+  const { data, error } = await supabase.rpc("finalize_match_mvp", { p_match_id: matchId.data });
+  if (error) return { error: matchErrorMessage(error) };
+  const row = getReturnedRow(data);
+  revalidatePath(`/matches/${matchId.data}`);
+  revalidatePath("/profile");
+  revalidatePath("/ranking");
+  return { message: "ประกาศ MVP แล้ว พร้อมมอบโบนัส EXP และ BP", mvpUserId: typeof row?.user_id === "string" ? row.user_id : undefined };
 }

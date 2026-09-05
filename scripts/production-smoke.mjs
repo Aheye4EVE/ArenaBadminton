@@ -26,6 +26,13 @@ const checks = [
   { path: "/guilds", label: "Guild directory", statuses: [200], markers: ["Guild"] },
   { path: "/community", label: "Community", statuses: [200], markers: ["Community"] },
   {
+    path: "/marketplace",
+    label: "Protected marketplace",
+    statuses: [200, 301, 302, 303, 307, 308],
+    locationPattern: /\/(auth\/login|profile\/setup)(?:[/?]|$)/,
+    streamedRedirectMarker: "__next-page-redirect",
+  },
+  {
     path: "/profile",
     label: "Protected profile",
     statuses: [200, 301, 302, 303, 307, 308],
@@ -35,6 +42,20 @@ const checks = [
   {
     path: "/events/create",
     label: "Protected tournament create",
+    statuses: [200, 301, 302, 303, 307, 308],
+    locationPattern: /\/(auth\/login|profile\/setup)(?:[/?]|$)/,
+    streamedRedirectMarker: "__next-page-redirect",
+  },
+  {
+    path: "/messages",
+    label: "Protected messages",
+    statuses: [200, 301, 302, 303, 307, 308],
+    locationPattern: /\/(auth\/login|profile\/setup)(?:[/?]|$)/,
+    streamedRedirectMarker: "__next-page-redirect",
+  },
+  {
+    path: "/marketplace/create",
+    label: "Protected marketplace create",
     statuses: [200, 301, 302, 303, 307, 308],
     locationPattern: /\/(auth\/login|profile\/setup)(?:[/?]|$)/,
     streamedRedirectMarker: "__next-page-redirect",

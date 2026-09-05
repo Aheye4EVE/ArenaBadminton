@@ -70,7 +70,7 @@ function VenueCard({ court }: { court: Court }) {
           <span><Navigation size={13} /> {court.distance}</span>
           <span>🏟️ {court.courtCount} คอร์ท</span>
         </div>
-        <Link href={`/venues#${court.id}`} className="discovery-card__link">ดูรายละเอียดสนาม <ArrowRight size={14} /></Link>
+        <Link href={`/venues/${court.id}`} className="discovery-card__link">ดูรายละเอียดสนาม <ArrowRight size={14} /></Link>
       </div>
     </article>
   );

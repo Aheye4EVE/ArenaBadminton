@@ -28,6 +28,7 @@ import {
   ShoppingCart,
   Sparkles,
   Star,
+  Store,
   Trophy,
   UserRound,
   Users,
@@ -62,6 +63,8 @@ function NavIcon({ name, size = 18 }: { name: string; size?: number }) {
       return <Trophy {...props} />;
     case "message":
       return <MessageCircle {...props} />;
+    case "store":
+      return <Store {...props} />;
     default:
       return <Sparkles {...props} />;
   }
@@ -298,7 +301,7 @@ export default function ArenaHome({
               {navItems.map((item, index) => (
                 <Link key={item.href + item.label} href={item.href} className={cx("desktop-nav__item", index === 0 && "desktop-nav__item--active")}>
                   <NavIcon name={item.icon} size={17} />
-                  <span lang={item.label === "Ranking" ? "en" : "th"}>{item.label}</span>
+                  <span lang={item.label === "Ranking" || item.label === "Messages" ? "en" : "th"}>{item.label}</span>
                 </Link>
               ))}
             </nav>
