@@ -152,7 +152,7 @@ export default function ProfileMediaInlineEditor({
       <button type="button" className={isBackground ? "profile-inline-media-editor__background-trigger" : "profile-overview-avatar profile-overview-avatar--large profile-inline-media-editor__avatar-trigger"} onClick={() => inputRef.current?.click()} disabled={isUploading || isSaving} aria-label={isBackground ? "เปลี่ยนภาพพื้นหลัง Profile" : "เปลี่ยนรูปโปรไฟล์"}>
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewUrl} alt={alt} style={{ objectPosition: `${focusX}% ${focusY}%` }} />
+          <img src={previewUrl} alt={isBackground ? "" : alt} style={{ objectPosition: `${focusX}% ${focusY}%` }} />
         ) : isBackground ? <span className="profile-inline-media-editor__background-empty"><ImagePlus size={20} /> เพิ่มภาพพื้นหลัง</span> : <UserRound size={40} strokeWidth={1.8} aria-hidden="true" />}
         <span className="profile-inline-media-editor__trigger-label"><ImagePlus size={13} /> {isBackground ? "เปลี่ยนภาพ" : "เปลี่ยนรูป"}</span>
       </button>

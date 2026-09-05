@@ -1,5 +1,28 @@
 const PUBLIC_URL_PATTERN = /^https:\/\//i;
 
+function isPrivateR2Endpoint(value: string) {
+  return /^https:\/\/[^/]+\.r2\.cloudflarestorage\.com(?:\/[^/]*)?$/i.test(value);
+}
+
+function applicationBaseUrl() {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/+$/, "");
+  if (configured && PUBLIC_URL_PATTERN.test(configured)) return configured;
+
+  const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (productionHost && /^[a-z0-9.-]+$/i.test(productionHost)) return `https://${productionHost}`;
+
+  const deploymentHost = process.env.VERCEL_URL?.trim();
+  if (deploymentHost && /^[a-z0-9.-]+$/i.test(deploymentHost)) return `https://${deploymentHost}`;
+
+  return process.env.NODE_ENV === "development" ? "http://localhost:3000" : null;
+}
+
+export function mediaProxyUrl(objectKey: string) {
+  const baseUrl = applicationBaseUrl();
+  if (!baseUrl) return null;
+  return `${baseUrl}/api/media/${objectKey.split("/").map(encodeURIComponent).join("/")}`;
+}
+
 export const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 export const AVATAR_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"] as const;
 export const PROFILE_BACKGROUND_MAX_BYTES = 5 * 1024 * 1024;
@@ -8,6 +31,9 @@ export const GUILD_LOGO_MAX_BYTES = 5 * 1024 * 1024;
 
 export function publicObjectUrl(objectKey: string) {
   const baseUrl = process.env.R2_PUBLIC_BASE_URL?.trim().replace(/\/+$/, "");
+  if (baseUrl && PUBLIC_URL_PATTERN.test(baseUrl) && !isPrivateR2Endpoint(baseUrl)) return `${baseUrl}/${objectKey.split("/").map(encodeURIComponent).join("/")}`;
+  const proxyUrl = mediaProxyUrl(objectKey);
+  if (proxyUrl) return proxyUrl;
   if (!baseUrl || !PUBLIC_URL_PATTERN.test(baseUrl)) return null;
   return `${baseUrl}/${objectKey.split("/").map(encodeURIComponent).join("/")}`;
 }
