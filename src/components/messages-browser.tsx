@@ -90,7 +90,7 @@ export default function MessagesBrowser({ conversations, selectedConversationId,
                 <Avatar url={conversation.otherAvatarUrl} />
                 <span><strong>{conversation.otherName}</strong><small>@{conversation.otherHandle}</small></span>
               </Link>
-            )) : <div className="messages-empty"><MessageCircle size={26} /><span>ยังไม่มีข้อความใหม่</span><small>เริ่มคุยกับผู้เล่นจากหน้า Marketplace หรือ Profile</small></div>}
+            )) : <div className="messages-empty"><MessageCircle size={26} /><span>ยังไม่มีข้อความใหม่</span><small>เพิ่มเพื่อนจากหน้าเพื่อน แล้วเริ่มคุยผ่าน Messenger หรือ Profile</small></div>}
           </aside>
 
           <section className="messages-thread">
