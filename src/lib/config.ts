@@ -2,7 +2,6 @@ export function getIntegrationConfiguration() {
   const googleMaps = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
   return {
     supabase: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
-    lineProvider: process.env.NEXT_PUBLIC_SUPABASE_LINE_PROVIDER ?? "custom:line",
     maps: googleMaps,
     mapProvider: "google-maps",
     googleMaps,

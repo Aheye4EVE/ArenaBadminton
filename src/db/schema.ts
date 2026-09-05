@@ -29,6 +29,11 @@ export const profiles = pgTable(
     skillBp: integer("skill_bp").notNull().default(1000),
     lineUserId: text("line_user_id"),
     lineContactId: text("line_contact_id"),
+    avatarFocusX: numeric("avatar_focus_x", { precision: 5, scale: 2 }).notNull().default("50"),
+    avatarFocusY: numeric("avatar_focus_y", { precision: 5, scale: 2 }).notNull().default("50"),
+    profileBackgroundUrl: text("profile_background_url"),
+    profileBackgroundFocusX: numeric("profile_background_focus_x", { precision: 5, scale: 2 }).notNull().default("50"),
+    profileBackgroundFocusY: numeric("profile_background_focus_y", { precision: 5, scale: 2 }).notNull().default("50"),
     addressLine: text("address_line"),
     province: text("province"),
     district: text("district"),
@@ -72,6 +77,11 @@ export const publicProfileDirectory = pgTable(
     level: smallint("level").notNull(),
     expTotal: bigint("exp_total", { mode: "number" }).notNull(),
     skillBp: integer("skill_bp").notNull(),
+    avatarFocusX: numeric("avatar_focus_x", { precision: 5, scale: 2 }).notNull().default("50"),
+    avatarFocusY: numeric("avatar_focus_y", { precision: 5, scale: 2 }).notNull().default("50"),
+    profileBackgroundUrl: text("profile_background_url"),
+    profileBackgroundFocusX: numeric("profile_background_focus_x", { precision: 5, scale: 2 }).notNull().default("50"),
+    profileBackgroundFocusY: numeric("profile_background_focus_y", { precision: 5, scale: 2 }).notNull().default("50"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
   },
@@ -79,6 +89,35 @@ export const publicProfileDirectory = pgTable(
     index("public_profile_directory_bp_idx").on(table.skillBp, table.level, table.expTotal, table.id),
     index("public_profile_directory_handle_idx").on(sql`lower(${table.handle})`),
   ],
+);
+
+export const skillRankDefinitions = pgTable(
+  "skill_rank_definitions",
+  {
+    tier: smallint("tier").primaryKey(),
+    name: text("name").notNull(),
+    minBp: integer("min_bp").notNull(),
+    color: text("color").notNull().default("blue"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("skill_rank_definitions_min_bp_uidx").on(table.minBp),
+    check("skill_rank_definitions_tier_range", sql`${table.tier} between 1 and 10`),
+    check("skill_rank_definitions_min_bp_floor", sql`${table.minBp} >= 1000`),
+  ],
+);
+
+export const emailVerificationSettings = pgTable(
+  "email_verification_settings",
+  {
+    id: text("id").primaryKey().default("default"),
+    emailVerificationRequired: boolean("email_verification_required").notNull().default(true),
+    updatedBy: uuid("updated_by").references(() => profiles.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [check("email_verification_settings_singleton", sql`${table.id} = 'default'`)],
 );
 
 export const shopItems = pgTable(

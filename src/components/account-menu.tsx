@@ -28,7 +28,7 @@ import {
   X,
 } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
-import { friendlyAuthError, getAuthCallbackUrl, getLineProvider } from "@/lib/auth-client";
+import { friendlyAuthError, getAuthCallbackUrl } from "@/lib/auth-client";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import type { HeaderProfileSummary } from "@/types/profile";
 import PasswordResetForm from "@/components/password-reset-form";
@@ -47,7 +47,7 @@ function AccountAvatar({ account, large = false }: { account: HeaderProfileSumma
         <>
           {/* OAuth avatar hosts are dynamic and intentionally bypass Next Image host allow-listing. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={account.avatarUrl} alt={large ? `${displayName} avatar` : ""} onError={() => setImageFailed(true)} />
+          <img src={account.avatarUrl} alt={large ? `${displayName} avatar` : ""} style={{ objectPosition: `${account.avatarFocusX}% ${account.avatarFocusY}%` }} onError={() => setImageFailed(true)} />
         </>
       ) : (
         <UserRound size={large ? 30 : 19} strokeWidth={1.8} aria-hidden="true" />
@@ -133,25 +133,34 @@ function CompactAuthCard({ onClose }: { onClose: () => void }) {
         return;
       }
 
-      const { data, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: { emailRedirectTo: getAuthCallbackUrl("/profile/setup") },
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password, nextPath: "/profile/setup" }),
       });
-      if (authError) {
-        setError(friendlyAuthError(authError.message));
+      const result = await response.json() as { code?: string; message?: string; needsVerification?: boolean; sessionCreated?: boolean };
+      if (!response.ok) {
+        setError(result.code === "AUTH_CONFIRMATION_CONFIGURATION" ? result.message ?? "ระบบยืนยัน Email ยังตั้งค่าไม่ครบ" : friendlyAuthError(result.message ?? ""));
         return;
       }
 
-      if (data.session) {
-        onClose();
-        router.replace("/profile/setup");
-        router.refresh();
-      } else {
+      if (result.needsVerification) {
         setMessage("สมัครสมาชิกสำเร็จแล้ว กรุณาเปิดอีเมลเพื่อยืนยันบัญชีก่อนเข้าสู่ระบบ");
         setPassword("");
         setConfirmPassword("");
+        return;
       }
+
+      if (!result.sessionCreated) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (signInError) {
+          setError(friendlyAuthError(signInError.message));
+          return;
+        }
+      }
+      onClose();
+      router.replace("/profile/setup");
+      router.refresh();
     } catch {
       setError("ไม่สามารถเชื่อมต่อระบบสมาชิกได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
@@ -188,9 +197,6 @@ function CompactAuthCard({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className="account-auth__social-grid">
-        <button type="button" className="account-social account-social--line" disabled={isBusy} onClick={() => signInWithProvider(getLineProvider())}>
-          <span className="account-social__mark">LINE</span> ต่อด้วย LINE
-        </button>
         <button type="button" className="account-social account-social--google" disabled={isBusy} onClick={() => signInWithProvider("google")}>
           <span className="account-social__mark">G</span> ต่อด้วย Google
         </button>
@@ -266,6 +272,7 @@ function ProfileSummaryCard({ account, onClose }: { account: HeaderProfileSummar
           </div>
           <p>@{account.handle}</p>
           <span className="account-profile__title-pill">{account.levelLabel}</span>
+          <span className={`account-profile__rank-pill account-profile__rank-pill--${account.skillRankColor}`}>Tier {account.skillRankTier} · {account.skillRankName}</span>
         </div>
       </div>
 
@@ -379,7 +386,7 @@ export default function AccountMenu({ account, isAuthenticated }: { account: Hea
         {open ? (
           <>
             <motion.button type="button" className="account-backdrop" aria-label="ปิด Account Card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeMenu} />
-            <motion.div ref={panelRef} className="account-popover" initial={{ opacity: 0, y: -8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.18, ease: "easeOut" }} role="dialog" aria-modal="true">
+            <motion.div ref={panelRef} className={cx("account-popover", account && "account-popover--profile")} initial={{ opacity: 0, y: -8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.18, ease: "easeOut" }} role="dialog" aria-modal="true">
               {isAuthenticated && account ? <ProfileSummaryCard account={account} onClose={closeMenu} /> : isAuthenticated ? <ProfileSetupPrompt onClose={closeMenu} /> : <CompactAuthCard onClose={closeMenu} />}
             </motion.div>
           </>

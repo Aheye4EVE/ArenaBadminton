@@ -1,7 +1,9 @@
 const PUBLIC_URL_PATTERN = /^https:\/\//i;
 
 export const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
-export const AVATAR_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const AVATAR_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"] as const;
+export const PROFILE_BACKGROUND_MAX_BYTES = 5 * 1024 * 1024;
+export const PROFILE_BACKGROUND_CONTENT_TYPES = AVATAR_CONTENT_TYPES;
 export const GUILD_LOGO_MAX_BYTES = 5 * 1024 * 1024;
 
 export function publicObjectUrl(objectKey: string) {
@@ -27,19 +29,64 @@ export function resolveAvatarUpdate(formData: FormData, userId: string) {
   const objectKeyValue = formData.get("avatarObjectKey");
   const objectKey = typeof objectKeyValue === "string" ? objectKeyValue.trim() : "";
   const removeAvatar = formData.get("removeAvatar") === "true";
+  const focusX = readMediaFocus(formData, "avatarFocusX");
+  const focusY = readMediaFocus(formData, "avatarFocusY");
 
-  if (removeAvatar) return { value: null as string | null, error: null as string | null };
-  if (!objectKey) return { value: undefined, error: null as string | null };
+  if (removeAvatar) return { value: null as string | null, focusX, focusY, error: null as string | null };
+  if (!objectKey) return { value: undefined, focusX, focusY, error: null as string | null };
   if (!isOwnedAvatarObjectKey(objectKey, userId)) {
-    return { value: undefined, error: "รูปโปรไฟล์ไม่ถูกต้อง กรุณาอัปโหลดใหม่อีกครั้ง" };
+    return { value: undefined, focusX, focusY, error: "รูปโปรไฟล์ไม่ถูกต้อง กรุณาอัปโหลดใหม่อีกครั้ง" };
+  }
+  if (formData.get("avatarCropConfirmed") !== "true") {
+    return { value: undefined, focusX, focusY, error: "กรุณากดยืนยันการ Crop รูปโปรไฟล์ก่อนบันทึก" };
   }
 
   const value = publicObjectUrl(objectKey);
   if (!value) {
-    return { value: undefined, error: "ยังไม่ได้ตั้งค่า Public URL ของ R2" };
+    return { value: undefined, focusX, focusY, error: "ยังไม่ได้ตั้งค่า Public URL ของ R2" };
   }
 
-  return { value, error: null as string | null };
+  return { value, focusX, focusY, error: null as string | null };
+}
+
+function readMediaFocus(formData: FormData, name: string) {
+  const value = formData.get(name);
+  const number = typeof value === "string" ? Number(value) : Number.NaN;
+  return Number.isFinite(number) ? Math.min(100, Math.max(0, number)) : 50;
+}
+
+export function isOwnedProfileBackgroundObjectKey(value: string, userId: string) {
+  const prefix = `profile-backgrounds/${userId}/`;
+  const filename = value.startsWith(prefix) ? value.slice(prefix.length) : "";
+  return Boolean(
+    filename
+      && filename.length <= 180
+      && !filename.includes("..")
+      && !filename.includes("/")
+      && !filename.includes("\\")
+      && /^[a-zA-Z0-9._-]+$/.test(filename),
+  );
+}
+
+export function resolveProfileBackgroundUpdate(formData: FormData, userId: string) {
+  const objectKeyValue = formData.get("profileBackgroundObjectKey");
+  const objectKey = typeof objectKeyValue === "string" ? objectKeyValue.trim() : "";
+  const removeBackground = formData.get("removeProfileBackground") === "true";
+  const focusX = readMediaFocus(formData, "backgroundFocusX");
+  const focusY = readMediaFocus(formData, "backgroundFocusY");
+
+  if (removeBackground) return { value: null as string | null, focusX, focusY, error: null as string | null };
+  if (!objectKey) return { value: undefined, focusX, focusY, error: null as string | null };
+  if (!isOwnedProfileBackgroundObjectKey(objectKey, userId)) {
+    return { value: undefined, focusX, focusY, error: "ภาพพื้นหลัง Profile ไม่ถูกต้อง กรุณาอัปโหลดใหม่อีกครั้ง" };
+  }
+  if (formData.get("profileBackgroundCropConfirmed") !== "true") {
+    return { value: undefined, focusX, focusY, error: "กรุณากดยืนยันการ Crop ภาพพื้นหลัง Profile ก่อนบันทึก" };
+  }
+
+  const value = publicObjectUrl(objectKey);
+  if (!value) return { value: undefined, focusX, focusY, error: "ยังไม่ได้ตั้งค่า Public URL ของ R2" };
+  return { value, focusX, focusY, error: null as string | null };
 }
 
 export function isOwnedGuildLogoObjectKey(value: string, guildId: string) {

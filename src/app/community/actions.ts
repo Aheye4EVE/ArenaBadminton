@@ -50,6 +50,7 @@ export async function createPostAction(
   if (error) return { error: "สร้างโพสต์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" };
 
   revalidatePath("/community");
+  revalidatePath("/profile");
   return { message: "เผยแพร่โพสต์แล้ว" };
 }
 
@@ -67,6 +68,7 @@ export async function createCommentAction(
   if (error) return { error: "ส่งความคิดเห็นไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" };
 
   revalidatePath("/community");
+  revalidatePath("/profile");
   return { message: "ส่งความคิดเห็นแล้ว" };
 }
 
@@ -92,5 +94,6 @@ export async function toggleLikeAction(_previousState: CommunityActionState, for
   }
 
   revalidatePath("/community");
+  revalidatePath("/profile");
   return { message: existing ? "ยกเลิก Like แล้ว" : "กด Like แล้ว" };
 }

@@ -3,14 +3,12 @@
 import { useState } from "react";
 import type { Provider } from "@supabase/supabase-js";
 import { Check, Link2, LoaderCircle, ShieldCheck, Sparkles } from "lucide-react";
-import { friendlyAuthError, getAuthCallbackUrl, getLineProvider } from "@/lib/auth-client";
+import { friendlyAuthError, getAuthCallbackUrl } from "@/lib/auth-client";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 const providerLabels: Record<string, string> = {
   email: "Email & Password",
   google: "Google Account",
-  line: "LINE",
-  "custom:line": "LINE",
 };
 
 function providerLabel(provider: string) {
@@ -20,8 +18,8 @@ function providerLabel(provider: string) {
 export default function ProfileIdentityManager({ connectedProviders, initialError }: { connectedProviders: string[]; initialError?: string }) {
   const [isBusy, setIsBusy] = useState<string | null>(null);
   const [error, setError] = useState(initialError ?? "");
-  const normalizedProviders = new Set(connectedProviders.map((provider) => provider === "custom:line" ? "line" : provider));
-  const linkableProviders = ["google", "line"] as const;
+  const normalizedProviders = new Set(connectedProviders);
+  const linkableProviders = ["google"] as const;
   const hasEmailPassword = normalizedProviders.has("email");
 
   async function linkProvider(providerName: (typeof linkableProviders)[number]) {
@@ -29,9 +27,8 @@ export default function ProfileIdentityManager({ connectedProviders, initialErro
     setIsBusy(providerName);
     try {
       const supabase = getSupabaseBrowserClient();
-      const provider = providerName === "line" ? getLineProvider() : "google";
       const { data, error: linkError } = await supabase.auth.linkIdentity({
-        provider: provider as Provider,
+        provider: providerName as Provider,
         options: { redirectTo: getAuthCallbackUrl("/profile/edit") },
       });
       if (linkError) {
@@ -53,7 +50,7 @@ export default function ProfileIdentityManager({ connectedProviders, initialErro
         <div className="profile-identity-item profile-identity-item--email"><span className="profile-identity-item__mark">@</span><div><strong>Email &amp; Password</strong><small>{hasEmailPassword ? "ช่องทางหลักสำหรับกู้คืนบัญชี" : "บัญชีนี้ยังไม่ได้ตั้งรหัสผ่าน Email"}</small></div>{hasEmailPassword ? <span className="profile-identity-connected"><Check size={14} /> เชื่อมแล้ว</span> : <span className="profile-identity-unconnected">ยังไม่เชื่อม</span>}</div>
         {linkableProviders.map((provider) => {
           const connected = normalizedProviders.has(provider);
-          return <div className="profile-identity-item" key={provider}><span className={`profile-identity-item__mark profile-identity-item__mark--${provider}`}>{provider === "google" ? "G" : "LINE"}</span><div><strong>{providerLabel(provider)}</strong><small>{connected ? "ใช้เข้าสู่บัญชี Arena นี้ได้" : "ยังไม่ได้เชื่อมกับบัญชีนี้"}</small></div>{connected ? <span className="profile-identity-connected"><Check size={14} /> เชื่อมแล้ว</span> : <button type="button" className="profile-identity-link" onClick={() => void linkProvider(provider)} disabled={isBusy !== null}><Link2 size={14} />{isBusy === provider ? <><LoaderCircle className="community-spin" size={14} /> กำลังเชื่อม</> : "เชื่อมต่อ"}</button>}</div>;
+          return <div className="profile-identity-item" key={provider}><span className={`profile-identity-item__mark profile-identity-item__mark--${provider}`}>G</span><div><strong>{providerLabel(provider)}</strong><small>{connected ? "ใช้เข้าสู่บัญชี Arena นี้ได้" : "ยังไม่ได้เชื่อมกับบัญชีนี้"}</small></div>{connected ? <span className="profile-identity-connected"><Check size={14} /> เชื่อมแล้ว</span> : <button type="button" className="profile-identity-link" onClick={() => void linkProvider(provider)} disabled={isBusy !== null}><Link2 size={14} />{isBusy === provider ? <><LoaderCircle className="community-spin" size={14} /> กำลังเชื่อม</> : "เชื่อมต่อ"}</button>}</div>;
         })}
       </div>
       {error ? <p className="profile-identity-feedback" role="alert"><Sparkles size={15} />{error}</p> : null}

@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { HeaderProfileSummary } from "@/types/profile";
+import { FALLBACK_SKILL_RANKS, getSkillRank } from "@/lib/skill-ranks";
 
 export async function getSupabaseServerClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -46,7 +47,7 @@ export async function getAuthenticatedProfile() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, display_name, handle, avatar_url, bio, level, exp_total, skill_bp, line_user_id, line_contact_id, address_line, province, district, subdistrict, postal_code, latitude, longitude, profile_completed_at")
+    .select("id, display_name, handle, avatar_url, bio, level, exp_total, skill_bp, line_user_id, line_contact_id, avatar_focus_x, avatar_focus_y, profile_background_url, profile_background_focus_x, profile_background_focus_y, address_line, province, district, subdistrict, postal_code, latitude, longitude, profile_completed_at")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -69,7 +70,7 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
   }
 
   const { supabase, user, profile } = profileContext;
-  const [levelsResult, createdGroupsResult, joinedGroupsResult, matchesResult, winsResult, walletResult, notificationsResult, rankResult, adminResult, guildMembershipResult, directMembershipsResult, pendingFriendshipsResult] = await Promise.all([
+  const [levelsResult, createdGroupsResult, joinedGroupsResult, matchesResult, winsResult, walletResult, notificationsResult, rankResult, adminResult, guildMembershipResult, directMembershipsResult, pendingFriendshipsResult, friendsResult, skillRanksResult] = await Promise.all([
     supabase.from("level_definitions").select("level, required_exp, label").order("level", { ascending: true }),
     supabase.from("groups").select("id", { count: "exact", head: true }).eq("owner_id", user.id),
     supabase.from("group_members").select("group_id", { count: "exact", head: true }).eq("user_id", user.id).in("membership_status", ["registered", "attended"]),
@@ -82,6 +83,8 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
     supabase.from("guild_members").select("guild_id, role").eq("user_id", user.id).eq("membership_status", "active").maybeSingle(),
     supabase.from("direct_conversation_members").select("conversation_id").eq("user_id", user.id),
     supabase.from("user_friendships").select("id", { count: "exact", head: true }).eq("status", "pending").neq("requested_by", user.id).or(`low_user_id.eq.${user.id},high_user_id.eq.${user.id}`),
+    supabase.from("user_friendships").select("id", { count: "exact", head: true }).eq("status", "accepted").or(`low_user_id.eq.${user.id},high_user_id.eq.${user.id}`),
+    supabase.from("skill_rank_definitions").select("tier, name, min_bp, color").order("min_bp", { ascending: true }),
   ]);
 
   const directConversationIds = [...new Set(((directMembershipsResult.data ?? []) as Array<{ conversation_id: string }>).map((membership) => membership.conversation_id))];
@@ -107,12 +110,22 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
   const rank = rankResult.error || rankResult.data === null || rankResult.data === undefined
     ? null
     : Math.max(1, Math.trunc(asNumber(rankResult.data, 1)));
+  const skillBp = Math.max(1000, asNumber(profile.skill_bp, 1000));
+  const rankDefinitions = Array.isArray(skillRanksResult.data)
+    ? skillRanksResult.data.map((definition) => ({ tier: asNumber(definition.tier, 1), name: typeof definition.name === "string" ? definition.name : "มือใหม่", minBp: asNumber(definition.min_bp, 1000), color: typeof definition.color === "string" ? definition.color : "slate" }))
+    : FALLBACK_SKILL_RANKS;
+  const skillRank = getSkillRank(skillBp, rankDefinitions);
 
   const summary: HeaderProfileSummary = {
     id: user.id,
     displayName: typeof profile.display_name === "string" && profile.display_name.trim() ? profile.display_name : "ผู้เล่นใหม่",
     handle: typeof profile.handle === "string" ? profile.handle : `player_${user.id.replaceAll("-", "").slice(0, 12)}`,
     avatarUrl: typeof profile.avatar_url === "string" ? profile.avatar_url : null,
+    avatarFocusX: clamp(asNumber(profile.avatar_focus_x, 50), 0, 100),
+    avatarFocusY: clamp(asNumber(profile.avatar_focus_y, 50), 0, 100),
+    profileBackgroundUrl: typeof profile.profile_background_url === "string" ? profile.profile_background_url : null,
+    backgroundFocusX: clamp(asNumber(profile.profile_background_focus_x, 50), 0, 100),
+    backgroundFocusY: clamp(asNumber(profile.profile_background_focus_y, 50), 0, 100),
     bio: typeof profile.bio === "string" ? profile.bio : null,
     level,
     levelLabel: typeof currentDefinition?.label === "string" ? currentDefinition.label : "ผู้เล่นใหม่",
@@ -120,11 +133,15 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
     currentLevelExp,
     nextLevelExp,
     levelProgress: Math.round(levelProgress),
-    skillBp: Math.max(1000, asNumber(profile.skill_bp, 1000)),
+    skillBp,
+    skillRankTier: skillRank.tier,
+    skillRankName: skillRank.name,
+    skillRankColor: skillRank.color,
     gemsBalance: Math.max(0, asNumber(walletResult.data?.gems_balance)),
     unreadNotificationCount: Math.max(0, notificationsResult.count ?? 0),
     unreadMessageCount: Math.max(0, unreadMessagesResult.count ?? 0),
     pendingFriendRequestCount: Math.max(0, pendingFriendshipsResult.count ?? 0),
+    friendCount: Math.max(0, friendsResult.count ?? 0),
     rank,
     isAdmin: !adminResult.error && adminResult.data === true,
     isProfileComplete: Boolean(profile.profile_completed_at),

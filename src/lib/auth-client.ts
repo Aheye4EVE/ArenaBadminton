@@ -1,9 +1,3 @@
-import type { Provider } from "@supabase/supabase-js";
-
-export function getLineProvider() {
-  return (process.env.NEXT_PUBLIC_SUPABASE_LINE_PROVIDER ?? "custom:line") as Provider;
-}
-
 export function friendlyAuthError(message: string) {
   const normalized = message.toLowerCase();
   if (normalized.includes("invalid login credentials")) return "อีเมลหรือรหัสผ่านไม่ถูกต้อง";

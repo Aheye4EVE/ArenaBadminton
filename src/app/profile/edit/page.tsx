@@ -35,7 +35,6 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
         displayName: profile.display_name,
         handle: profile.handle,
         bio: profile.bio,
-        lineContactId: profile.line_contact_id,
         addressLine: profile.address_line,
         province: profile.province,
         district: profile.district,
@@ -44,6 +43,11 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
         latitude: profile.latitude,
         longitude: profile.longitude,
         avatarUrl: profile.avatar_url,
+        avatarFocusX: profile.avatar_focus_x,
+        avatarFocusY: profile.avatar_focus_y,
+        profileBackgroundUrl: profile.profile_background_url,
+        backgroundFocusX: profile.profile_background_focus_x,
+        backgroundFocusY: profile.profile_background_focus_y,
       }}
       mode="edit"
       action={updateProfile}

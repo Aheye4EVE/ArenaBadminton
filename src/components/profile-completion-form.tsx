@@ -8,13 +8,13 @@ import { completeProfile } from "@/app/profile/setup/actions";
 import { type ProfileActionState } from "@/lib/profile-validation";
 import ThaiAreaSelect from "@/components/thai-area-select";
 import ProfileAvatarUpload from "@/components/profile-avatar-upload";
+import ProfileBackgroundUpload from "@/components/profile-background-upload";
 import ProfileIdentityManager from "@/components/profile-identity-manager";
 
 export type ProfileValues = {
   displayName?: string | null;
   handle?: string | null;
   bio?: string | null;
-  lineContactId?: string | null;
   addressLine?: string | null;
   province?: string | null;
   district?: string | null;
@@ -23,6 +23,11 @@ export type ProfileValues = {
   latitude?: number | string | null;
   longitude?: number | string | null;
   avatarUrl?: string | null;
+  avatarFocusX?: number | string | null;
+  avatarFocusY?: number | string | null;
+  profileBackgroundUrl?: string | null;
+  backgroundFocusX?: number | string | null;
+  backgroundFocusY?: number | string | null;
 };
 
 export type ProfileFormAction = (previousState: ProfileActionState, formData: FormData) => Promise<ProfileActionState>;
@@ -114,15 +119,14 @@ export default function ProfileCompletionForm({
           <form className="profile-setup-form" action={formAction}>
             <section className="profile-form-section">
               <div className="profile-form-section__heading"><span>01</span><div><h2>ข้อมูลโปรไฟล์</h2><p>ข้อมูลที่เพื่อน ๆ ใน Arena จะเห็น</p></div></div>
-              <ProfileAvatarUpload initialUrl={initialValues?.avatarUrl ?? null} displayName={initialValues?.displayName ?? "Arena Player"} />
+              <ProfileAvatarUpload initialUrl={initialValues?.avatarUrl ?? null} initialFocusX={initialValues?.avatarFocusX} initialFocusY={initialValues?.avatarFocusY} displayName={initialValues?.displayName ?? "Arena Player"} />
               <div className="profile-form-grid profile-form-grid--identity">
                 <label className={errorFor(state, "displayName") ? "profile-field profile-field--error" : "profile-field"}>
                   <span>ชื่อ <b>*</b></span>
                   <input name="displayName" defaultValue={initialValues?.displayName ?? ""} placeholder="เช่น BadBuddy" autoComplete="name" required />
                   {errorFor(state, "displayName") ? <small>{errorFor(state, "displayName")}</small> : null}
                 </label>
-                {isEdit ? (
-                  <label className={errorFor(state, "handle") ? "profile-field profile-field--error" : "profile-field"}>
+                <label className={errorFor(state, "handle") ? "profile-field profile-field--error" : "profile-field"}>
                     <span>TAGNAME <b>*</b></span>
                     <div className="profile-handle-input">
                       <span aria-hidden="true">@</span>
@@ -138,17 +142,11 @@ export default function ProfileCompletionForm({
                       />
                     </div>
                     {errorFor(state, "handle") ? <small>{errorFor(state, "handle")}</small> : <small>แสดงใต้ชื่อเป็น @TAGNAME ใช้ภาษาอังกฤษ ตัวเลข และ _</small>}
-                  </label>
-                ) : null}
+                </label>
                 <label className="profile-field">
                   <span>Email</span>
                   <input value={email} readOnly aria-describedby="email-note" />
                   <small id="email-note">อ้างอิงจากบัญชีที่ใช้สมัคร ไม่สามารถแก้จากหน้านี้</small>
-                </label>
-                <label className={errorFor(state, "lineContactId") ? "profile-field profile-field--error" : "profile-field"}>
-                  <span>LINE ID สำหรับติดต่อ <em>(ไม่บังคับ)</em></span>
-                  <input name="lineContactId" defaultValue={initialValues?.lineContactId ?? ""} placeholder="LINE ID ที่เพื่อนใช้ค้นหาคุณ" autoComplete="off" />
-                  {errorFor(state, "lineContactId") ? <small>{errorFor(state, "lineContactId")}</small> : <small>เพิ่มภายหลังได้ หากยังไม่ได้ใช้ LINE</small>}
                 </label>
                 <label className={errorFor(state, "bio") ? "profile-field profile-field--error profile-field--full" : "profile-field profile-field--full"}>
                   <span>แนะนำตัวสั้น ๆ <em>(ไม่บังคับ)</em></span>
@@ -156,6 +154,7 @@ export default function ProfileCompletionForm({
                   {errorFor(state, "bio") ? <small>{errorFor(state, "bio")}</small> : <small>ไม่เกิน 280 ตัวอักษร และจะแสดงบน Public Profile</small>}
                 </label>
               </div>
+              <ProfileBackgroundUpload initialUrl={initialValues?.profileBackgroundUrl ?? null} initialFocusX={initialValues?.backgroundFocusX} initialFocusY={initialValues?.backgroundFocusY} />
             </section>
 
             <section className="profile-form-section">
@@ -192,7 +191,7 @@ export default function ProfileCompletionForm({
               {errorFor(state, "latitude") ? <p className="profile-field-error">{errorFor(state, "latitude")}</p> : null}
             </section>
 
-            <div className="profile-privacy-note"><ShieldCheck size={18} /><span>ที่อยู่, GPS และ LINE provider ID เป็นข้อมูลส่วนตัว ระบบจะใช้สำหรับการแนะนำพื้นที่เท่านั้น ส่วนชื่อ, Bio, Level และ BP จะแสดงบน Public Profile</span></div>
+            <div className="profile-privacy-note"><ShieldCheck size={18} /><span>ที่อยู่และ GPS เป็นข้อมูลส่วนตัว ระบบจะใช้สำหรับการแนะนำพื้นที่เท่านั้น ส่วนชื่อ, TAGNAME, ภาพ, Bio, Level และ BP จะแสดงบน Profile ของคุณ</span></div>
             <div className="profile-setup-actions"><button type="submit" className="profile-submit" disabled={isPending}>{isPending ? "กำลังบันทึก..." : isEdit ? "บันทึกการแก้ไข" : "บันทึกโปรไฟล์และเข้าสู่ Arena"} {!isPending ? <ChevronRight size={18} /> : null}</button><span><CheckCircle2 size={15} /> {isEdit ? "EXP, BP และ Trophy จะไม่ถูกแก้ไข" : "BP เริ่มต้น 1,000 · Level 1"}</span></div>
           </form>
           {isEdit ? <ProfileIdentityManager connectedProviders={connectedProviders} initialError={identityError} /> : null}

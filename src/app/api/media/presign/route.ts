@@ -3,15 +3,15 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthenticatedUser, getSupabaseServerClient } from "@/lib/supabase-server";
-import { AVATAR_CONTENT_TYPES, AVATAR_MAX_BYTES, GUILD_LOGO_MAX_BYTES, publicObjectUrl } from "@/lib/r2-upload";
+import { AVATAR_CONTENT_TYPES, AVATAR_MAX_BYTES, GUILD_LOGO_MAX_BYTES, PROFILE_BACKGROUND_CONTENT_TYPES, PROFILE_BACKGROUND_MAX_BYTES, publicObjectUrl } from "@/lib/r2-upload";
 
 export const runtime = "nodejs";
 
 const uploadRequestSchema = z.object({
   filename: z.string().trim().min(1).max(120),
-  contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif"]),
+  contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]),
   size: z.number().int().positive().max(10 * 1024 * 1024),
-  purpose: z.enum(["community", "avatar", "guild-logo", "marketplace"]).default("community"),
+  purpose: z.enum(["community", "avatar", "profile-background", "guild-logo", "marketplace"]).default("community"),
   guildId: z.string().uuid().optional(),
 });
 
@@ -39,7 +39,10 @@ export async function POST(request: Request) {
   try {
     const body = uploadRequestSchema.parse(await request.json());
     if (body.purpose === "avatar" && (!AVATAR_CONTENT_TYPES.includes(body.contentType as (typeof AVATAR_CONTENT_TYPES)[number]) || body.size > AVATAR_MAX_BYTES)) {
-      return NextResponse.json({ code: "INVALID_AVATAR", message: "Avatar ต้องเป็น JPG, PNG หรือ WebP ขนาดไม่เกิน 5 MB" }, { status: 422 });
+      return NextResponse.json({ code: "INVALID_AVATAR", message: "Avatar ต้องเป็น JPG, PNG, WebP, GIF หรือ AVIF ขนาดไม่เกิน 5 MB" }, { status: 422 });
+    }
+    if (body.purpose === "profile-background" && (!PROFILE_BACKGROUND_CONTENT_TYPES.includes(body.contentType as (typeof PROFILE_BACKGROUND_CONTENT_TYPES)[number]) || body.size > PROFILE_BACKGROUND_MAX_BYTES)) {
+      return NextResponse.json({ code: "INVALID_PROFILE_BACKGROUND", message: "ภาพพื้นหลังต้องเป็น JPG, PNG, WebP, GIF หรือ AVIF ขนาดไม่เกิน 5 MB" }, { status: 422 });
     }
     if (body.purpose === "guild-logo") {
       if (!body.guildId || !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(body.contentType) || body.size > GUILD_LOGO_MAX_BYTES) {
@@ -56,6 +59,8 @@ export async function POST(request: Request) {
 
     const key = body.purpose === "avatar"
       ? `avatars/${user.id}/${crypto.randomUUID()}-${safeFilename(body.filename)}`
+      : body.purpose === "profile-background"
+        ? `profile-backgrounds/${user.id}/${crypto.randomUUID()}-${safeFilename(body.filename)}`
       : body.purpose === "guild-logo"
         ? `guilds/${body.guildId}/logo/${crypto.randomUUID()}-${safeFilename(body.filename)}`
         : body.purpose === "marketplace"

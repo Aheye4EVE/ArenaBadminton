@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import type { HeaderProfileSummary, ProfileTrophy } from "@/types/profile";
+import ProfileStatusFeed, { type ProfileStatus } from "@/components/profile-status-feed";
+import { safeMediaUrl } from "@/lib/safe-media-url";
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("th-TH").format(value);
@@ -31,7 +33,7 @@ function getProgressLabel(summary: HeaderProfileSummary) {
 function ProfileAvatar({ summary, size = "large" }: { summary: HeaderProfileSummary; size?: "large" | "small" }) {
   if (summary.avatarUrl) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img className={`profile-overview-avatar profile-overview-avatar--${size}`} src={summary.avatarUrl} alt={`รูปโปรไฟล์ของ ${summary.displayName}`} />;
+    return <img className={`profile-overview-avatar profile-overview-avatar--${size}`} src={summary.avatarUrl} alt={`รูปโปรไฟล์ของ ${summary.displayName}`} style={{ objectPosition: `${summary.avatarFocusX}% ${summary.avatarFocusY}%` }} />;
   }
 
   return (
@@ -41,8 +43,9 @@ function ProfileAvatar({ summary, size = "large" }: { summary: HeaderProfileSumm
   );
 }
 
-export default function ProfileOverview({ summary, province, trophies }: { summary: HeaderProfileSummary; province: string | null; trophies: ProfileTrophy[] }) {
+export default function ProfileOverview({ summary, province, trophies, statuses = [] }: { summary: HeaderProfileSummary; province: string | null; trophies: ProfileTrophy[]; statuses?: ProfileStatus[] }) {
   const location = province?.trim() || "ยังไม่ได้ระบุจังหวัด";
+  const backgroundUrl = safeMediaUrl(summary.profileBackgroundUrl);
 
   return (
     <main className="profile-overview-page">
@@ -75,7 +78,12 @@ export default function ProfileOverview({ summary, province, trophies }: { summa
 
         <div className="profile-overview-grid">
           <section className="profile-overview-card profile-overview-card--hero" aria-labelledby="profile-overview-name">
-            <div className="profile-overview-cover" aria-hidden="true" />
+            <div className="profile-overview-cover" aria-label="ภาพพื้นหลัง Profile">
+              {backgroundUrl ? <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={backgroundUrl} alt="" style={{ objectPosition: `${summary.backgroundFocusX}% ${summary.backgroundFocusY}%` }} />
+              </> : null}
+            </div>
 
             <div className="profile-overview-identity">
               <ProfileAvatar summary={summary} />
@@ -86,6 +94,7 @@ export default function ProfileOverview({ summary, province, trophies }: { summa
                 </div>
                 <p><MapPin size={13} /> @{summary.handle.replace(/^@/, "")} · {location}</p>
                 <span className="profile-overview-title-pill">{summary.levelLabel}</span>
+                <span className={`profile-overview-rank-pill profile-overview-rank-pill--${summary.skillRankColor}`}>Tier {summary.skillRankTier} · {summary.skillRankName}</span>
                 {summary.bio ? <p className="profile-overview-bio">{summary.bio}</p> : null}
               </div>
               <div className="profile-overview-identity__links">
@@ -110,10 +119,11 @@ export default function ProfileOverview({ summary, province, trophies }: { summa
               </div>
             </div>
 
-            <div className="profile-overview-metrics">
-              <div><Users size={20} /><strong>{formatNumber(summary.stats.createdGroups)}</strong><span>ก๊วนที่สร้าง</span></div>
-              <div><CalendarDays size={20} /><strong>{formatNumber(summary.stats.joinedGroups)}</strong><span>ก๊วนที่เข้าร่วม</span></div>
-              <div><Trophy size={20} /><strong>{formatNumber(summary.stats.matchesPlayed)}</strong><span>แมตช์ที่แข่ง</span></div>
+              <div className="profile-overview-metrics">
+                <div><Users size={20} /><strong>{formatNumber(summary.stats.createdGroups)}</strong><span>ก๊วนที่สร้าง</span></div>
+                <div><CalendarDays size={20} /><strong>{formatNumber(summary.stats.joinedGroups)}</strong><span>ก๊วนที่เข้าร่วม</span></div>
+                <div><Trophy size={20} /><strong>{formatNumber(summary.stats.matchesPlayed)}</strong><span>แมตช์ที่แข่ง</span></div>
+                <div><Users size={20} /><strong>{formatNumber(summary.friendCount)}</strong><span>เพื่อนที่ยืนยันแล้ว</span></div>
             </div>
 
             <div className="profile-overview-actions">
@@ -130,25 +140,24 @@ export default function ProfileOverview({ summary, province, trophies }: { summa
                 <div className="profile-overview-score profile-overview-score--bp"><span><Award size={17} /> Skill BP</span><strong>{formatNumber(summary.skillBp)}</strong><small>ค่าต่ำสุด 1,000 BP</small></div>
                 <div className="profile-overview-score profile-overview-score--wins"><span><Trophy size={17} /> ชนะแล้ว</span><strong>{formatNumber(summary.stats.wins)}</strong><small>จาก {formatNumber(summary.stats.matchesPlayed)} แมตช์</small></div>
               </div>
+              <div className={`profile-overview-rank-summary profile-overview-rank-summary--${summary.skillRankColor}`}><span>ยศจาก Skill BP</span><strong>Tier {summary.skillRankTier} · {summary.skillRankName}</strong><small>ระบบปรับให้อัตโนมัติจาก BP ที่ยืนยันแล้ว</small></div>
               <Link href="/ranking" className="profile-overview-rank-line"><span>Ranking</span><strong>{summary.rank === null ? "กำลังคำนวณ" : `#${formatNumber(summary.rank)}`}</strong><ArrowRight size={15} /></Link>
             </section>
 
-            <section className="profile-overview-card profile-overview-trophy-card">
-              <div className="profile-overview-card-heading"><div><p lang="en">Your collection</p><h2>Trophy ของฉัน</h2></div><Trophy size={21} /></div>
-              {trophies.length > 0 ? <div className="profile-overview-trophy-list">{trophies.map((trophy) => <article className={`profile-overview-trophy-item profile-overview-trophy-item--${trophy.rarityTier}`} key={trophy.id}><div className="profile-overview-trophy-item__icon" aria-hidden="true">{trophy.icon}</div><div><strong>{trophy.title}</strong><span>{trophy.description || "Achievement จาก Arena"}</span><small>{trophy.rarityTier} · {trophy.sourceType}</small></div></article>)}</div> : <div className="profile-overview-empty-trophy"><div><Trophy size={27} /></div><strong>เริ่มสะสม Trophy ชิ้นแรก</strong><span>รับ Badge จากก๊วนและการแข่งขันที่คุณเข้าร่วม</span></div>}
-              <Link href="/shop" className="profile-overview-secondary">ไปที่ร้านค้า Item <ArrowRight size={15} /></Link>
+            <section className="profile-overview-card profile-overview-friends-card">
+              <div className="profile-overview-card-heading"><div><p lang="en">Your circle</p><h2>เพื่อนของฉัน</h2></div><Users size={21} /></div>
+              <Link href="/friends" className="profile-overview-friends-link"><span className="profile-overview-friends-link__icon"><Users size={25} /></span><span><strong>{formatNumber(summary.friendCount)} คน</strong><small>เพื่อนที่ยืนยันและคุยผ่าน Messenger ได้</small></span><ArrowRight size={17} /></Link>
+              {summary.pendingFriendRequestCount > 0 ? <p className="profile-overview-pending-friends">มีคำขอใหม่ {formatNumber(summary.pendingFriendRequestCount)} รายการ</p> : null}
             </section>
 
-            <section className="profile-overview-card profile-overview-next-card">
-              <p lang="en">Make your next move</p>
-              <h2>พร้อมลงสนามหรือยัง?</h2>
-              <div className="profile-overview-next-links">
-                <Link href="/events"><CalendarDays size={16} /> ดูกิจกรรมใกล้คุณ <ArrowRight size={14} /></Link>
-                <Link href="/organizer"><Users size={16} /> สร้างก๊วนของคุณ <ArrowRight size={14} /></Link>
-              </div>
+            <section className="profile-overview-card profile-overview-trophy-card">
+              <div className="profile-overview-card-heading"><div><h2>Trophy ของฉัน</h2></div><Trophy size={21} /></div>
+              {trophies.length > 0 ? <div className="profile-overview-trophy-list">{trophies.map((trophy) => <article className={`profile-overview-trophy-item profile-overview-trophy-item--${trophy.rarityTier}`} key={trophy.id}><div className="profile-overview-trophy-item__icon" aria-hidden="true">{trophy.icon}</div><div><strong>{trophy.title}</strong><span>{trophy.description || "Achievement จาก Arena"}</span><small>{trophy.rarityTier} · {trophy.sourceType}</small></div></article>)}</div> : <div className="profile-overview-empty-trophy"><div><Trophy size={27} /></div><strong>เริ่มสะสม Trophy ชิ้นแรก</strong><span>รับ Badge จากก๊วนและการแข่งขันที่คุณเข้าร่วม</span></div>}
             </section>
           </aside>
         </div>
+
+        <ProfileStatusFeed statuses={statuses} />
 
         <footer className="profile-overview-footer"><span>© Arena-Badminton</span><span>Level up together · Production Arena</span></footer>
       </div>

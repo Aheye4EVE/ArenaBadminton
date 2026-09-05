@@ -6,7 +6,7 @@ import { useState, type FormEvent } from "react";
 import type { Provider } from "@supabase/supabase-js";
 import { ArrowRight, AtSign, CheckCircle2, LockKeyhole, MessageCircle, Sparkles } from "lucide-react";
 import PasswordResetForm from "@/components/password-reset-form";
-import { friendlyAuthError, getAuthCallbackUrl, getLineProvider } from "@/lib/auth-client";
+import { friendlyAuthError, getAuthCallbackUrl } from "@/lib/auth-client";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 type AuthMode = "login" | "signup";
@@ -90,34 +90,39 @@ export default function AuthPanel({ initialError, initialMessage, nextPath = "/p
         return;
       }
 
-      const { data, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
-          password,
-          options: {
-            emailRedirectTo: getAuthCallbackUrl(nextPath),
-          },
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password, nextPath }),
       });
-      if (authError) {
-        setError(friendlyAuthError(authError.message));
+      const result = await response.json() as { code?: string; message?: string; needsVerification?: boolean; sessionCreated?: boolean };
+      if (!response.ok) {
+        setError(result.code === "AUTH_CONFIRMATION_CONFIGURATION" ? result.message ?? "ระบบยืนยัน Email ยังตั้งค่าไม่ครบ" : friendlyAuthError(result.message ?? ""));
         return;
       }
 
-      if (data.session) {
-        router.replace(nextPath);
-        router.refresh();
-      } else {
+      if (result.needsVerification) {
         setMessage("สมัครสมาชิกสำเร็จแล้ว กรุณาเปิดอีเมลเพื่อยืนยันบัญชีก่อนเข้าสู่ระบบ");
         setPassword("");
         setConfirmPassword("");
+        return;
       }
+
+      if (!result.sessionCreated) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (signInError) {
+          setError(friendlyAuthError(signInError.message));
+          return;
+        }
+      }
+      router.replace(nextPath);
+      router.refresh();
     } catch {
       setError("ไม่สามารถเชื่อมต่อระบบสมาชิกได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setIsBusy(false);
     }
   };
-
-  const lineProvider = getLineProvider();
 
   return (
     <main className="auth-page">
@@ -151,10 +156,6 @@ export default function AuthPanel({ initialError, initialMessage, nextPath = "/p
               </div>
 
               <div className="auth-social-grid">
-                <button type="button" className="auth-social auth-social--line" disabled={isBusy} onClick={() => signInWithProvider(lineProvider)}>
-                  <span className="auth-social__mark">LINE</span>
-                  <span>ต่อด้วย LINE</span>
-                </button>
                 <button type="button" className="auth-social auth-social--google" disabled={isBusy} onClick={() => signInWithProvider("google")}>
                   <span className="auth-social__mark">G</span>
                   <span>ต่อด้วย Google</span>
