@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { AlertTriangle, ArrowRight, Award, Gem, MailCheck, Settings2, ShieldCheck, Store, Swords, Users } from "lucide-react";
+import { AlertTriangle, ArrowRight, Award, Gem, MailCheck, Settings2, ShieldCheck, Store, Swords, UserCog, Users } from "lucide-react";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 
 export const metadata: Metadata = { title: "Admin Console | Arena-Badminton" };
 export const dynamic = "force-dynamic";
 
 const adminTools = [
+  {
+    href: "/admin/users",
+    icon: UserCog,
+    eyebrow: "Member Directory",
+    title: "จัดการผู้ใช้งาน",
+    description: "ดูสมาชิกทั้งหมด เปิดรายละเอียด Profile จัดการ Gems / Point และกำหนด Role User หรือ Admin",
+    tone: "admin-hub-card--pink",
+  },
   {
     href: "/admin/guilds",
     icon: Users,

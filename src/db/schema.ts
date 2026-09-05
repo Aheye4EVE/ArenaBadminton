@@ -242,6 +242,25 @@ export const adminUsers = pgTable(
   (table) => [check("admin_users_role_allowed", sql`${table.role} = 'admin'`)],
 );
 
+export const adminRoleChanges = pgTable(
+  "admin_role_changes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    actorUserId: uuid("actor_user_id").notNull(),
+    targetUserId: uuid("target_user_id").notNull(),
+    previousRole: text("previous_role").notNull(),
+    nextRole: text("next_role").notNull(),
+    metadata: jsonb("metadata").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("admin_role_changes_target_created_idx").on(table.targetUserId, table.createdAt, table.id),
+    index("admin_role_changes_actor_created_idx").on(table.actorUserId, table.createdAt, table.id),
+    check("admin_role_changes_previous_role_allowed", sql`${table.previousRole} in ('user', 'admin')`),
+    check("admin_role_changes_next_role_allowed", sql`${table.nextRole} in ('user', 'admin')`),
+  ],
+);
+
 export const levelDefinitions = pgTable(
   "level_definitions",
   {
