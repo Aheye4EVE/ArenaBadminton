@@ -32,6 +32,13 @@ const checks = [
     locationPattern: /\/(auth\/login|profile\/setup)(?:[/?]|$)/,
     streamedRedirectMarker: "__next-page-redirect",
   },
+  {
+    path: "/events/create",
+    label: "Protected tournament create",
+    statuses: [200, 301, 302, 303, 307, 308],
+    locationPattern: /\/(auth\/login|profile\/setup)(?:[/?]|$)/,
+    streamedRedirectMarker: "__next-page-redirect",
+  },
   { path: "/api/health", label: "Health configuration", statuses: [200], health: true },
 ];
 
