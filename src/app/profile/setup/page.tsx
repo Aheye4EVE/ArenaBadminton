@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import ProfileCompletionForm from "@/components/profile-completion-form";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
+import { safeMediaUrl } from "@/lib/safe-media-url";
 
 export const metadata: Metadata = {
   title: "ตั้งค่า Profile | Arena-Badminton",
@@ -31,10 +32,10 @@ export default async function ProfileSetupPage() {
     postalCode: profile?.postal_code ?? "",
     latitude: profile?.latitude ?? "",
     longitude: profile?.longitude ?? "",
-    avatarUrl: profile?.avatar_url ?? null,
+    avatarUrl: safeMediaUrl(profile?.avatar_url),
     avatarFocusX: profile?.avatar_focus_x ?? 50,
     avatarFocusY: profile?.avatar_focus_y ?? 50,
-    profileBackgroundUrl: profile?.profile_background_url ?? null,
+    profileBackgroundUrl: safeMediaUrl(profile?.profile_background_url),
     backgroundFocusX: profile?.profile_background_focus_x ?? 50,
     backgroundFocusY: profile?.profile_background_focus_y ?? 50,
   };

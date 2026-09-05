@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import ProfileCompletionForm from "@/components/profile-completion-form";
 import { updateProfile } from "@/app/profile/actions";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
+import { safeMediaUrl } from "@/lib/safe-media-url";
 
 export const metadata: Metadata = {
   title: "แก้ไข Profile | Arena-Badminton",
@@ -42,10 +43,10 @@ export default async function ProfileEditPage({ searchParams }: { searchParams: 
         postalCode: profile.postal_code,
         latitude: profile.latitude,
         longitude: profile.longitude,
-        avatarUrl: profile.avatar_url,
+        avatarUrl: safeMediaUrl(profile.avatar_url),
         avatarFocusX: profile.avatar_focus_x,
         avatarFocusY: profile.avatar_focus_y,
-        profileBackgroundUrl: profile.profile_background_url,
+        profileBackgroundUrl: safeMediaUrl(profile.profile_background_url),
         backgroundFocusX: profile.profile_background_focus_x,
         backgroundFocusY: profile.profile_background_focus_y,
       }}
