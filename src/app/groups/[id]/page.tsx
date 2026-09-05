@@ -20,6 +20,7 @@ type GroupRow = {
   play_type: string;
   entry_fee: string | number;
   status: string;
+  guild_id: string | null;
 };
 
 type PublicMemberRow = {
@@ -41,16 +42,17 @@ export default async function GroupDetailPage({ params }: { params: Promise<{ id
 
   const { data, error } = await supabase
     .from("groups")
-    .select("id, owner_id, title, description, location_text, starts_at, duration_minutes, capacity, min_level, max_level, play_type, entry_fee, status")
+    .select("id, owner_id, title, description, location_text, starts_at, duration_minutes, capacity, min_level, max_level, play_type, entry_fee, status, guild_id")
     .eq("id", id)
     .maybeSingle();
   if (error || !data) notFound();
 
   const group = data as GroupRow;
-  const [membersResult, membershipResult] = await Promise.all([
+  const [membersResult, membershipResult, guildResult] = await Promise.all([
     supabase.from("public_group_members").select("user_id, membership_status, display_name, handle, avatar_url, level").eq("group_id", id).order("membership_status", { ascending: true }).order("joined_at", { ascending: true }),
     supabase.from("group_members").select("membership_status").eq("group_id", id).eq("user_id", user.id).maybeSingle(),
+    group.guild_id ? supabase.from("guilds").select("id, name, level").eq("id", group.guild_id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
 
-  return <GroupDetail group={{ id: group.id, ownerId: group.owner_id, title: group.title, description: group.description, locationText: group.location_text, startsAt: group.starts_at, durationMinutes: Number(group.duration_minutes), capacity: Number(group.capacity), minLevel: Number(group.min_level), maxLevel: Number(group.max_level), playType: group.play_type, entryFee: group.entry_fee, status: group.status }} members={(membersResult.data ?? []) as PublicMemberRow[]} membershipStatus={(membershipResult.data as { membership_status?: string } | null)?.membership_status ?? null} currentUserId={user.id} />;
+  return <GroupDetail group={{ id: group.id, ownerId: group.owner_id, title: group.title, description: group.description, locationText: group.location_text, startsAt: group.starts_at, durationMinutes: Number(group.duration_minutes), capacity: Number(group.capacity), minLevel: Number(group.min_level), maxLevel: Number(group.max_level), playType: group.play_type, entryFee: group.entry_fee, status: group.status, guildId: group.guild_id, guildName: guildResult.data?.name ?? null, guildLevel: guildResult.data?.level ? Number(guildResult.data.level) : null }} members={(membersResult.data ?? []) as PublicMemberRow[]} membershipStatus={(membershipResult.data as { membership_status?: string } | null)?.membership_status ?? null} currentUserId={user.id} />;
 }

@@ -69,7 +69,7 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
   }
 
   const { supabase, user, profile } = profileContext;
-  const [levelsResult, createdGroupsResult, joinedGroupsResult, matchesResult, winsResult, walletResult, notificationsResult, rankResult, adminResult] = await Promise.all([
+  const [levelsResult, createdGroupsResult, joinedGroupsResult, matchesResult, winsResult, walletResult, notificationsResult, rankResult, adminResult, guildMembershipResult] = await Promise.all([
     supabase.from("level_definitions").select("level, required_exp, label").order("level", { ascending: true }),
     supabase.from("groups").select("id", { count: "exact", head: true }).eq("owner_id", user.id),
     supabase.from("group_members").select("group_id", { count: "exact", head: true }).eq("user_id", user.id).in("membership_status", ["registered", "attended"]),
@@ -79,7 +79,12 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
     supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("read_at", null),
     supabase.rpc("get_current_user_rank"),
     supabase.rpc("is_current_user_admin"),
+    supabase.from("guild_members").select("guild_id, role").eq("user_id", user.id).eq("membership_status", "active").maybeSingle(),
   ]);
+
+  const guildResult = guildMembershipResult.data
+    ? await supabase.from("guilds").select("id, name, level").eq("id", guildMembershipResult.data.guild_id).maybeSingle()
+    : { data: null };
 
   const level = clamp(asNumber(profile.level, 1), 1, 99);
   const expTotal = Math.max(0, asNumber(profile.exp_total));
@@ -114,6 +119,12 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
     rank,
     isAdmin: !adminResult.error && adminResult.data === true,
     isProfileComplete: Boolean(profile.profile_completed_at),
+    guild: guildResult.data && guildMembershipResult.data ? {
+      id: guildResult.data.id,
+      name: guildResult.data.name,
+      level: Math.max(1, asNumber(guildResult.data.level, 1)),
+      role: guildMembershipResult.data.role,
+    } : null,
     stats: {
       createdGroups: createdGroupsResult.count ?? 0,
       joinedGroups: joinedGroupsResult.count ?? 0,

@@ -286,6 +286,10 @@ function ProfileSummaryCard({ account, onClose }: { account: HeaderProfileSummar
 
       <Link href="/profile" className="account-profile__cta" onClick={onClose}>โปรไฟล์ของฉัน <ArrowRight size={17} /></Link>
 
+      <Link href={account.guild ? `/guilds/${account.guild.id}` : "/guilds"} className="account-profile__guild-cta" onClick={onClose}>
+        <span><ShieldCheck size={16} /><strong>{account.guild ? account.guild.name : "เข้าร่วม Guild"}</strong><small>{account.guild ? `Guild Lv.${account.guild.level} · ${account.guild.role === "guild_master" ? "Guild Master" : account.guild.role === "officer" ? "Officer" : "Member"}` : "ค้นหาบ้านใหม่ใน Arena"}</small></span><ArrowRight size={15} />
+      </Link>
+
       {account.isAdmin ? (
         <Link href="/admin" className="account-profile__admin-cta" onClick={onClose}>
           <ShieldCheck size={16} /> เข้าสู่ระบบ Admin <ArrowRight size={15} />

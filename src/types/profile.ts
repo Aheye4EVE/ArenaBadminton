@@ -16,6 +16,12 @@ export type HeaderProfileSummary = {
   rank: number | null;
   isAdmin: boolean;
   isProfileComplete: boolean;
+  guild: {
+    id: string;
+    name: string;
+    level: number;
+    role: string;
+  } | null;
   stats: {
     createdGroups: number;
     joinedGroups: number;

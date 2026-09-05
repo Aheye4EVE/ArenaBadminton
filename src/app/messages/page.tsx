@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import PreviewPage from "@/components/preview-page";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "บอร์ดพูดคุย | Arena-Badminton" };
 
 export default function MessagesPage() {
-  return <PreviewPage kind="messages" />;
+  redirect("/community");
 }

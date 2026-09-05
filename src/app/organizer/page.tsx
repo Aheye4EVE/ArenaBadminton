@@ -47,6 +47,24 @@ export default async function OrganizerPage() {
     venues = venuesResult.data ?? [];
   }
 
+  let guilds: Array<{ id: string; name: string; level: number; max_members: number }> = [];
+  const guildMemberships = await supabase
+    .from("guild_members")
+    .select("guild_id, role")
+    .eq("user_id", user.id)
+    .eq("membership_status", "active")
+    .in("role", ["guild_master", "officer"]);
+  const guildIds = (guildMemberships.data ?? []).map((membership) => membership.guild_id);
+  if (guildIds.length > 0) {
+    const guildResult = await supabase
+      .from("guilds")
+      .select("id, name, level, max_members")
+      .in("id", guildIds)
+      .eq("status", "active")
+      .order("name", { ascending: true });
+    guilds = guildResult.data ?? [];
+  }
+
   return (
     <main className="groups-page organizer-live-page">
       <div className="groups-shell">
@@ -60,13 +78,13 @@ export default async function OrganizerPage() {
 
         <div className="organizer-live-layout">
           <section className="organizer-live-panel">
-            <CreateGroupForm minimumDate={todayInBangkok()} venues={venues} />
+            <CreateGroupForm minimumDate={todayInBangkok()} venues={venues} guilds={guilds} />
             {venuesUnavailable ? <p className="group-form__location-help">ไม่สามารถโหลดรายชื่อสนามได้ชั่วคราว คุณยังกรอกรายละเอียดสถานที่ด้วยตัวเองได้</p> : null}
           </section>
           <aside className="organizer-live-sidebar">
             <section className="groups-side-card organizer-side-card"><div className="organizer-side-card__badge">LIVE GROUP</div><h2>ก๊วนของคุณจะเป็นพื้นที่เปิด</h2><p>เว็บทำหน้าที่เป็นพื้นที่กลาง ใครจะจัดก๊วนแบบไหนก็ออกแบบได้เอง ภายใต้กติกาความปลอดภัยของระบบ</p><div className="organizer-side-stat"><span>เจ้าของก๊วน</span><strong>{profile.display_name}</strong></div><div className="organizer-side-stat"><span>สถานะบัญชี</span><strong className="organizer-side-stat__ready">พร้อมจัดก๊วน ✓</strong></div></section>
             <section className="groups-side-card"><h2>ระบบจะช่วยจัดการให้</h2><ul className="groups-rules"><li><span>01</span><p>เพิ่มผู้จัดเป็นสมาชิกอัตโนมัติ</p></li><li><span>02</span><p>กันที่นั่งและคิวรอแบบ atomic</p></li><li><span>03</span><p>สมาชิกยกเลิกเองได้ ผู้จัดยกเลิกก๊วนได้</p></li></ul></section>
-            <section className="groups-side-card groups-side-card--tip"><p>รางวัล EXP/BP และการแข่งขันจะต่อยอดใน Phase ถัดไป โดยผู้จัดจะไม่สามารถแก้ BP ของระบบโดยตรง</p></section>
+            <section className="groups-side-card groups-side-card--tip"><p>เลือก Guild ที่คุณดูแลเพื่อผูกกับก๊วนได้ ส่วน EXP/BP ของ Match ยังใช้กติกากลางจากระบบและผู้จัดไม่สามารถแก้ BP โดยตรง</p></section>
           </aside>
         </div>
       </div>

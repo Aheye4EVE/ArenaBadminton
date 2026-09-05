@@ -240,7 +240,7 @@ export const shopItems = [
 
 export const navItems = [
   { label: "หน้าหลัก", href: "/", icon: "home" },
-  { label: "ก๊วนของฉัน", href: "/groups", icon: "users" },
+  { label: "Guild", href: "/guilds", icon: "shield" },
   { label: "ค้นหาก๊วน", href: "/groups", icon: "search" },
   { label: "สนามแบด", href: "/venues", icon: "map" },
   { label: "กิจกรรม", href: "/events", icon: "calendar" },

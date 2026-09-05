@@ -23,7 +23,7 @@ export default async function RankingPage() {
     .order("exp_total", { ascending: false })
     .limit(50);
 
-  if (error) return <PreviewPage kind="ranking" />;
+  if (error) return <RankingBrowser entries={[]} totalPlayers={0} currentUserId={user.id} />;
 
   const entries: RankingEntry[] = ((data ?? []) as Array<Record<string, unknown>>).map((row, index) => ({
     id: typeof row.id === "string" ? row.id : `ranking-${index}`,

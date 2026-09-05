@@ -2,6 +2,7 @@ const PUBLIC_URL_PATTERN = /^https?:\/\//i;
 
 export const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 export const AVATAR_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const GUILD_LOGO_MAX_BYTES = 5 * 1024 * 1024;
 
 export function publicObjectUrl(objectKey: string) {
   const baseUrl = process.env.R2_PUBLIC_BASE_URL?.trim().replace(/\/+$/, "");
@@ -38,5 +39,34 @@ export function resolveAvatarUpdate(formData: FormData, userId: string) {
     return { value: undefined, error: "ยังไม่ได้ตั้งค่า Public URL ของ R2" };
   }
 
+  return { value, error: null as string | null };
+}
+
+export function isOwnedGuildLogoObjectKey(value: string, guildId: string) {
+  const prefix = `guilds/${guildId}/logo/`;
+  const filename = value.startsWith(prefix) ? value.slice(prefix.length) : "";
+  return Boolean(
+    filename
+      && filename.length <= 180
+      && !filename.includes("..")
+      && !filename.includes("/")
+      && !filename.includes("\\")
+      && /^[a-zA-Z0-9._-]+$/.test(filename),
+  );
+}
+
+export function resolveGuildLogoUpdate(formData: FormData, guildId: string) {
+  const objectKeyValue = formData.get("logoObjectKey");
+  const objectKey = typeof objectKeyValue === "string" ? objectKeyValue.trim() : "";
+  const removeLogo = formData.get("removeLogo") === "true";
+
+  if (removeLogo) return { value: null as string | null, error: null as string | null };
+  if (!objectKey) return { value: undefined, error: null as string | null };
+  if (!isOwnedGuildLogoObjectKey(objectKey, guildId)) {
+    return { value: undefined, error: "Logo Guild ไม่ถูกต้อง กรุณาอัปโหลดใหม่อีกครั้ง" };
+  }
+
+  const value = publicObjectUrl(objectKey);
+  if (!value) return { value: undefined, error: "ยังไม่ได้ตั้งค่า Public URL ของ R2" };
   return { value, error: null as string | null };
 }

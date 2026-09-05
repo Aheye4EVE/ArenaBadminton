@@ -130,7 +130,10 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
       .order("starts_at", { ascending: true })
       .limit(50);
     if (!shouldShowQaData()) tournamentQuery = tournamentQuery.not("title", "like", "[QA ONLY]%");
-    const { data: tournamentRows } = await tournamentQuery;
+    const { data: tournamentRows, error: tournamentError } = await tournamentQuery;
+    if (tournamentError) {
+      eventSource = [];
+    }
     const rows = (tournamentRows ?? []) as Array<Record<string, unknown>>;
     const tournamentIds = rows.map((row) => typeof row.id === "string" ? row.id : "").filter(Boolean);
     const venueIds = [...new Set(rows.map((row) => typeof row.venue_id === "string" ? row.venue_id : "").filter(Boolean))];
@@ -148,7 +151,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
       const id = typeof row.tournament_id === "string" ? row.tournament_id : "";
       if (id) entryCounts.set(id, (entryCounts.get(id) ?? 0) + 1);
     }
-    eventSource = [...mapLiveTournaments(rows, entryCounts, venueMap), ...events];
+    if (!tournamentError) eventSource = mapLiveTournaments(rows, entryCounts, venueMap);
   }
 
   const terms = searchTerms(filters.q);

@@ -13,12 +13,13 @@
 - Notification center อ่านตามเจ้าของและ mark as read ได้
 - Profile อ่าน Trophy records ที่ได้รับแล้ว
 - `/ranking` อ่าน `public_profiles` และจัดอันดับตาม Skill BP/Level/EXP เมื่อมี session
-- `/events` รวม Tournament ที่มีสถานะ `published` จาก Supabase เมื่อผู้ใช้เข้าสู่ระบบ; ยังเก็บ demo fallback สำหรับผู้ใช้ที่ยังไม่ login
+- `/events` อ่าน Tournament ที่มีสถานะ `published` จาก Supabase เมื่อผู้ใช้เข้าสู่ระบบ และใช้ demo preview เฉพาะผู้ใช้ที่ยังไม่ login
 - QA data ใน Supabase ใช้ prefix `[QA ONLY]` และไม่แก้ข้อมูล Profile เดิม
 - 0013_venue_discovery_metadata.sql เพิ่ม metadata การค้นหาสนาม และ /venues อ่านสนาม active จาก Supabase เมื่อมี authenticated session
 - Google Maps JavaScript API ถูกกำหนดเป็น map provider หลัก; ถ้ายังไม่มี API Key หน้าเว็บจะแสดงลิงก์ Google Maps ภายนอกแทน interactive map
 - Migration 0014 ผูกฟอร์มสร้างก๊วนกับ `venues.id` ผ่าน `groups.venue_id` และตรวจสนาม Active ภายใน `create_group` RPC
 - Admin account ที่ยืนยันแล้วถูก bootstrap ใน `admin_users` และมี Admin Hub/ปุ่มจาก Profile Card
+- Guild system ถูก apply แล้ว: Directory, founding mode, Logo, member capacity, roles, Join Request/Invite, announcements, Group reference และ Guild EXP trigger
 - Google OAuth flow มีอยู่ใน Production และ R2 upload route พร้อมใช้งานเมื่อ Vercel มี server secrets, public URL และ CORS ครบ; ยังต้องทำ E2E upload ด้วย test account หลัง Deploy
 
 ## Environment
@@ -66,7 +67,8 @@ npm run build
 
 1. Google OAuth และ redirect URL หลักตั้งค่าแล้ว; ตั้ง LINE provider, SMTP, email confirmation และ redirect URLs ของ Preview/Production ให้ครบ; ใส่ Google Maps key และเปิด Maps JavaScript API ตามการใช้งาน
 2. ตั้ง R2 credentials, public URL และ CORS ใน Vercel; ทดสอบ upload จริงด้วย test account
-3. Bootstrap `admin_users` ด้วย UUID ของ Auth user ที่ยืนยันแล้ว และทดสอบ Admin BP/Shop/Trophy ใน staging
-4. ทำ tournament create/join/bracket/reward ผ่าน RPC ที่ lock capacity และมี audit ก่อนเปิดหน้าใช้งานจริง
-5. เชื่อม Payment Gateway/webhook แบบ server-only มี signature verification, idempotency, refund และ reconciliation; ห้ามใช้ Admin credit เป็น payment แทน
-6. ทดสอบ login Email/Google/LINE, profile completion, recommendation, join/leave, match settlement, shop, image upload และ notification end-to-end แล้วค่อย deploy
+3. Bootstrap `admin_users` ด้วย UUID ของ Auth user ที่ยืนยันแล้ว และทดสอบ Admin BP/Shop/Trophy/Guild ใน staging
+4. ทดสอบ Guild create/Logo/Join Request/Invite/role/Group reference/Match EXP ด้วยบัญชีจริง
+5. ทำ tournament create/join/bracket/reward ผ่าน RPC ที่ lock capacity และมี audit ก่อนเปิดหน้าใช้งานจริง
+6. เชื่อม Payment Gateway/webhook แบบ server-only มี signature verification, idempotency, refund และ reconciliation; ห้ามใช้ Admin credit เป็น payment แทน
+7. ทดสอบ login Email/Google/LINE, profile completion, recommendation, join/leave, match settlement, shop, image upload, notification และ Guild end-to-end แล้วค่อย deploy

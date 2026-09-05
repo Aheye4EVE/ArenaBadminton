@@ -258,6 +258,7 @@ export const groups = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     ownerId: uuid("owner_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
     venueId: uuid("venue_id").references(() => venues.id, { onDelete: "set null" }),
+    guildId: uuid("guild_id"),
     title: text("title").notNull(),
     description: text("description"),
     locationText: text("location_text").notNull(),
@@ -720,4 +721,164 @@ export const paymentOrders = pgTable(
     check("payment_orders_status_allowed", sql`${table.status} in ('pending', 'paid', 'failed', 'cancelled', 'refunded')`),
     check("payment_orders_idempotency_length", sql`char_length(${table.idempotencyKey}) between 16 and 128`),
   ],
+);
+
+export const guildSettings = pgTable(
+  "guild_settings",
+  {
+    id: text("id").primaryKey().default("default"),
+    creationMode: text("creation_mode").notNull().default("item"),
+    freeUntil: timestamp("free_until", { withTimezone: true }),
+    founderItemSlug: text("founder_item_slug").notNull().default("guild-founding-contract"),
+    maxMembersCap: smallint("max_members_cap").notNull().default(256),
+    updatedBy: uuid("updated_by").references(() => profiles.id, { onDelete: "set null" }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+);
+
+export const guilds = pgTable(
+  "guilds",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    ownerId: uuid("owner_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    description: text("description").notNull().default(""),
+    logoUrl: text("logo_url"),
+    province: text("province"),
+    district: text("district"),
+    subdistrict: text("subdistrict"),
+    visibility: text("visibility").notNull().default("public"),
+    joinPolicy: text("join_policy").notNull().default("open"),
+    status: text("status").notNull().default("active"),
+    level: smallint("level").notNull().default(1),
+    expTotal: bigint("exp_total", { mode: "number" }).notNull().default(0),
+    maxMembers: smallint("max_members").notNull().default(32),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("guilds_slug_uidx").on(table.slug),
+    index("guilds_discovery_idx").on(table.status, table.visibility, table.province, table.district, table.subdistrict, table.createdAt, table.id),
+    index("guilds_level_idx").on(table.level, table.expTotal, table.id),
+    index("guilds_owner_idx").on(table.ownerId, table.status),
+    check("guilds_name_length", sql`char_length(btrim(${table.name})) between 2 and 100`),
+    check("guilds_level_range", sql`${table.level} between 1 and 99`),
+    check("guilds_exp_nonnegative", sql`${table.expTotal} >= 0`),
+    check("guilds_max_members_range", sql`${table.maxMembers} between 32 and 256`),
+  ],
+);
+
+export const guildMembers = pgTable(
+  "guild_members",
+  {
+    guildId: uuid("guild_id").notNull().references(() => guilds.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    role: text("role").notNull().default("member"),
+    membershipStatus: text("membership_status").notNull().default("active"),
+    contributionExp: bigint("contribution_exp", { mode: "number" }).notNull().default(0),
+    joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.guildId, table.userId], name: "guild_members_pkey" }),
+    index("guild_members_guild_status_role_idx").on(table.guildId, table.membershipStatus, table.role, table.joinedAt, table.userId),
+    index("guild_members_user_status_idx").on(table.userId, table.membershipStatus, table.guildId),
+    check("guild_members_contribution_nonnegative", sql`${table.contributionExp} >= 0`),
+  ],
+);
+
+export const guildJoinRequests = pgTable(
+  "guild_join_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    guildId: uuid("guild_id").notNull().references(() => guilds.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("pending"),
+    reviewedBy: uuid("reviewed_by").references(() => profiles.id, { onDelete: "set null" }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("guild_join_requests_guild_status_created_idx").on(table.guildId, table.status, table.createdAt, table.id),
+    index("guild_join_requests_user_status_created_idx").on(table.userId, table.status, table.createdAt, table.id),
+  ],
+);
+
+export const guildInvites = pgTable(
+  "guild_invites",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    guildId: uuid("guild_id").notNull().references(() => guilds.id, { onDelete: "cascade" }),
+    inviterId: uuid("inviter_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    inviteeId: uuid("invitee_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    inviteToken: text("invite_token").notNull(),
+    status: text("status").notNull().default("pending"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("guild_invites_token_uidx").on(table.inviteToken),
+    index("guild_invites_invitee_status_idx").on(table.inviteeId, table.status, table.expiresAt, table.createdAt),
+    index("guild_invites_guild_status_idx").on(table.guildId, table.status, table.createdAt),
+  ],
+);
+
+export const guildBans = pgTable(
+  "guild_bans",
+  {
+    guildId: uuid("guild_id").notNull().references(() => guilds.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    bannedBy: uuid("banned_by").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    reason: text("reason").notNull().default(""),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.guildId, table.userId], name: "guild_bans_pkey" })],
+);
+
+export const guildAnnouncements = pgTable(
+  "guild_announcements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    guildId: uuid("guild_id").notNull().references(() => guilds.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    isPinned: boolean("is_pinned").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("guild_announcements_feed_idx").on(table.guildId, table.isPinned, table.createdAt, table.id)],
+);
+
+export const guildExpLedger = pgTable(
+  "guild_exp_ledger",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    guildId: uuid("guild_id").notNull().references(() => guilds.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => profiles.id, { onDelete: "set null" }),
+    sourceType: text("source_type").notNull(),
+    amount: bigint("amount", { mode: "number" }).notNull(),
+    matchId: uuid("match_id").references(() => matches.id, { onDelete: "set null" }),
+    metadata: jsonb("metadata").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("guild_exp_ledger_guild_created_idx").on(table.guildId, table.createdAt, table.id),
+    index("guild_exp_ledger_user_created_idx").on(table.userId, table.createdAt, table.id),
+  ],
+);
+
+export const guildAuditLogs = pgTable(
+  "guild_audit_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    guildId: uuid("guild_id").notNull().references(() => guilds.id, { onDelete: "cascade" }),
+    actorId: uuid("actor_id").references(() => profiles.id, { onDelete: "set null" }),
+    action: text("action").notNull(),
+    targetUserId: uuid("target_user_id").references(() => profiles.id, { onDelete: "set null" }),
+    metadata: jsonb("metadata").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("guild_audit_logs_guild_created_idx").on(table.guildId, table.createdAt, table.id)],
 );

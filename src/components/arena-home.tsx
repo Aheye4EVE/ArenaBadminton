@@ -25,6 +25,7 @@ import {
   Navigation,
   Plus,
   Search,
+  Shield,
   ShoppingCart,
   Sparkles,
   Star,
@@ -47,6 +48,8 @@ function NavIcon({ name, size = 18 }: { name: string; size?: number }) {
       return <Home {...props} />;
     case "users":
       return <Users {...props} />;
+    case "shield":
+      return <Shield {...props} />;
     case "search":
       return <Search {...props} />;
     case "map":

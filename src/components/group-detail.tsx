@@ -16,6 +16,9 @@ type GroupDetailData = {
   playType: string;
   entryFee: string | number;
   status: string;
+  guildId: string | null;
+  guildName: string | null;
+  guildLevel: number | null;
 };
 
 type PublicMember = {
@@ -82,7 +85,7 @@ export default function GroupDetail({ group, members, membershipStatus, currentU
 
         <div className="group-detail-layout">
           <section className="group-detail-main">
-            <div className="group-detail-hero"><div className="group-detail-hero__emoji">🏸</div><div><div className="group-detail-tags"><span className={isFull ? "group-status-tag group-status-tag--full" : "group-status-tag"}>{isFull ? "เต็มแล้ว · รับคิว" : "เปิดรับสมาชิก"}</span><span className="group-type-tag">{playTypeLabel(group.playType)}</span></div><h1>{group.title}</h1><p>{group.description ?? "ชวนเพื่อนใหม่มาเจอกันในสนามเดียวกัน"}</p></div></div>
+            <div className="group-detail-hero"><div className="group-detail-hero__emoji">🏸</div><div><div className="group-detail-tags"><span className={isFull ? "group-status-tag group-status-tag--full" : "group-status-tag"}>{isFull ? "เต็มแล้ว · รับคิว" : "เปิดรับสมาชิก"}</span><span className="group-type-tag">{playTypeLabel(group.playType)}</span>{group.guildId && group.guildName ? <Link className="group-type-tag group-type-tag--guild" href={`/guilds/${group.guildId}`}><ShieldCheck size={13} /> {group.guildName} · Lv.{group.guildLevel ?? 1}</Link> : null}</div><h1>{group.title}</h1><p>{group.description ?? "ชวนเพื่อนใหม่มาเจอกันในสนามเดียวกัน"}</p></div></div>
 
             <div className="group-detail-info-grid"><div><MapPin size={20} /><span><small>สถานที่ / สนาม</small><strong>{group.locationText}</strong></span></div><div><CalendarDays size={20} /><span><small>วันและเวลา</small><strong>{groupDate(group.startsAt)}</strong></span></div><div><Clock3 size={20} /><span><small>ระยะเวลา</small><strong>{durationLabel(group.durationMinutes)}</strong></span></div><div><BarChart3 size={20} /><span><small>ระดับที่รับ</small><strong>{levelLabel(group)}</strong></span></div><div><Coins size={20} /><span><small>ค่าเข้าร่วม</small><strong>{feeLabel(group.entryFee)}</strong></span></div><div><Users size={20} /><span><small>ที่นั่ง</small><strong>{registeredCount}/{group.capacity} คน</strong></span></div></div>
 

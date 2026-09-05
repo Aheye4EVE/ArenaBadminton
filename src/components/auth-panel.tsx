@@ -11,7 +11,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 type AuthMode = "login" | "signup";
 
-export default function AuthPanel({ initialError, initialMessage }: { initialError?: string; initialMessage?: string }) {
+export default function AuthPanel({ initialError, initialMessage, nextPath = "/profile/setup" }: { initialError?: string; initialMessage?: string; nextPath?: string }) {
   const router = useRouter();
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
@@ -39,7 +39,7 @@ export default function AuthPanel({ initialError, initialMessage }: { initialErr
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
           provider,
           options: {
-          redirectTo: getAuthCallbackUrl("/profile/setup"),
+          redirectTo: getAuthCallbackUrl(nextPath),
           },
       });
 
@@ -85,7 +85,7 @@ export default function AuthPanel({ initialError, initialMessage }: { initialErr
           setError(friendlyAuthError(authError.message));
           return;
         }
-        router.replace("/profile/setup");
+        router.replace(nextPath);
         router.refresh();
         return;
       }
@@ -94,7 +94,7 @@ export default function AuthPanel({ initialError, initialMessage }: { initialErr
         email: email.trim(),
           password,
           options: {
-            emailRedirectTo: getAuthCallbackUrl("/profile/setup"),
+            emailRedirectTo: getAuthCallbackUrl(nextPath),
           },
       });
       if (authError) {
@@ -103,7 +103,7 @@ export default function AuthPanel({ initialError, initialMessage }: { initialErr
       }
 
       if (data.session) {
-        router.replace("/profile/setup");
+        router.replace(nextPath);
         router.refresh();
       } else {
         setMessage("สมัครสมาชิกสำเร็จแล้ว กรุณาเปิดอีเมลเพื่อยืนยันบัญชีก่อนเข้าสู่ระบบ");

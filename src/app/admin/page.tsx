@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowRight, Award, Gem, Settings2, ShieldCheck, Store, Swords } from "lucide-react";
+import { ArrowRight, Award, Gem, Settings2, ShieldCheck, Store, Swords, Users } from "lucide-react";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 
 export const metadata: Metadata = { title: "Admin Console | Arena-Badminton" };
 export const dynamic = "force-dynamic";
 
 const adminTools = [
+  {
+    href: "/admin/guilds",
+    icon: Users,
+    eyebrow: "Guild Control",
+    title: "ตั้งค่า Guild",
+    description: "เปิด/ปิดการสร้าง Guild ฟรี กำหนดไอเทมก่อตั้ง และเพดานสมาชิกสูงสุด",
+    tone: "admin-hub-card--purple",
+  },
   {
     href: "/admin/shop",
     icon: Store,

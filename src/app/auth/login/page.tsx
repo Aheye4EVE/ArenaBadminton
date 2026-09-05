@@ -17,11 +17,16 @@ function getLoginMessage(value: string | undefined) {
   return undefined;
 }
 
+function getSafeNextPath(value: string | undefined) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/profile/setup";
+  return value;
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; message?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; next?: string }>;
 }) {
   const params = await searchParams;
-  return <AuthPanel initialError={getCallbackMessage(params.error)} initialMessage={getLoginMessage(params.message)} />;
+  return <AuthPanel nextPath={getSafeNextPath(params.next)} initialError={getCallbackMessage(params.error)} initialMessage={getLoginMessage(params.message)} />;
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock3, Coins, MapPin, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock3, Coins, MapPin, Shield, Users } from "lucide-react";
 import { createGroupAction, type GroupActionState } from "@/app/groups/actions";
 import ThaiAreaSelect from "@/components/thai-area-select";
 
@@ -15,6 +15,13 @@ export type OrganizerVenueOption = {
   address: string | null;
 };
 
+export type OrganizerGuildOption = {
+  id: string;
+  name: string;
+  level: number;
+  max_members: number;
+};
+
 function errorFor(state: GroupActionState, field: string) {
   return state.fieldErrors?.[field]?.[0];
 }
@@ -23,7 +30,7 @@ function fieldClass(state: GroupActionState, field: string) {
   return errorFor(state, field) ? "group-form-field group-form-field--error" : "group-form-field";
 }
 
-export default function CreateGroupForm({ minimumDate, venues }: { minimumDate: string; venues: OrganizerVenueOption[] }) {
+export default function CreateGroupForm({ minimumDate, venues, guilds = [] }: { minimumDate: string; venues: OrganizerVenueOption[]; guilds?: OrganizerGuildOption[] }) {
   const [state, formAction, isPending] = useActionState(createGroupAction, {});
 
   return (
@@ -69,6 +76,18 @@ export default function CreateGroupForm({ minimumDate, venues }: { minimumDate: 
         subdistrictError={errorFor(state, "subdistrict")}
       />
       <p id="group-venue-help" className="group-form__location-help"><MapPin size={15} />เลือกสนามจากข้อมูล Google Maps/สนามในระบบ แล้วกรอกจุดนัดพบและพื้นที่เพื่อให้ก๊วนถูกค้นหาเจอง่ายขึ้น</p>
+
+      <label className={`${fieldClass(state, "guildId")} group-form-field--full`}>
+        <span><Shield size={15} /> อ้างอิง Guild <small>(ไม่บังคับ)</small></span>
+        <div className="group-form-select-wrap">
+          <select name="guildId" defaultValue="" disabled={guilds.length === 0} aria-describedby="group-guild-help">
+            <option value="">{guilds.length > 0 ? "ไม่สังกัด Guild" : "ยังไม่มี Guild ที่คุณดูแล"}</option>
+            {guilds.map((guild) => <option key={guild.id} value={guild.id}>{guild.name} · Lv.{guild.level} · {guild.max_members} สมาชิก</option>)}
+          </select>
+        </div>
+        {errorFor(state, "guildId") ? <small>{errorFor(state, "guildId")}</small> : null}
+      </label>
+      <p id="group-guild-help" className="group-form__location-help"><Shield size={15} />ผูกก๊วนกับ Guild เพื่อสะสม Guild EXP จาก Match ที่ยืนยันผลแล้ว เฉพาะ Guild Master หรือ Officer เท่านั้นที่เลือกได้</p>
 
       <div className="group-form__grid group-form__grid--three">
         <label className={fieldClass(state, "startsDate")}>

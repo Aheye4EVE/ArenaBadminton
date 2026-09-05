@@ -132,6 +132,7 @@ export default async function VenuesPage({ searchParams }: { searchParams: Promi
   let sourceVenues = courts;
 
   if (profileContext.supabase && profileContext.user) {
+    sourceVenues = [];
     let venuesQuery = profileContext.supabase
       .from("venues")
       .select("id, name, province, district, subdistrict, address, latitude, longitude, cover_image_url, court_count, rating, availability")
@@ -141,7 +142,7 @@ export default async function VenuesPage({ searchParams }: { searchParams: Promi
     if (!shouldShowQaData()) venuesQuery = venuesQuery.not("name", "like", "[QA ONLY]%");
     const { data, error } = await venuesQuery;
 
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       const userLatitude = asNumber(profileContext.profile?.latitude);
       const userLongitude = asNumber(profileContext.profile?.longitude);
       sourceVenues = (data as LiveVenueRow[]).map((row) => mapLiveVenue(row, userLatitude, userLongitude));

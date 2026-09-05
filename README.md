@@ -24,6 +24,9 @@
 - Phase 5 Equip EXP Booster: เลือกใช้ Booster ได้ครั้งละหนึ่งชิ้น และ settlement แยก `Base EXP` กับ `Item Bonus` ก่อนรวมเข้า profile
 - Phase 6 Admin Shop: สิทธิ์ Admin จาก `admin_users`, แก้ Catalog/ราคา/Effect และเปิด-ปิดขายโดยไม่ลบประวัติ
 - Phase 6 internal Gems credit: เติม Gems ได้เฉพาะ Admin RPC พร้อม idempotency และ `wallet_ledger` audit
+- Guild system: Directory, สร้าง Guild แบบใช้ Item/โปรโมชั่นฟรี, Logo, สมาชิกเริ่มต้น 32 คน, ขยายสมาชิกด้วย Shop Item, Join Request/Invite, บทบาท, ประกาศ และ Guild EXP จาก Match ที่ยืนยันผลแล้ว
+- Guild reference ในฟอร์มสร้างก๊วน: เฉพาะ Guild Master/Officer ที่เลือก Guild ได้ และ Match จะอ้างอิง Guild ผ่าน Group เดียวกันเพื่อป้องกันข้อมูลรางวัลไม่ตรงกัน
+- Admin Guild Control: เปิด/ปิดการสร้างฟรี, ตั้งช่วงเวลาโปรโมชั่น, เลือก Founder Item และตั้งเพดานสมาชิก 32–256 คน
 - BP rule `bp-v1` คำนวณจาก Level เฉลี่ยของสองทีม โดยผู้ชนะทีมที่ Level ต่ำกว่าจะได้ upset bonus และ BP มีพื้นขั้นต่ำ 1,000
 - Level definitions ถูกเตรียมครบ Level 1–99 และ recalculation หลังได้รับ EXP ใช้ threshold จากฐานข้อมูล
 - Supabase SSR client boundary สำหรับ Auth และ RLS
@@ -69,7 +72,7 @@ npm run build
 
 ## คำสั่งฐานข้อมูลที่เตรียมไว้
 
-Drizzle ใช้สำหรับ schema และ query ในแอป ส่วน migration ที่ apply ไปยัง Supabase target แล้วเก็บ source ไว้ที่ 0001_core_preview.sql ถึง 0017_profile_edit_rpc.sql:
+Drizzle ใช้สำหรับ schema และ query ในแอป ส่วน migration ที่ apply ไปยัง Supabase target แล้วเก็บ source ไว้ที่ `supabase/migrations/` รวมถึง Guild system/hardening:
 
 ```bash
 npm run db:generate
@@ -116,5 +119,6 @@ public/assets/           artwork ที่ใช้ในหน้า Home
 1. ยืนยัน/คัดลอก R2 Access Key ID และ Secret ไปไว้ใน local/Vercel secret โดยไม่ส่งผ่านแชต และตั้ง `R2_PUBLIC_BASE_URL` + CORS ของ bucket
 2. ตั้ง Google/LINE provider, SMTP และ redirect URL ใน Supabase Dashboard; ใส่ Google Maps API Key และจำกัด referrer ก่อนใช้ interactive map
 3. ตั้งค่า SMTP/LINE/Google Maps/R2 public URL ตามบริการที่เลือก และทดสอบ login, profile edit และ upload ด้วย test account บน Vercel
-4. ทำ tournament create/join/bracket/reward RPC แบบ atomic และ moderation console ก่อนเปิดใช้งานจริง
-5. เชื่อม Payment Gateway/webhook แบบ server-only พร้อม signature verification, idempotency, refund และ reconciliation
+4. ทดสอบ Guild ด้วยบัญชีจริง: สร้าง/ใช้ Item, อัปโหลด Logo, Join Request/Invite, อนุมัติสมาชิก, ผูกก๊วน และยืนยัน Match ให้ Guild EXP
+5. ทำ tournament create/join/bracket/reward RPC แบบ atomic และ moderation console ก่อนเปิดใช้งานจริง
+6. เชื่อม Payment Gateway/webhook แบบ server-only พร้อม signature verification, idempotency, refund และ reconciliation

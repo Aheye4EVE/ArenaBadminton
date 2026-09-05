@@ -1,0 +1,61 @@
+"use client";
+/* eslint-disable @next/next/no-img-element */
+
+import Link from "next/link";
+import { useActionState } from "react";
+import { ArrowLeft, Check, Megaphone, Save, Shield, Trash2, UserCog, Users, X } from "lucide-react";
+import ThaiAreaSelect from "@/components/thai-area-select";
+import GuildLogoUpload from "@/components/guild-logo-upload";
+import {
+  applyGuildExpansionAction,
+  createGuildAnnouncementAction,
+  createGuildInviteAction,
+  manageGuildMemberAction,
+  reviewGuildJoinRequestAction,
+  updateGuildAction,
+  type GuildActionState,
+} from "@/app/guilds/actions";
+import type { GuildJoinRequestData, GuildMemberData } from "@/components/guild-detail";
+
+type GuildManageData = {
+  id: string;
+  name: string;
+  description: string;
+  logoUrl: string | null;
+  province: string | null;
+  district: string | null;
+  subdistrict: string | null;
+  visibility: string;
+  joinPolicy: string;
+  level: number;
+  expTotal: number;
+  maxMembers: number;
+};
+
+type ExpansionItem = { id: string; name: string; icon: string; quantity: number; slug: string };
+
+function Feedback({ state }: { state: GuildActionState }) { return state.error ? <p className="guild-form-feedback guild-form-feedback--error" role="alert">{state.error}</p> : state.message ? <p className="guild-form-feedback" role="status">{state.message}</p> : null; }
+
+function MemberActionControl({ guildId, member }: { guildId: string; member: GuildMemberData }) {
+  const [state, action, isPending] = useActionState(manageGuildMemberAction, {});
+  const isOfficer = member.role === "officer";
+  return <div className="guild-manager-member__actions"><form action={action}><input type="hidden" name="guildId" value={guildId} /><input type="hidden" name="targetUserId" value={member.userId} /><input type="hidden" name="memberAction" value={isOfficer ? "demote" : "promote"} /><button type="submit" title={isOfficer ? "ลดตำแหน่ง" : "เลื่อนเป็น Officer"} disabled={isPending}><UserCog size={14} /> {isOfficer ? "ลดตำแหน่ง" : "เลื่อนตำแหน่ง"}</button></form><form action={action}><input type="hidden" name="guildId" value={guildId} /><input type="hidden" name="targetUserId" value={member.userId} /><input type="hidden" name="memberAction" value="kick" /><button type="submit" title="นำออกจาก Guild" disabled={isPending}><Trash2 size={14} /> นำออก</button></form>{state.error ? <small className="guild-form-feedback guild-form-feedback--error">{state.error}</small> : null}{state.message ? <small className="guild-form-feedback">{state.message}</small> : null}</div>;
+}
+
+function RequestControl({ guildId, request }: { guildId: string; request: GuildJoinRequestData }) {
+  const [state, action, isPending] = useActionState(reviewGuildJoinRequestAction, {});
+  return <div className="guild-manager-request"><div><strong>{request.displayName}</strong><small>@{request.handle} · Level {request.level}</small></div><div className="guild-request-row__actions"><form action={action}><input type="hidden" name="requestId" value={request.id} /><input type="hidden" name="guildId" value={guildId} /><input type="hidden" name="decision" value="approve" /><button type="submit" disabled={isPending} aria-label={`อนุมัติ ${request.displayName}`}><Check size={15} /></button></form><form action={action}><input type="hidden" name="requestId" value={request.id} /><input type="hidden" name="guildId" value={guildId} /><input type="hidden" name="decision" value="reject" /><button type="submit" disabled={isPending} aria-label={`ปฏิเสธ ${request.displayName}`}><X size={15} /></button></form></div>{state.error ? <small className="guild-form-feedback guild-form-feedback--error">{state.error}</small> : null}</div>;
+}
+
+function InviteMemberForm({ guildId }: { guildId: string }) {
+  const [state, action, isPending] = useActionState(createGuildInviteAction, {});
+  return <div className="guild-invite-box"><div className="guild-invite-box__heading"><div><p lang="en">Recruit a player</p><h3>เชิญสมาชิกด้วย TAGNAME</h3></div><Users size={19} /></div><form action={action} className="guild-invite-form"><input type="hidden" name="guildId" value={guildId} /><label><span>TAGNAME ของผู้เล่น</span><input name="handle" placeholder="เช่น @badbuddy" maxLength={80} autoComplete="off" required /></label><button type="submit" className="guild-secondary-action" disabled={isPending}>{isPending ? "กำลังส่งคำเชิญ..." : "ส่งคำเชิญ"}</button></form><small className="guild-manage-muted">ระบบจะส่ง Notification ให้ผู้เล่น และออกลิงก์รับคำเชิญแบบใช้ได้เฉพาะบัญชีปลายทาง</small>{state.error ? <p className="guild-form-feedback guild-form-feedback--error" role="alert">{state.error}</p> : null}{state.message ? <p className="guild-form-feedback" role="status">{state.message}</p> : null}{state.inviteToken ? <div className="guild-invite-result"><span>ลิงก์คำเชิญ</span><Link href={`/guilds/invite?token=${encodeURIComponent(state.inviteToken)}`}>เปิด/คัดลอกลิงก์คำเชิญ <ArrowLeft size={14} /></Link></div> : null}</div>;
+}
+
+export default function GuildManagePanel({ guild, members, requests, expansionItems }: { guild: GuildManageData; members: GuildMemberData[]; requests: GuildJoinRequestData[]; expansionItems: ExpansionItem[] }) {
+  const [updateState, updateAction, updatePending] = useActionState(updateGuildAction, {});
+  const [announcementState, announcementAction, announcementPending] = useActionState(createGuildAnnouncementAction, {});
+  const [expansionState, expansionAction, expansionPending] = useActionState(applyGuildExpansionAction, {});
+
+  return <main className="guild-manage-page"><div className="guild-manage-shell"><header className="guilds-topbar"><Link href={`/guilds/${guild.id}`} className="guilds-back"><ArrowLeft size={17} /> กลับ Guild</Link><Link href="/" className="guilds-brand" aria-label="กลับหน้าหลัก Arena-Badminton"><span>Arena</span><em>-Badminton</em></Link><span className="guilds-user-action"><Shield size={15} /> Manager Mode</span></header><section className="guild-manage-hero"><div><p lang="en">Guild Command Center</p><h1>จัดการ {guild.name}</h1><span>ดูแลตัวตนของ Guild สมาชิก ข่าวสาร และการเติบโตของทีม</span></div><div className="guild-manage-hero__badge">Lv.{guild.level}<small>{guild.expTotal.toLocaleString("th-TH")} EXP</small></div></section><div className="guild-manage-grid"><section className="guild-manage-card"><div className="guild-manage-card__heading"><div><p lang="en">Guild Identity</p><h2><Shield size={19} /> ข้อมูล Guild</h2></div><span>แก้ไขได้เฉพาะ Manager</span></div><form action={updateAction} className="guild-manage-form"><input type="hidden" name="guildId" value={guild.id} /><input type="hidden" name="currentLogoUrl" value={guild.logoUrl ?? ""} /><GuildLogoUpload guildId={guild.id} initialUrl={guild.logoUrl} /><label className="guild-field guild-field--full"><span>ชื่อ Guild</span><input name="name" defaultValue={guild.name} maxLength={100} required /></label><label className="guild-field guild-field--full"><span>คำอธิบาย</span><textarea name="description" defaultValue={guild.description} rows={4} maxLength={1000} /></label><ThaiAreaSelect mode="form" initialProvince={guild.province ?? ""} initialDistrict={guild.district ?? ""} initialSubdistrict={guild.subdistrict ?? ""} /><div className="guild-form__options"><fieldset className="guild-option-group"><legend>Visibility</legend><label><input type="radio" name="visibility" value="public" defaultChecked={guild.visibility === "public"} /> <span><strong>Public</strong><small>ค้นหาได้จาก Directory</small></span></label><label><input type="radio" name="visibility" value="private" defaultChecked={guild.visibility === "private"} /> <span><strong>Private</strong><small>สมาชิกและคำเชิญเท่านั้น</small></span></label></fieldset><fieldset className="guild-option-group"><legend>Join policy</legend><label><input type="radio" name="joinPolicy" value="open" defaultChecked={guild.joinPolicy === "open"} /> <span><strong>Open</strong><small>เข้าร่วมทันที</small></span></label><label><input type="radio" name="joinPolicy" value="request" defaultChecked={guild.joinPolicy === "request"} /> <span><strong>Request</strong><small>ต้องอนุมัติ</small></span></label><label><input type="radio" name="joinPolicy" value="invite_only" defaultChecked={guild.joinPolicy === "invite_only"} /> <span><strong>Invite only</strong><small>รับเฉพาะคำเชิญ</small></span></label></fieldset></div><Feedback state={updateState} /><button type="submit" className="guild-primary-action" disabled={updatePending}><Save size={16} /> {updatePending ? "กำลังบันทึก..." : "บันทึกข้อมูล Guild"}</button></form></section><section className="guild-manage-card"><div className="guild-manage-card__heading"><div><p lang="en">Guild Bulletin</p><h2><Megaphone size={19} /> ประกาศข่าวสาร</h2></div><span>สื่อสารกับสมาชิก</span></div><form action={announcementAction} className="guild-manage-form"><input type="hidden" name="guildId" value={guild.id} /><label className="guild-field"><span>หัวข้อ</span><input name="title" maxLength={160} placeholder="เช่น นัดซ้อมประจำสัปดาห์" required /></label><label className="guild-field guild-field--full"><span>รายละเอียด</span><textarea name="body" maxLength={3000} rows={5} placeholder="เขียนข่าวสารถึงสมาชิก Guild" required /></label><label className="guild-checkbox"><input type="checkbox" name="isPinned" value="true" /> <span>ปักหมุดประกาศนี้</span></label><Feedback state={announcementState} /><button type="submit" className="guild-primary-action" disabled={announcementPending}><Megaphone size={16} /> {announcementPending ? "กำลังเผยแพร่..." : "เผยแพร่ประกาศ"}</button></form><InviteMemberForm guildId={guild.id} /><div className="guild-manage-divider" /><div className="guild-manage-card__heading"><div><p lang="en">Capacity Upgrade</p><h2><Users size={19} /> ขยายสมาชิก</h2></div><span>{members.length}/{guild.maxMembers}</span></div>{expansionItems.length > 0 ? <form action={expansionAction} className="guild-expansion-form"><input type="hidden" name="guildId" value={guild.id} /><select name="itemId" defaultValue="" required><option value="">เลือก Guild Expansion Item</option>{expansionItems.map((item) => <option key={item.id} value={item.id}>{item.icon} {item.name} · เหลือ {item.quantity} ชิ้น</option>)}</select><button type="submit" className="guild-secondary-action" disabled={expansionPending}>{expansionPending ? "กำลังใช้ไอเทม..." : "ใช้ไอเทมขยาย"}</button><small>ไอเทมจะถูกหักจาก Inventory ของคุณและเพิ่ม Max Members ในธุรกรรมเดียว</small><Feedback state={expansionState} /></form> : <p className="guild-manage-muted">ยังไม่มี Guild Expansion Item ใน Inventory · <Link href="/shop">ไปที่ร้านค้า</Link></p>}</section></div><section className="guild-manage-card guild-manage-members"><div className="guild-manage-card__heading"><div><p lang="en">Roster Control</p><h2><Users size={19} /> จัดการสมาชิก</h2></div><span>{members.length} / {guild.maxMembers} คน</span></div><div className="guild-manager-member-list">{members.map((member) => <div className="guild-manager-member" key={member.userId}><div className="guild-manager-member__identity"><span className="guild-member-card__avatar">{member.avatarUrl ? <img src={member.avatarUrl} alt="" /> : <Users size={17} />}</span><span><strong>{member.displayName}</strong><small>@{member.handle} · Level {member.level} · {member.role === "guild_master" ? "Guild Master" : member.role === "officer" ? "Officer" : "Member"}</small></span></div>{member.role === "guild_master" ? <span className="guild-manager-master">Guild Master</span> : <MemberActionControl guildId={guild.id} member={member} />}</div>)}</div></section><section className="guild-manage-card"><div className="guild-manage-card__heading"><div><p lang="en">Join Requests</p><h2><Users size={19} /> คำขอเข้าร่วม</h2></div><span>{requests.length} คำขอ</span></div>{requests.length > 0 ? <div className="guild-manager-request-list">{requests.map((request) => <RequestControl key={request.id} guildId={guild.id} request={request} />)}</div> : <p className="guild-manage-muted">ยังไม่มีคำขอที่รอการอนุมัติ</p>}</section><footer className="guilds-footer"><Link href={`/guilds/${guild.id}`}><ArrowLeft size={14} /> กลับหน้า Guild</Link><span>Changes are protected by Supabase RPC + RLS</span></footer></div></main>;
+}

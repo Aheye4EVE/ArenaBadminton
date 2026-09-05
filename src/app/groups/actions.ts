@@ -39,11 +39,17 @@ const venueIdField = z.preprocess(
   z.string().uuid("สนามไม่ถูกต้อง").optional(),
 );
 
+const guildIdField = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z.string().uuid("Guild ไม่ถูกต้อง").optional(),
+);
+
 const createGroupSchema = z
   .object({
     title: z.string().trim().min(1, "กรุณากรอกชื่อก๊วน").max(160, "ชื่อก๊วนยาวเกินไป"),
     description: optionalText(1_000),
     venueId: venueIdField,
+    guildId: guildIdField,
     locationText: optionalText(240),
     province: locationAreaField,
     district: locationAreaField,
@@ -103,6 +109,7 @@ function groupErrorMessage(error: { code?: string; message?: string }) {
   if (message.includes("not open for joining")) return "ก๊วนนี้ปิดรับสมาชิกแล้ว";
   if (message.includes("already finalized")) return "ผลการเข้าร่วมก๊วนนี้ถูกสรุปแล้ว";
   if (message.includes("not an active member")) return "คุณไม่ได้อยู่ในสมาชิกที่กำลังเข้าร่วมก๊วนนี้";
+  if (message.includes("guild manager")) return "เฉพาะ Guild Master หรือ Officer จึงจะอ้างอิง Guild ได้";
   if (message.includes("organizer")) return "ผู้จัดไม่สามารถออกจากก๊วนของตัวเองได้ ให้ใช้เมนูยกเลิกก๊วนแทน";
   if (message.includes("no longer active")) return "ก๊วนนี้จบหรือถูกยกเลิกแล้ว";
   if (error.code === "23505") return "ข้อมูลก๊วนซ้ำ กรุณาลองใหม่อีกครั้ง";
@@ -127,6 +134,7 @@ export async function createGroupAction(_previousState: GroupActionState, formDa
     title: readFormText(formData, "title"),
     description: readFormText(formData, "description"),
     venueId: readFormText(formData, "venueId"),
+    guildId: readFormText(formData, "guildId"),
     locationText: readFormText(formData, "locationText"),
     province: readFormText(formData, "province"),
     district: readFormText(formData, "district"),
@@ -200,6 +208,7 @@ export async function createGroupAction(_previousState: GroupActionState, formDa
       p_entry_fee: parsed.data.entryFee,
       p_notes: parsed.data.notes ?? null,
       p_venue_id: parsed.data.venueId ?? null,
+      p_guild_id: parsed.data.guildId ?? null,
     });
 
     if (error) return { error: groupErrorMessage(error) };
