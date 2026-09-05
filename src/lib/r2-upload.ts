@@ -1,4 +1,5 @@
 const PUBLIC_URL_PATTERN = /^https:\/\//i;
+const DEFAULT_PUBLIC_SITE_URL = "https://arena-badminton.vercel.app";
 
 function isPrivateR2Endpoint(value: string) {
   return /^https:\/\/[^/]+\.r2\.cloudflarestorage\.com(?:\/[^/]*)?$/i.test(value);
@@ -14,7 +15,7 @@ function applicationBaseUrl() {
   const deploymentHost = process.env.VERCEL_URL?.trim();
   if (deploymentHost && /^[a-z0-9.-]+$/i.test(deploymentHost)) return `https://${deploymentHost}`;
 
-  return process.env.NODE_ENV === "development" ? "http://localhost:3000" : null;
+  return process.env.NODE_ENV === "development" ? "http://localhost:3000" : DEFAULT_PUBLIC_SITE_URL;
 }
 
 export function mediaProxyUrl(objectKey: string) {

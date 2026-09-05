@@ -1,4 +1,5 @@
 const MAX_MEDIA_URL_LENGTH = 2048;
+const DEFAULT_PUBLIC_SITE_URL = "https://arena-badminton.vercel.app";
 
 function isR2StorageEndpoint(url: URL) {
   return /^https:\/\/[^/]+\.r2\.cloudflarestorage\.com$/i.test(url.origin);
@@ -16,7 +17,7 @@ function getApplicationBaseUrl() {
   const deploymentHost = process.env.VERCEL_URL?.trim();
   if (deploymentHost && /^[a-z0-9.-]+$/i.test(deploymentHost)) return `https://${deploymentHost}`;
 
-  return process.env.NODE_ENV === "development" ? "http://localhost:3000" : null;
+  return process.env.NODE_ENV === "development" ? "http://localhost:3000" : DEFAULT_PUBLIC_SITE_URL;
 }
 
 function proxyR2Url(url: URL) {
