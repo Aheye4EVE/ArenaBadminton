@@ -741,7 +741,24 @@
     display: none;
   }
 
-  .frontend-shell .arena-page--with-profile-card .hero-container,
+  .frontend-shell .arena-page--with-profile-card .hero-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(350px, 26vw, 390px);
+    column-gap: 20px;
+    align-items: start;
+  }
+  .frontend-shell .arena-page--with-profile-card .arena-header,
+  .frontend-shell .arena-page--with-profile-card .mobile-menu {
+    grid-column: 1 / -1;
+  }
+  .frontend-shell .arena-page--with-profile-card .hero-copy {
+    grid-column: 1;
+    width: 100%;
+    max-width: 920px;
+    justify-self: center;
+    margin-right: 0;
+    margin-left: 0;
+  }
   .frontend-shell .arena-page--with-profile-card .dashboard-area > div {
     padding-right: clamp(350px, 26vw, 390px);
   }
