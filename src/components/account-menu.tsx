@@ -18,7 +18,6 @@ import {
   LockKeyhole,
   LogOut,
   Medal,
-  MessageCircle,
   Sparkles,
   ShieldCheck,
   Trophy,
@@ -270,6 +269,23 @@ function ProfileSummaryCard({ account, onClose, desktop = false }: { account: He
             <h2 id="account-profile-title">{account.displayName}</h2>
             <Crown size={19} fill="currentColor" aria-label="สมาชิก Arena" />
           </div>
+
+          <div className="account-profile__score-row" aria-label="Skill BP และ Ranking">
+            <div className="account-profile__score-card account-profile__score-card--bp">
+              <Gem size={14} aria-hidden="true" />
+              <span><small>Skill BP</small><strong>{formatNumber(account.skillBp)}</strong></span>
+            </div>
+            <Link href="/ranking" className="account-profile__score-card account-profile__score-card--rank" onClick={onClose} aria-label={`Ranking ${rankText}`}>
+              <TrendingUp size={14} aria-hidden="true" />
+              <span><small>Ranking</small><strong>{rankText}</strong></span>
+            </Link>
+          </div>
+
+          <div className="account-profile__points-row">
+            <span className="account-profile__points-balance"><Gem size={15} fill="currentColor" aria-hidden="true" /><span><small>Point</small><strong>{formatNumber(account.gemsBalance)}</strong></span></span>
+            <Link href="/shop" className="account-profile__points-topup" onClick={onClose}>เติมพ้อยท์ <ArrowRight size={11} /></Link>
+          </div>
+
           <p>@{account.handle}</p>
           <span className="account-profile__title-pill">{account.levelLabel}</span>
           <span className={`account-profile__rank-pill account-profile__rank-pill--${account.skillRankColor}`}>Tier {account.skillRankTier} · {account.skillRankName}</span>
@@ -292,34 +308,31 @@ function ProfileSummaryCard({ account, onClose, desktop = false }: { account: He
         <div><Trophy size={19} /><strong>{formatNumber(account.stats.matchesPlayed)}</strong><span>แมตช์แข่งขัน</span></div>
       </div>
 
-      <div className="account-profile__social-grid">
+      <div className={cx("account-profile__quick-actions", account.isAdmin && "account-profile__quick-actions--admin")} aria-label="เมนูโปรไฟล์">
         <Link href="/friends" className="account-profile__social-link" onClick={onClose}>
           <Users size={17} />
           <span><strong>เพื่อน</strong><small>{account.pendingFriendRequestCount > 0 ? `${formatNumber(account.pendingFriendRequestCount)} คำขอใหม่` : "จัดการเพื่อน"}</small></span>
           {account.pendingFriendRequestCount > 0 ? <b>{Math.min(99, account.pendingFriendRequestCount)}</b> : <ArrowRight size={14} />}
         </Link>
-        <Link href="/messages" className="account-profile__social-link" onClick={onClose}>
-          <MessageCircle size={17} />
-          <span><strong>ข้อความ</strong><small>{account.unreadMessageCount > 0 ? `${formatNumber(account.unreadMessageCount)} ข้อความใหม่` : "Messenger ของคุณ"}</small></span>
-          {account.unreadMessageCount > 0 ? <b>{Math.min(99, account.unreadMessageCount)}</b> : <ArrowRight size={14} />}
+        <Link href={account.guild ? `/guilds/${account.guild.id}` : "/guilds"} className="account-profile__social-link account-profile__social-link--guild" onClick={onClose} title={account.guild?.name ?? "เข้าร่วม Guild"}>
+          <ShieldCheck size={17} />
+          <span><strong>Guild</strong><small>{account.guild ? `Lv.${account.guild.level} · ${account.guild.role === "guild_master" ? "Master" : account.guild.role === "officer" ? "Officer" : "Member"}` : "เข้าร่วม Guild"}</small></span>
+          <ArrowRight size={14} />
         </Link>
-      </div>
 
-      <Link href="/profile" className="account-profile__cta" onClick={onClose}>โปรไฟล์ของฉัน <ArrowRight size={17} /></Link>
-
-      <Link href={account.guild ? `/guilds/${account.guild.id}` : "/guilds"} className="account-profile__guild-cta" onClick={onClose}>
-        <span><ShieldCheck size={16} /><strong>{account.guild ? account.guild.name : "เข้าร่วม Guild"}</strong><small>{account.guild ? `Guild Lv.${account.guild.level} · ${account.guild.role === "guild_master" ? "Guild Master" : account.guild.role === "officer" ? "Officer" : "Member"}` : "ค้นหาบ้านใหม่ใน Arena"}</small></span><ArrowRight size={15} />
-      </Link>
-
-      {account.isAdmin ? (
-        <Link href="/admin" className="account-profile__admin-cta" onClick={onClose}>
-          <ShieldCheck size={16} /> เข้าสู่ระบบ Admin <ArrowRight size={15} />
+        <Link href="/profile" className="account-profile__social-link account-profile__social-link--profile" onClick={onClose}>
+          <UserRound size={17} />
+          <span><strong>โปรไฟล์</strong><small>ของฉัน</small></span>
+          <ArrowRight size={14} />
         </Link>
-      ) : null}
 
-      <div className="account-profile__metrics">
-        <div><Gem size={19} /><span><small>Skill BP</small><strong>{formatNumber(account.skillBp)}</strong></span></div>
-        <div><TrendingUp size={19} /><span><small>อันดับของฉัน</small><strong>{rankText}</strong></span><em>{account.rank === null ? "กำลังคำนวณ" : "กำลังไต่อันดับ"}</em></div>
+        {account.isAdmin ? (
+          <Link href="/admin" className="account-profile__social-link account-profile__social-link--admin" onClick={onClose}>
+            <ShieldCheck size={17} />
+            <span><strong>Admin</strong><small>จัดการระบบ</small></span>
+            <ArrowRight size={14} />
+          </Link>
+        ) : null}
       </div>
 
       <div className="account-profile__footer">

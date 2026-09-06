@@ -290,6 +290,34 @@
 .frontend-shell .account-profile__social-link strong { overflow: hidden; font-size: .75rem; text-overflow: ellipsis; white-space: nowrap; }
 .frontend-shell .account-profile__social-link small { overflow: hidden; color: #9d8cae; font-size: .62rem; text-overflow: ellipsis; white-space: nowrap; }
 .frontend-shell .account-profile__social-link > b, .frontend-shell .profile-overview-social > b { display: inline-grid; min-width: 19px; height: 19px; place-items: center; padding: 0 5px; border-radius: 999px; color: #fff; background: #ed4a9b; font-family: var(--font-fredoka), sans-serif; font-size: .62rem; }
+.frontend-shell .account-profile__score-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; margin-top: 5px; }
+.frontend-shell .account-profile__score-card { display: flex; align-items: center; min-width: 0; gap: 4px; padding: 5px 6px; border: 1px solid rgba(255, 255, 255, .92); border-radius: 10px; color: #d89b2e; background: rgba(255, 249, 222, .86); text-decoration: none; }
+.frontend-shell .account-profile__score-card--rank { color: #55a98e; background: rgba(232, 255, 247, .86); }
+.frontend-shell .account-profile__score-card:hover { border-color: #deb2e4; box-shadow: 0 5px 12px rgba(114, 79, 183, .1); transform: translateY(-1px); }
+.frontend-shell .account-profile__score-card > svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.frontend-shell .account-profile__score-card > span { display: grid; min-width: 0; gap: 1px; }
+.frontend-shell .account-profile__score-card small, .frontend-shell .account-profile__score-card strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .account-profile__score-card small { color: #918bab; font-size: .5rem; line-height: 1.1; }
+.frontend-shell .account-profile__score-card strong { color: #453a7e; font-family: var(--font-fredoka), var(--font-mitr), sans-serif; font-size: .72rem; line-height: 1.1; }
+.frontend-shell .account-profile__points-row { display: flex; align-items: center; justify-content: space-between; min-width: 0; gap: 5px; margin-top: 5px; padding: 4px 5px; border: 1px solid rgba(255, 255, 255, .92); border-radius: 10px; background: rgba(255, 255, 255, .7); }
+.frontend-shell .account-profile__points-balance { display: flex; align-items: center; min-width: 0; gap: 5px; color: #d99b2d; }
+.frontend-shell .account-profile__points-balance > svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.frontend-shell .account-profile__points-balance > span { display: grid; min-width: 0; gap: 1px; }
+.frontend-shell .account-profile__points-balance small, .frontend-shell .account-profile__points-balance strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .account-profile__points-balance small { color: #918bab; font-size: .49rem; line-height: 1.1; }
+.frontend-shell .account-profile__points-balance strong { color: #453a7e; font-family: var(--font-fredoka), var(--font-mitr), sans-serif; font-size: .7rem; line-height: 1.1; }
+.frontend-shell .account-profile__points-topup { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; gap: 2px; padding: 4px 6px; border: 1px solid #e4c9ee; border-radius: 8px; color: #a33eb9; background: #fff5ff; font-size: .54rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.frontend-shell .account-profile__points-topup:hover { border-color: #d99bdc; color: #de4e9d; background: #fff; }
+.frontend-shell .account-profile__quick-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 8px; }
+.frontend-shell .account-profile__quick-actions--admin { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.frontend-shell .account-profile__quick-actions .account-profile__social-link { position: relative; display: grid; grid-template-rows: auto auto; align-content: center; justify-items: center; gap: 2px; min-width: 0; min-height: 43px; padding: 5px 3px; border-radius: 10px; text-align: center; }
+.frontend-shell .account-profile__quick-actions .account-profile__social-link > svg:first-child { width: 14px; height: 14px; }
+.frontend-shell .account-profile__quick-actions .account-profile__social-link > span { display: grid; justify-items: center; min-width: 0; max-width: 100%; gap: 1px; }
+.frontend-shell .account-profile__quick-actions .account-profile__social-link strong, .frontend-shell .account-profile__quick-actions .account-profile__social-link small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .account-profile__quick-actions .account-profile__social-link strong { font-size: .62rem; line-height: 1.05; }
+.frontend-shell .account-profile__quick-actions .account-profile__social-link small { font-size: .48rem; line-height: 1.05; }
+.frontend-shell .account-profile__quick-actions .account-profile__social-link > svg:last-child { position: absolute; right: 3px; bottom: 3px; width: 10px; height: 10px; opacity: .72; }
+.frontend-shell .account-profile__quick-actions .account-profile__social-link > b { position: absolute; top: 2px; right: 2px; min-width: 15px; height: 15px; padding: 0 3px; font-size: .5rem; }
 .frontend-shell .profile-overview-social { display: inline-flex; align-items: center; gap: 5px; padding: .58rem .7rem; border: 1px solid rgba(116, 100, 185, .13); border-radius: 11px; color: #7b68bc; background: rgba(255, 255, 255, .72); font-size: .68rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
 .frontend-shell .profile-overview-social:hover { color: #df5f9f; background: #fff; }
 
@@ -791,7 +819,7 @@
     padding: 17px;
     border-radius: 24px;
   }
-  .frontend-shell .account-desktop-card .account-profile--desktop:not(.account-profile--setup) > :is(.account-profile__topline, .account-profile__identity, .account-profile__level, .account-profile__stats, .account-profile__social-grid, .account-profile__cta, .account-profile__metrics, .account-profile__footer) {
+  .frontend-shell .account-desktop-card .account-profile--desktop:not(.account-profile--setup) > :is(.account-profile__topline, .account-profile__identity, .account-profile__level, .account-profile__stats, .account-profile__quick-actions, .account-profile__footer) {
     grid-column: 1 / -1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-auth__eyebrow {
@@ -824,6 +852,56 @@
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity-copy {
     flex: 1 1 auto;
     min-width: 0;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-row {
+    gap: 4px;
+    margin-top: 5px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-card {
+    gap: 4px;
+    min-height: 30px;
+    padding: 4px 5px;
+    border-radius: 9px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-card > svg {
+    width: 13px;
+    height: 13px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-card small {
+    font-size: .47rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-card strong {
+    font-size: .69rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-row {
+    gap: 4px;
+    margin-top: 4px;
+    padding: 4px 5px;
+    border-radius: 9px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-balance {
+    gap: 4px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-balance > svg {
+    width: 13px;
+    height: 13px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-balance small {
+    font-size: .45rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-balance strong {
+    font-size: .65rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-topup {
+    gap: 2px;
+    padding: 3px 5px;
+    border-radius: 7px;
+    font-size: .5rem;
+    line-height: 1.05;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row {
     gap: 3px;
@@ -889,104 +967,42 @@
     font-size: .6rem;
     line-height: 1.1;
   }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions {
+    gap: 4px;
     margin-top: 8px;
   }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link {
-    gap: 5px;
-    min-width: 0;
-    padding: 7px 6px;
-    border-radius: 11px;
-    line-height: 1.1;
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link {
+    gap: 2px;
+    min-height: 42px;
+    padding: 5px 2px;
+    border-radius: 9px;
+    line-height: 1.05;
   }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link > svg {
-    width: 14px;
-    height: 14px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link strong {
-    font-size: .7rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link small {
-    font-size: .58rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link > svg:last-child {
-    width: 12px;
-    height: 12px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__cta {
-    min-height: 41px;
-    margin-top: 8px;
-    font-size: .79rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta,
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__admin-cta {
-    min-width: 0;
-    min-height: 37px;
-    margin-top: 7px;
-    padding: 7px 8px;
-    border-radius: 11px;
-    font-size: .6rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta {
-    gap: 5px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta > span {
-    grid-template-columns: 14px minmax(0, 1fr);
-    column-gap: 4px;
-    min-width: 0;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta svg,
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__admin-cta svg {
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link > svg:first-child {
     width: 13px;
     height: 13px;
   }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta strong {
-    font-size: .6rem;
-    line-height: 1.1;
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link strong {
+    font-size: .57rem;
+    line-height: 1.05;
   }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta small {
-    margin-top: 1px;
-    font-size: .5rem;
-    line-height: 1.1;
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link small {
+    font-size: .43rem;
+    line-height: 1.05;
   }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__admin-cta {
-    justify-content: flex-start;
-    gap: 5px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link > svg:last-child {
+    right: 3px;
+    bottom: 3px;
+    width: 9px;
+    height: 9px;
   }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__admin-cta svg:last-child {
-    flex: 0 0 auto;
-    margin-left: auto;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics {
-    gap: 6px;
-    margin-top: 7px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics > div {
-    gap: 5px;
-    padding: 7px;
-    border-radius: 11px;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics svg {
-    width: 14px;
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link > b {
+    top: 2px;
+    right: 2px;
+    min-width: 14px;
     height: 14px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics small {
-    font-size: .5rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics strong {
-    font-size: .72rem;
-    line-height: 1.1;
+    padding: 0 3px;
+    font-size: .47rem;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer {
     gap: 5px;
