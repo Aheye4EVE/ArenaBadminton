@@ -770,7 +770,7 @@
     --arena-profile-card-width: min(clamp(295px, 22.176vw, 362px), calc(100% - 16px));
     --arena-profile-card-right: clamp(10px, 1.25vw, 22px);
     --arena-profile-safe-gap: 16px;
-    --arena-search-content-max: min(var(--arena-home-content-max), calc(100% - var(--arena-profile-card-right) - var(--arena-profile-card-right) - var(--arena-profile-card-width) - var(--arena-profile-card-width) - var(--arena-profile-safe-gap) - var(--arena-profile-safe-gap)));
+    --arena-search-content-max: min(var(--arena-home-content-max), calc(100vw - var(--arena-profile-card-right) - var(--arena-profile-card-right) - var(--arena-profile-card-width) - var(--arena-profile-card-width) - var(--arena-profile-safe-gap) - var(--arena-profile-safe-gap)));
   }
   .frontend-shell .account-menu--has-desktop-card {
     position: relative;
