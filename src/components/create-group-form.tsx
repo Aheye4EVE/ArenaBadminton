@@ -42,7 +42,7 @@ export default function CreateGroupForm({ minimumDate, initialVenue, guilds = []
       <div className="group-form__grid">
         <label className={`${fieldClass(state, "venueId")} group-form-field--venue`}>
           <span><MapPin size={15} /> เลือกสนามจากระบบ <b>*</b></span>
-          <VenuePicker initialVenue={initialVenue} venueError={errorFor(state, "venueId")} provinceError={errorFor(state, "province")} districtError={errorFor(state, "district")} subdistrictError={errorFor(state, "subdistrict")} />
+          <VenuePicker initialVenue={initialVenue} venueError={errorFor(state, "venueId")} />
           {errorFor(state, "venueId") ? <small>{errorFor(state, "venueId")}</small> : null}
         </label>
         <label className={fieldClass(state, "locationText")}>
@@ -57,7 +57,7 @@ export default function CreateGroupForm({ minimumDate, initialVenue, guilds = []
         </label>
       </div>
 
-      <p id="group-venue-help" className="group-form__location-help"><MapPin size={15} />พิมพ์ชื่อสนามเพื่อค้นหาอัตโนมัติ ระบบจะเติมจังหวัด อำเภอ/เขต และตำบล/แขวงจากทะเบียนสนามให้เอง หรือเลือกพื้นที่ด้วยตัวเองเมื่อยังไม่มีสนามในทะเบียน</p>
+      <p id="group-venue-help" className="group-form__location-help"><MapPin size={15} />พิมพ์ชื่อสนามเพื่อค้นหาอัตโนมัติ ระบบจะใช้จังหวัด อำเภอ/เขต ตำบล/แขวง และที่อยู่จากทะเบียนสนามกลางให้เอง ช่องรายละเอียดจุดนัดพบใช้ระบุทางเข้า อาคาร หรือคอร์ทเพิ่มเติม</p>
 
       <label className={`${fieldClass(state, "guildId")} group-form-field--full`}>
         <span><Shield size={15} /> อ้างอิง Guild <small>(ไม่บังคับ)</small></span>

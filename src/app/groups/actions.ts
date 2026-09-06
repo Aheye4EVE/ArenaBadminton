@@ -29,11 +29,6 @@ const moneyField = z.preprocess(
   z.number().finite().min(0).max(100_000),
 );
 
-const locationAreaField = z.preprocess(
-  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
-  z.string().trim().max(80, "ชื่อพื้นที่ยาวเกินไป").optional(),
-);
-
 const venueIdField = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
   z.string().uuid("สนามไม่ถูกต้อง").optional(),
@@ -51,9 +46,6 @@ const createGroupSchema = z
     venueId: venueIdField,
     guildId: guildIdField,
     locationText: optionalText(240),
-    province: locationAreaField,
-    district: locationAreaField,
-    subdistrict: locationAreaField,
     startsDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "กรุณาเลือกวันที่"),
     startsTime: z.string().regex(/^\d{2}:\d{2}$/, "กรุณาเลือกเวลา"),
     durationMinutes: integerField(30, 480),
@@ -68,12 +60,7 @@ const createGroupSchema = z
     if (data.minLevel > data.maxLevel) {
       context.addIssue({ code: "custom", path: ["maxLevel"], message: "ระดับสูงสุดต้องไม่น้อยกว่าระดับเริ่มต้น" });
     }
-    if (!data.venueId && !data.locationText) {
-      context.addIssue({ code: "custom", path: ["locationText"], message: "กรุณาเลือกสนามหรือกรอกรายละเอียดจุดนัดพบ" });
-    }
-    if (!data.venueId && !data.province) {
-      context.addIssue({ code: "custom", path: ["province"], message: "กรุณาเลือกจังหวัดเมื่อไม่ได้เลือกสนามจากระบบ" });
-    }
+    if (!data.venueId) context.addIssue({ code: "custom", path: ["venueId"], message: "กรุณาเลือกสนามจากระบบ" });
   });
 
 const groupIdSchema = z.string().uuid("รหัสก๊วนไม่ถูกต้อง");
@@ -136,9 +123,6 @@ export async function createGroupAction(_previousState: GroupActionState, formDa
     venueId: readFormText(formData, "venueId"),
     guildId: readFormText(formData, "guildId"),
     locationText: readFormText(formData, "locationText"),
-    province: readFormText(formData, "province"),
-    district: readFormText(formData, "district"),
-    subdistrict: readFormText(formData, "subdistrict"),
     startsDate: readFormText(formData, "startsDate"),
     startsTime: readFormText(formData, "startsTime"),
     durationMinutes: readFormText(formData, "durationMinutes"),
@@ -180,21 +164,16 @@ export async function createGroupAction(_previousState: GroupActionState, formDa
     selectedVenue = data;
   }
 
-  const locationParts = selectedVenue
-    ? [
-      selectedVenue.name,
-      parsed.data.locationText,
-      selectedVenue.subdistrict,
-      selectedVenue.district,
-      selectedVenue.province,
-      selectedVenue.address,
-    ].filter(Boolean)
-    : [
-      parsed.data.locationText,
-      parsed.data.subdistrict,
-      parsed.data.district,
-      parsed.data.province,
-    ].filter(Boolean);
+  if (!selectedVenue) return { error: "กรุณาเลือกสนามจากทะเบียนสนาม", fieldErrors: { venueId: ["กรุณาเลือกสนามจากระบบ"] } };
+
+  const locationParts = [
+    selectedVenue.name,
+    parsed.data.locationText,
+    selectedVenue.subdistrict,
+    selectedVenue.district,
+    selectedVenue.province,
+    selectedVenue.address,
+  ].filter(Boolean);
   let searchableLocation = locationParts.join(" · ");
   // Keep the canonical venue and administrative hierarchy even when an
   // imported address is long. The optional meeting-point text remains the
@@ -227,7 +206,7 @@ export async function createGroupAction(_previousState: GroupActionState, formDa
       p_play_type: parsed.data.playType,
       p_entry_fee: parsed.data.entryFee,
       p_notes: parsed.data.notes ?? null,
-      p_venue_id: parsed.data.venueId ?? null,
+      p_venue_id: selectedVenue.id,
       p_guild_id: parsed.data.guildId ?? null,
     });
 

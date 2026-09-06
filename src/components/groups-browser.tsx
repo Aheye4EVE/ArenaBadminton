@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   BarChart3,
@@ -142,13 +143,12 @@ export default function GroupsBrowser({
   return (
     <main className="groups-page">
       <div className="groups-shell">
-        <header className="groups-topbar">
-          <Link href="/" className="groups-brand" aria-label="กลับหน้าหลัก Arena-Badminton"><span>Arena</span><em>-Badminton</em></Link>
+        <div className="groups-page__actions">
           <Link href="/organizer" className="group-primary-action"><Plus size={17} /> สร้างก๊วน</Link>
-        </header>
+        </div>
 
         <section className="groups-hero">
-          <div><p lang="en">Discover your people</p><h1>ก๊วนที่ใช่ กำลังรอคุณอยู่</h1><span>เลือกสนาม เลือกระดับ แล้วออกไปตีด้วยกันในแบบของคุณ</span></div><div className="groups-hero__art" aria-hidden="true">🏸<i>✦</i><b>✨</b></div>
+          <div><p lang="en">Discover your people</p><h1>ก๊วนที่ใช่ กำลังรอคุณอยู่</h1><span>เลือกสนาม เลือกระดับ แล้วออกไปตีด้วยกันในแบบของคุณ</span></div><div className="groups-hero__art" aria-hidden="true"><Image src="/assets/groups-racket-v1.png" alt="" width={260} height={270} priority sizes="(max-width: 620px) 170px, 260px" /></div>
         </section>
 
         <div className="groups-layout">

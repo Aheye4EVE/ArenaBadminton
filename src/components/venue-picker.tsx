@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle2, LoaderCircle, MapPin, Search, X } from "lucide-react";
-import ThaiAreaSelect from "@/components/thai-area-select";
 import type { DirectoryVenue } from "@/lib/venue-directory";
 
 export type VenuePickerVenue = {
@@ -21,15 +20,9 @@ function areaPath(venue: { province: string | null; district: string | null; sub
 export default function VenuePicker({
   initialVenue,
   venueError,
-  provinceError,
-  districtError,
-  subdistrictError,
 }: {
   initialVenue?: VenuePickerVenue | null;
   venueError?: string;
-  provinceError?: string;
-  districtError?: string;
-  subdistrictError?: string;
 }) {
   const [selectedVenue, setSelectedVenue] = useState<VenuePickerVenue | null>(initialVenue ?? null);
   const [query, setQuery] = useState(initialVenue?.name ?? "");
@@ -110,7 +103,7 @@ export default function VenuePicker({
         <p className="venue-picker__hint">ค้นหาจากทะเบียนสนามของ Arena · หากยังไม่มีสนาม สามารถเสนอชื่อเพิ่มได้ที่หน้าสนาม</p>
       </div> : null}
 
-      {selectedVenue ? <div className="venue-picker__selected"><MapPin size={17} /><div><strong>{selectedVenue.name}</strong><span>{areaPath(selectedVenue)}</span>{selectedVenue.address ? <small>{selectedVenue.address}</small> : null}</div><span className="venue-picker__selected-badge">เลือกแล้ว</span><input type="hidden" name="province" value={selectedVenue.province ?? ""} /><input type="hidden" name="district" value={selectedVenue.district ?? ""} /><input type="hidden" name="subdistrict" value={selectedVenue.subdistrict ?? ""} /></div> : <ThaiAreaSelect mode="form" provinceError={provinceError} districtError={districtError} subdistrictError={subdistrictError} />}
+      {selectedVenue ? <div className="venue-picker__selected"><MapPin size={17} /><div><strong>{selectedVenue.name}</strong><span>{areaPath(selectedVenue)}</span>{selectedVenue.address ? <small>{selectedVenue.address}</small> : null}</div><span className="venue-picker__selected-badge">เลือกแล้ว</span></div> : <p className="venue-picker__empty-selection">เลือกสนามจากทะเบียนสนามด้านบน ระบบจะเติมจังหวัด อำเภอ/เขต ตำบล/แขวง และที่อยู่จากสนามนี้ให้อัตโนมัติ</p>}
     </div>
   );
 }
