@@ -706,6 +706,9 @@
 }
 
 @media (min-width: 1181px) {
+  .frontend-shell .arena-page--with-profile-card {
+    --arena-profile-dock-space: clamp(238px, 22vw, 320px);
+  }
   .frontend-shell .account-menu--has-desktop-card {
     position: relative;
     align-self: stretch;
@@ -717,11 +720,11 @@
   }
   .frontend-shell .account-menu--has-desktop-card > .account-desktop-card {
     position: fixed;
-    top: 98px;
-    right: max(14px, calc((100vw - 1540px) / 2 + 32px));
+    top: clamp(72px, 10vh, 98px);
+    right: max(8px, calc((100vw - 1540px) / 2 + 8px));
     z-index: 85;
     display: block;
-    width: min(330px, calc(100vw - 24px));
+    width: min(clamp(220px, 19vw, 300px), calc(100vw - 16px));
     max-height: calc(100svh - 96px);
     overflow: auto;
     border: 0;
@@ -743,7 +746,7 @@
 
   .frontend-shell .arena-page--with-profile-card .hero-container {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(350px, 26vw, 390px);
+    grid-template-columns: minmax(0, 1fr) var(--arena-profile-dock-space);
     column-gap: 20px;
     align-items: start;
   }
@@ -760,7 +763,199 @@
     margin-left: 0;
   }
   .frontend-shell .arena-page--with-profile-card .dashboard-area > div {
-    padding-right: clamp(350px, 26vw, 390px);
+    padding-right: var(--arena-profile-dock-space);
+  }
+}
+
+@media (min-width: 1181px) {
+  /* The desktop dock is intentionally denser than the mobile popover so it
+     can sit inside the narrow right-side reference area without covering the
+     search surface or the dashboard. */
+  .frontend-shell .account-desktop-card .account-profile--desktop {
+    padding: 10px;
+    border-radius: 18px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-auth__eyebrow {
+    gap: 3px;
+    font-size: .5rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-auth__eyebrow svg {
+    width: 10px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__topline {
+    gap: 4px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity {
+    gap: 7px;
+    margin-top: 9px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-avatar--large {
+    width: 42px;
+    height: 42px;
+    border-width: 2px;
+    box-shadow: 0 0 0 2px rgba(246, 92, 168, .18), 0 6px 13px rgba(111, 86, 190, .14);
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-avatar--large .account-avatar__status {
+    width: 9px;
+    height: 9px;
+    border-width: 1px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity-copy {
+    min-width: 0;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row {
+    gap: 3px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row h2 {
+    font-size: .78rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row svg {
+    width: 11px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity-copy > p {
+    margin: 1px 0 4px;
+    font-size: .49rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__title-pill,
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__rank-pill {
+    max-width: 100%;
+    padding: 2px 4px;
+    font-size: .43rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__rank-pill {
+    margin-top: 2px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level {
+    margin-top: 8px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-row {
+    gap: 5px;
+    font-size: .52rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-row strong {
+    font-size: .45rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-track {
+    height: 4px;
+    margin-top: 4px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats {
+    gap: 0;
+    margin: 8px 0 6px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats > div {
+    gap: 1px;
+    padding: 4px 1px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats svg {
+    width: 11px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats strong {
+    margin-top: 1px;
+    font-size: .65rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats span {
+    font-size: .42rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link {
+    gap: 3px;
+    min-width: 0;
+    padding: 5px 4px;
+    border-radius: 8px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link > svg {
+    width: 11px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link strong {
+    font-size: .49rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link small {
+    font-size: .4rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link > svg:last-child {
+    width: 9px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__cta {
+    min-height: 28px;
+    margin-top: 6px;
+    font-size: .55rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta,
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__admin-cta {
+    min-height: 25px;
+    margin-top: 5px;
+    padding: 5px 6px;
+    border-radius: 8px;
+    font-size: .49rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta {
+    gap: 4px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta > span {
+    grid-template-columns: 11px minmax(0, 1fr);
+    column-gap: 3px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta svg,
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__admin-cta svg {
+    width: 10px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta strong {
+    font-size: .5rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta small {
+    margin-top: 1px;
+    font-size: .39rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics {
+    gap: 4px;
+    margin-top: 5px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics > div {
+    gap: 4px;
+    padding: 5px;
+    border-radius: 8px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics svg {
+    width: 11px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics small {
+    font-size: .4rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics strong {
+    font-size: .62rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer {
+    gap: 4px;
+    margin-top: 6px;
+    padding-top: 5px;
+    font-size: .4rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer > span,
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer button {
+    gap: 3px;
+    font-size: .4rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer svg {
+    width: 9px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--setup.account-profile--desktop {
+    padding: 14px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--setup.account-profile--desktop .account-profile__setup-icon {
+    width: 42px;
+    height: 42px;
+    margin-top: 10px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--setup.account-profile--desktop h2 {
+    font-size: .8rem;
+  }
+  .frontend-shell .account-desktop-card .account-profile--setup.account-profile--desktop p {
+    font-size: .5rem;
   }
 }
 

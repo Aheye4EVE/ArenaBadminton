@@ -237,7 +237,7 @@ function CompactAuthCard({ onClose }: { onClose: () => void }) {
 
 function ProfileSetupPrompt({ onClose, desktop = false }: { onClose: () => void; desktop?: boolean }) {
   return (
-    <section className="account-profile account-profile--setup" aria-labelledby="account-setup-title">
+    <section className={cx("account-profile", "account-profile--setup", desktop && "account-profile--desktop")} aria-labelledby="account-setup-title">
       <div className="account-profile__topline">
         <div className="account-auth__eyebrow"><Sparkles size={15} /> Almost ready</div>
         {!desktop ? <button type="button" className="account-card-close" onClick={onClose} aria-label="ปิด Profile Card"><X size={18} /></button> : null}
@@ -257,7 +257,7 @@ function ProfileSummaryCard({ account, onClose, desktop = false }: { account: He
     : `${formatNumber(account.expTotal)} / ${formatNumber(account.nextLevelExp)} EXP`;
 
   return (
-    <section className="account-profile" aria-labelledby="account-profile-title">
+    <section className={cx("account-profile", desktop && "account-profile--desktop")} aria-labelledby="account-profile-title">
       <div className="account-profile__topline">
         <div className="account-auth__eyebrow"><Sparkles size={15} /> My Arena Profile</div>
         {!desktop ? <button type="button" className="account-card-close" onClick={onClose} aria-label="ปิด Profile Card"><X size={18} /></button> : null}
