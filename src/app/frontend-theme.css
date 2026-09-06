@@ -726,7 +726,7 @@
     right: clamp(10px, 1.25vw, 22px);
     z-index: 85;
     display: block;
-    width: min(clamp(246px, 18.48vw, 302px), calc(100vw - 16px));
+    width: min(clamp(295px, 22.176vw, 362px), calc(100vw - 16px));
     height: min(526px, calc(100svh - 96px));
     max-height: calc(100svh - 96px);
     overflow: auto;
@@ -788,37 +788,37 @@
     row-gap: 0;
     align-content: space-between;
     min-height: 100%;
-    padding: 14px;
-    border-radius: 20px;
+    padding: 17px;
+    border-radius: 24px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop:not(.account-profile--setup) > :is(.account-profile__topline, .account-profile__identity, .account-profile__level, .account-profile__stats, .account-profile__social-grid, .account-profile__cta, .account-profile__metrics, .account-profile__footer) {
     grid-column: 1 / -1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-auth__eyebrow {
-    gap: 3px;
-    font-size: .55rem;
+    gap: 4px;
+    font-size: .66rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-auth__eyebrow svg {
-    width: 11px;
+    width: 13px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__topline {
-    gap: 3px;
+    gap: 4px;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity {
-    gap: 8px;
-    margin-top: 10px;
+    gap: 10px;
+    margin-top: 12px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-avatar--large {
-    width: 48px;
-    height: 48px;
+    width: 58px;
+    height: 58px;
     border-width: 2px;
     box-shadow: 0 0 0 2px rgba(246, 92, 168, .18), 0 7px 15px rgba(111, 86, 190, .14);
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-avatar--large .account-avatar__status {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border-width: 1px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity-copy {
@@ -826,138 +826,138 @@
     min-width: 0;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row {
-    gap: 2px;
+    gap: 3px;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row h2 {
-    font-size: .9rem;
+    font-size: 1.08rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row svg {
-    width: 12px;
+    width: 14px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity-copy > p {
-    margin: 2px 0 5px;
-    font-size: .5rem;
+    margin: 2px 0 6px;
+    font-size: .6rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__title-pill,
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__rank-pill {
     max-width: 100%;
-    padding: 2px 5px;
-    font-size: .44rem;
+    padding: 2px 6px;
+    font-size: .53rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__rank-pill {
     margin-top: 2px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level {
-    margin-top: 10px;
+    margin-top: 12px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-row {
-    gap: 5px;
-    font-size: .6rem;
+    gap: 6px;
+    font-size: .72rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-row strong {
-    font-size: .52rem;
+    font-size: .62rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-track {
-    height: 5px;
-    margin-top: 4px;
+    height: 6px;
+    margin-top: 5px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats {
     gap: 0;
-    margin: 10px 0 7px;
+    margin: 12px 0 8px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats > div {
     gap: 1px;
-    padding: 6px 2px;
+    padding: 7px 2px;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats svg {
-    width: 13px;
-    height: 13px;
+    width: 16px;
+    height: 16px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats strong {
     margin-top: 2px;
-    font-size: .78rem;
+    font-size: .94rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats span {
-    font-size: .5rem;
+    font-size: .6rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 5px;
-    margin-top: 7px;
+    gap: 6px;
+    margin-top: 8px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link {
-    gap: 4px;
+    gap: 5px;
     min-width: 0;
-    padding: 6px 5px;
-    border-radius: 9px;
+    padding: 7px 6px;
+    border-radius: 11px;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link > svg {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link strong {
-    font-size: .58rem;
+    font-size: .7rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link small {
-    font-size: .48rem;
+    font-size: .58rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__social-link > svg:last-child {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__cta {
-    min-height: 34px;
-    margin-top: 7px;
-    font-size: .66rem;
+    min-height: 41px;
+    margin-top: 8px;
+    font-size: .79rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta,
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__admin-cta {
     min-width: 0;
-    min-height: 31px;
-    margin-top: 6px;
-    padding: 6px 7px;
-    border-radius: 9px;
-    font-size: .5rem;
+    min-height: 37px;
+    margin-top: 7px;
+    padding: 7px 8px;
+    border-radius: 11px;
+    font-size: .6rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta {
-    gap: 4px;
+    gap: 5px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta > span {
-    grid-template-columns: 12px minmax(0, 1fr);
-    column-gap: 3px;
+    grid-template-columns: 14px minmax(0, 1fr);
+    column-gap: 4px;
     min-width: 0;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta svg,
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__admin-cta svg {
-    width: 11px;
-    height: 11px;
+    width: 13px;
+    height: 13px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta strong {
-    font-size: .5rem;
+    font-size: .6rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__guild-cta small {
     margin-top: 1px;
-    font-size: .42rem;
+    font-size: .5rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__admin-cta {
     justify-content: flex-start;
-    gap: 4px;
+    gap: 5px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -967,43 +967,43 @@
     margin-left: auto;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics {
-    gap: 5px;
-    margin-top: 6px;
+    gap: 6px;
+    margin-top: 7px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics > div {
-    gap: 4px;
-    padding: 6px;
-    border-radius: 9px;
+    gap: 5px;
+    padding: 7px;
+    border-radius: 11px;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics svg {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics small {
-    font-size: .42rem;
+    font-size: .5rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__metrics strong {
-    font-size: .6rem;
+    font-size: .72rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer {
-    gap: 4px;
-    margin-top: 6px;
-    padding-top: 6px;
-    font-size: .42rem;
+    gap: 5px;
+    margin-top: 7px;
+    padding-top: 7px;
+    font-size: .5rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer > span,
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer button {
-    gap: 3px;
-    font-size: .42rem;
+    gap: 4px;
+    font-size: .5rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer svg {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
   }
   .frontend-shell .account-desktop-card .account-profile--setup.account-profile--desktop {
     padding: 14px;
