@@ -25,6 +25,7 @@ export default async function HomePage() {
     featuredEvents={homepageLiveData?.featuredEvents}
     featuredCourts={homepageLiveData?.featuredCourts}
     featuredMarketplaceListings={homepageLiveData?.featuredMarketplaceListings}
+    marketplaceSortMode={homepageLiveData?.marketplaceSortMode}
     homeDataErrors={homepageLiveData?.errors}
     isLiveData={Boolean(homepageLiveData)}
   />;

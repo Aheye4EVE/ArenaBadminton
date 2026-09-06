@@ -207,7 +207,7 @@ function CourtCard({ court, index }: { court: Court; index: number }) {
 const marketplaceCategoryLabels: Record<string, string> = { racket: "ไม้แบด", shoes: "รองเท้า", bag: "กระเป๋า", apparel: "เสื้อผ้า", equipment: "อุปกรณ์", other: "อื่น ๆ" };
 const marketplaceConditionLabels: Record<string, string> = { new: "ของใหม่", like_new: "เหมือนใหม่", good: "สภาพดี", fair: "มีร่องรอย", for_parts: "ขายตามสภาพ" };
 
-function MarketplaceHomeRow({ listing }: { listing: HomepageMarketplaceListing }) {
+function MarketplaceHomeRow({ listing, showViewCount }: { listing: HomepageMarketplaceListing; showViewCount: boolean }) {
   return (
     <Link href={`/marketplace/${listing.id}`} className="marketplace-home-item">
       <span className="marketplace-home-item__image" aria-hidden="true">
@@ -218,7 +218,7 @@ function MarketplaceHomeRow({ listing }: { listing: HomepageMarketplaceListing }
       </span>
       <span className="marketplace-home-item__body">
         <strong>{listing.title}</strong>
-        <small><Eye size={12} /> {listing.viewCount.toLocaleString("th-TH")} ครั้ง · {marketplaceCategoryLabels[listing.category] ?? listing.category}</small>
+        <small>{showViewCount ? <><Eye size={12} /> {listing.viewCount.toLocaleString("th-TH")} ครั้ง · </> : null}{marketplaceCategoryLabels[listing.category] ?? listing.category}</small>
         <span className="marketplace-home-item__price">฿{listing.price.toLocaleString("th-TH", { maximumFractionDigits: 2 })}</span>
       </span>
       <span className={cx("marketplace-home-item__status", listing.status === "reserved" && "marketplace-home-item__status--reserved")}>
@@ -236,6 +236,7 @@ export default function ArenaHome({
   featuredEvents,
   featuredCourts,
   featuredMarketplaceListings,
+  marketplaceSortMode,
   homeDataErrors,
   isLiveData = false,
 }: {
@@ -245,6 +246,7 @@ export default function ArenaHome({
   featuredEvents?: Event[];
   featuredCourts?: Court[];
   featuredMarketplaceListings?: HomepageMarketplaceListing[];
+  marketplaceSortMode?: "views" | "latest";
   homeDataErrors?: {
     events: boolean;
     venues: boolean;
@@ -262,6 +264,7 @@ export default function ArenaHome({
   const homepageEvents = isLiveData ? (featuredEvents ?? []) : demoEvents;
   const homepageCourts = isLiveData ? (featuredCourts ?? []) : demoCourts;
   const homepageMarketplaceListings = isLiveData ? (featuredMarketplaceListings ?? []) : [];
+  const marketplaceUsesViews = marketplaceSortMode !== "latest";
 
   const visibleGroups = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -536,9 +539,9 @@ export default function ArenaHome({
 
                 <section className="dashboard-card dashboard-card--marketplace">
                   <SectionHeading title="สินค้ามือสอง" href="/marketplace" tone="purple" />
-                  <p className="marketplace-home-sort-note"><Eye size={13} /> เรียงจากยอดเข้าชมสูงสุด · รายการที่ยังไม่ขาย</p>
+                  <p className="marketplace-home-sort-note"><Eye size={13} /> {marketplaceUsesViews ? "เรียงจากยอดเข้าชมสูงสุด · รายการที่ยังไม่ขาย" : "รายการที่ยังไม่ขาย · เรียงตามรายการล่าสุด"}</p>
                   <div className="marketplace-home-list">
-                    {homeDataErrors?.marketplace ? <div className="empty-card" role="alert"><PackageSearch size={21} /><p>โหลดข้อมูลตลาดมือสองไม่สำเร็จ</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div> : homepageMarketplaceListings.length > 0 ? homepageMarketplaceListings.map((listing) => <MarketplaceHomeRow key={listing.id} listing={listing} />) : <div className="empty-card"><PackageSearch size={21} /><p>{isLiveData ? "ยังไม่มีสินค้าที่เปิดขาย" : "เข้าสู่ตลาดมือสองเพื่อดูสินค้าจาก Community"}</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div>}
+                    {homeDataErrors?.marketplace ? <div className="empty-card" role="alert"><PackageSearch size={21} /><p>โหลดข้อมูลตลาดมือสองไม่สำเร็จ</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div> : homepageMarketplaceListings.length > 0 ? homepageMarketplaceListings.map((listing) => <MarketplaceHomeRow key={listing.id} listing={listing} showViewCount={marketplaceUsesViews} />) : <div className="empty-card"><PackageSearch size={21} /><p>{isLiveData ? "ยังไม่มีสินค้าที่เปิดขาย" : "เข้าสู่ตลาดมือสองเพื่อดูสินค้าจาก Community"}</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div>}
                   </div>
                 </section>
               </div>

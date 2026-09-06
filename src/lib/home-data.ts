@@ -7,6 +7,7 @@ export type HomepageLiveData = {
   featuredEvents: Event[];
   featuredCourts: Court[];
   featuredMarketplaceListings: HomepageMarketplaceListing[];
+  marketplaceSortMode: "views" | "latest";
   errors: {
     events: boolean;
     venues: boolean;
@@ -221,18 +222,36 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
     return Number(right.rating) - Number(left.rating);
   });
 
-  const featuredMarketplaceListings = !marketplaceResult.error
-    ? ((marketplaceResult.data ?? []) as Array<Record<string, unknown>>).map(mapMarketplaceListing).filter((listing) => listing.id)
-    : [];
+  let marketplaceRows: Array<Record<string, unknown>> = [];
+  let marketplaceSortMode: HomepageLiveData["marketplaceSortMode"] = "views";
+  let marketplaceError = Boolean(marketplaceResult.error);
+  if (!marketplaceResult.error) {
+    marketplaceRows = (marketplaceResult.data ?? []) as Array<Record<string, unknown>>;
+  } else {
+    // Keep the homepage useful while a new view-count migration is being rolled
+    // out. This fallback never claims to be popularity-sorted in the UI.
+    const fallbackMarketplaceResult = await supabase
+      .from("marketplace_listings")
+      .select("id, title, category, condition_grade, price, image_url, status")
+      .in("status", ["active", "reserved"])
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(4);
+    marketplaceRows = (fallbackMarketplaceResult.data ?? []) as Array<Record<string, unknown>>;
+    marketplaceSortMode = "latest";
+    marketplaceError = Boolean(fallbackMarketplaceResult.error);
+  }
+  const featuredMarketplaceListings = marketplaceRows.map(mapMarketplaceListing).filter((listing) => listing.id);
 
   return {
     featuredEvents,
     featuredCourts: mappedVenues.slice(0, 3),
     featuredMarketplaceListings,
+    marketplaceSortMode,
     errors: {
       events: eventsError,
       venues: Boolean(venuesResult.error),
-      marketplace: Boolean(marketplaceResult.error),
+      marketplace: marketplaceError,
     },
   };
 }
