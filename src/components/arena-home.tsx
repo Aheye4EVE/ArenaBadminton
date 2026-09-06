@@ -290,7 +290,7 @@ export default function ArenaHome({
 
             <nav className="desktop-nav" aria-label="เมนูหลัก">
               {navItems.map((item, index) => (
-                <Link key={item.href + item.label} href={item.href} aria-label={item.label} aria-current={index === 0 ? "page" : undefined} className={cx("desktop-nav__item", index === 0 && "desktop-nav__item--active")}>
+                <Link key={item.href + item.label} href={item.href} aria-label={item.label} title={item.label} aria-current={index === 0 ? "page" : undefined} className={cx("desktop-nav__item", index === 0 && "desktop-nav__item--active")}>
                   <NavIcon name={item.icon} size={17} />
                   <span lang={/^[A-Za-z]+$/.test(item.label) ? "en" : "th"}>{item.label}</span>
                 </Link>

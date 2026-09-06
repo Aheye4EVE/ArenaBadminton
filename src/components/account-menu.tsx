@@ -235,12 +235,12 @@ function CompactAuthCard({ onClose }: { onClose: () => void }) {
   );
 }
 
-function ProfileSetupPrompt({ onClose }: { onClose: () => void }) {
+function ProfileSetupPrompt({ onClose, desktop = false }: { onClose: () => void; desktop?: boolean }) {
   return (
     <section className="account-profile account-profile--setup" aria-labelledby="account-setup-title">
       <div className="account-profile__topline">
         <div className="account-auth__eyebrow"><Sparkles size={15} /> Almost ready</div>
-        <button type="button" className="account-card-close" onClick={onClose} aria-label="ปิด Profile Card"><X size={18} /></button>
+        {!desktop ? <button type="button" className="account-card-close" onClick={onClose} aria-label="ปิด Profile Card"><X size={18} /></button> : null}
       </div>
       <div className="account-profile__setup-icon" aria-hidden="true"><UserRound size={27} /></div>
       <h2 id="account-setup-title">โปรไฟล์ของคุณยังไม่ครบ</h2>
@@ -250,7 +250,7 @@ function ProfileSetupPrompt({ onClose }: { onClose: () => void }) {
   );
 }
 
-function ProfileSummaryCard({ account, onClose }: { account: HeaderProfileSummary; onClose: () => void }) {
+function ProfileSummaryCard({ account, onClose, desktop = false }: { account: HeaderProfileSummary; onClose: () => void; desktop?: boolean }) {
   const rankText = account.rank === null ? "—" : `#${account.rank}`;
   const levelText = account.nextLevelExp === null
     ? `${formatNumber(account.expTotal)} EXP · MAX`
@@ -260,7 +260,7 @@ function ProfileSummaryCard({ account, onClose }: { account: HeaderProfileSummar
     <section className="account-profile" aria-labelledby="account-profile-title">
       <div className="account-profile__topline">
         <div className="account-auth__eyebrow"><Sparkles size={15} /> My Arena Profile</div>
-        <button type="button" className="account-card-close" onClick={onClose} aria-label="ปิด Profile Card"><X size={18} /></button>
+        {!desktop ? <button type="button" className="account-card-close" onClick={onClose} aria-label="ปิด Profile Card"><X size={18} /></button> : null}
       </div>
 
       <div className="account-profile__identity">
@@ -334,6 +334,7 @@ function ProfileSummaryCard({ account, onClose }: { account: HeaderProfileSummar
 
 export default function AccountMenu({ account, isAuthenticated }: { account: HeaderProfileSummary | null; isAuthenticated: boolean }) {
   const [open, setOpen] = useState(false);
+  const hasDesktopProfileCard = Boolean(account || isAuthenticated);
   const menuRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -364,7 +365,12 @@ export default function AccountMenu({ account, isAuthenticated }: { account: Hea
   }, [closeMenu, open]);
 
   return (
-    <div className="account-menu" ref={menuRef}>
+    <div className={cx("account-menu", hasDesktopProfileCard && "account-menu--has-desktop-card")} ref={menuRef}>
+      {hasDesktopProfileCard ? (
+        <div className="account-desktop-card" aria-label="Arena Profile">
+          {account ? <ProfileSummaryCard account={account} onClose={() => undefined} desktop /> : <ProfileSetupPrompt onClose={() => undefined} desktop />}
+        </div>
+      ) : null}
       <button
         ref={triggerRef}
         type="button"

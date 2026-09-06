@@ -648,3 +648,138 @@
   .frontend-shell .profile-media-modal__surface .profile-media-cropper__footer { align-items: flex-start; flex-direction: column; }
   .frontend-shell .profile-background-editor__selected { align-items: flex-start; flex-direction: column; }
 }
+
+/* Header adapts to its real available width instead of letting menu items
+   paint outside the glass navigation surface. */
+.frontend-shell .arena-header {
+  container: arena-header / inline-size;
+  width: 100%;
+  min-width: 0;
+}
+.frontend-shell .brand-lockup {
+  flex: 0 1 clamp(150px, 14vw, 208px);
+  min-width: 150px;
+}
+.frontend-shell .desktop-nav {
+  flex: 1 1 0%;
+  min-width: 0;
+  justify-content: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.frontend-shell .desktop-nav::-webkit-scrollbar,
+.frontend-shell .frontend-navigation__links::-webkit-scrollbar {
+  display: none;
+}
+.frontend-shell .desktop-nav__item {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding-inline: clamp(6px, .65vw, 10px);
+}
+.frontend-shell .desktop-nav__item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.frontend-shell .header-actions {
+  min-width: 0;
+}
+.frontend-shell .frontend-navigation {
+  min-width: 0;
+}
+.frontend-shell .frontend-navigation__links {
+  justify-content: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.frontend-shell .frontend-navigation__links a {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* A signed-in member gets the complete Arena Profile beside the desktop
+   header. The compact trigger/popover remains the mobile interaction. */
+.frontend-shell .account-desktop-card {
+  display: none;
+}
+
+@media (min-width: 1181px) {
+  .frontend-shell .account-menu--has-desktop-card {
+    position: relative;
+    align-self: stretch;
+    flex: 0 0 0;
+    width: 0;
+  }
+  .frontend-shell .account-menu--has-desktop-card > .account-trigger {
+    display: none;
+  }
+  .frontend-shell .account-menu--has-desktop-card > .account-desktop-card {
+    position: absolute;
+    top: calc(100% + 14px);
+    right: 0;
+    z-index: 85;
+    display: block;
+    width: min(330px, calc(100vw - 24px));
+    max-height: calc(100svh - 96px);
+    overflow: auto;
+    border: 0;
+    border-radius: 23px;
+    background: transparent;
+    box-shadow: 0 24px 66px #633c9040;
+    scrollbar-width: thin;
+  }
+  .frontend-shell .account-menu--has-desktop-card > .account-desktop-card::-webkit-scrollbar {
+    width: 5px;
+  }
+  .frontend-shell .account-menu--has-desktop-card > .account-desktop-card .account-profile {
+    border-radius: 23px;
+  }
+  .frontend-shell .account-menu--has-desktop-card > .account-popover,
+  .frontend-shell .account-menu--has-desktop-card > .account-backdrop {
+    display: none;
+  }
+}
+
+@container arena-header (max-width: 1260px) {
+  .frontend-shell .brand-lockup {
+    width: 175px;
+    min-width: 145px;
+  }
+  .frontend-shell .desktop-nav__item {
+    gap: 5px;
+    padding-inline: 7px;
+    font-size: .74rem;
+  }
+}
+
+@container arena-header (max-width: 1100px) {
+  .frontend-shell .brand-lockup {
+    width: 150px;
+    min-width: 120px;
+  }
+  .frontend-shell .desktop-nav__item {
+    flex: 1 1 0;
+    justify-content: center;
+    padding-inline: 8px;
+  }
+  .frontend-shell .desktop-nav__item span {
+    display: none;
+  }
+}
+
+@container arena-header (max-width: 820px) {
+  .frontend-shell .brand-lockup {
+    width: 130px;
+    min-width: 110px;
+  }
+  .frontend-shell .desktop-nav {
+    gap: 0;
+    padding-inline: 4px;
+  }
+  .frontend-shell .desktop-nav__item {
+    flex: 0 0 auto;
+    padding-inline: 9px;
+  }
+}
