@@ -707,7 +707,8 @@
 
 @media (min-width: 1181px) {
   .frontend-shell .arena-page--with-profile-card {
-    --arena-profile-dock-space: clamp(238px, 22vw, 320px);
+    --arena-profile-dock-space: clamp(230px, 20vw, 292px);
+    --arena-home-content-max: clamp(780px, 66vw, 1040px);
   }
   .frontend-shell .account-menu--has-desktop-card {
     position: relative;
@@ -720,11 +721,11 @@
   }
   .frontend-shell .account-menu--has-desktop-card > .account-desktop-card {
     position: fixed;
-    top: clamp(72px, 10vh, 98px);
+    top: clamp(64px, 9vh, 88px);
     right: max(8px, calc((100vw - 1540px) / 2 + 8px));
     z-index: 85;
     display: block;
-    width: min(clamp(220px, 19vw, 300px), calc(100vw - 16px));
+    width: min(clamp(210px, 16.5vw, 270px), calc(100vw - 16px));
     max-height: calc(100svh - 96px);
     overflow: auto;
     border: 0;
@@ -757,13 +758,19 @@
   .frontend-shell .arena-page--with-profile-card .hero-copy {
     grid-column: 1;
     width: 100%;
-    max-width: 920px;
+    max-width: min(920px, var(--arena-home-content-max));
     justify-self: center;
     margin-right: 0;
     margin-left: 0;
   }
   .frontend-shell .arena-page--with-profile-card .dashboard-area > div {
-    padding-right: var(--arena-profile-dock-space);
+    width: min(100%, var(--arena-home-content-max));
+    max-width: none;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0;
+    transform: translateX(calc(var(--arena-profile-dock-space) / -2));
   }
 }
 
