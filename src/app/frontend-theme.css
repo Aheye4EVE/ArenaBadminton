@@ -66,6 +66,7 @@
 .frontend-footer > span:first-child { color: #9948c3; font-size: 1rem; font-weight: 600; }
 .frontend-footer a { font-weight: 500; color: #b3378c; }
 .frontend-shell :is(.groups-topbar, .guilds-topbar, .profile-setup-topbar, .shop-live-topbar, .profile-overview-topbar, .community-live-topbar, .notifications-topbar, .marketplace-topbar, .messages-topbar, .preview-header__topline) { min-height: 56px; padding: 10px 16px; border: 1px solid #fff; border-radius: 20px; background: #fffbfff0; box-shadow: var(--soft-shadow); }
+.frontend-shell .preview-header--heading-only .preview-heading { margin-top: 20px; }
 .frontend-shell :is(.groups-topbar, .guilds-topbar, .profile-setup-topbar, .shop-live-topbar, .profile-overview-topbar, .community-live-topbar, .notifications-topbar, .marketplace-topbar, .messages-topbar) nav { flex-wrap: wrap; }
 .frontend-shell :is(.groups-brand, .guilds-brand, .preview-brand, .shop-live-brand, .profile-overview-brand, .community-live-brand, .notifications-brand, .marketplace-brand, .messages-brand) { color: var(--purple); }
 .frontend-shell :is(.groups-back, .guilds-back, .preview-back) { color: #7852a4; }
@@ -1487,7 +1488,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.frontend-shell .discovery-page--live > .preview-content { padding-top: 20px; }
 .frontend-shell .frontend-header {
   gap: 16px;
 }
@@ -1540,7 +1540,6 @@
     padding: 11px;
     border-radius: 22px;
   }
-  .frontend-shell .discovery-page--live > .preview-content { padding-top: 12px; }
   .frontend-shell .arena-menu__panel a {
     min-height: 45px;
     padding: 10px;

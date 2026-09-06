@@ -32,15 +32,15 @@ const pageContent: Record<PreviewKind, { eyebrow: string; title: string; descrip
   messages: { eyebrow: "Stay connected", title: "บอร์ดพูดคุย", description: "คุยกับก๊วนและเพื่อนนักแบดใน Arena", icon: "💌" },
 };
 
-export function PreviewHeader({ kind, live = false }: { kind: PreviewKind; live?: boolean }) {
+export function PreviewHeader({ kind, live = false, hideTopline = false }: { kind: PreviewKind; live?: boolean; hideTopline?: boolean }) {
   const content = pageContent[kind];
   return (
-    <header className="preview-header">
-      <div className="preview-header__topline">
+    <header className={hideTopline ? "preview-header preview-header--heading-only" : "preview-header"}>
+      {!hideTopline ? <div className="preview-header__topline">
         <Link href="/" className="preview-back"><ArrowLeft size={17} /> กลับหน้าหลัก</Link>
         <Link href="/" className="preview-brand"><span lang="en">Arena</span><span lang="en">-Badminton</span></Link>
         <div className="preview-user"><span>{live ? "🏸" : "🧑🏻"}</span> <span lang="en">{live ? "Arena Live" : "Guest Preview"}</span> <small lang="en">{live ? "Supabase" : "เข้าสู่ระบบ"}</small></div>
-      </div>
+      </div> : null}
       <div className="preview-heading">
         <div className="preview-heading__icon" aria-hidden="true">{content.icon}</div>
         <div>

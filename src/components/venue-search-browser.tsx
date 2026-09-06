@@ -16,6 +16,7 @@ import {
   Star,
 } from "lucide-react";
 import ThaiAreaSelect from "@/components/thai-area-select";
+import { PreviewHeader } from "@/components/preview-page";
 import { formatDistanceKm, normalizeCoordinates, type GeoCoordinates } from "@/lib/geolocation";
 import { areaLabel, type DirectoryFilters, type DirectoryVenue } from "@/lib/venue-directory";
 import { safeMediaUrl } from "@/lib/safe-media-url";
@@ -246,7 +247,8 @@ export default function VenueSearchBrowser({
   const locationButtonLabel = currentGpsState === "loading" ? "กำลังค้นหา..." : currentGpsState === "ready" ? "อัปเดตตำแหน่ง" : "สนามใกล้ฉัน";
 
   return (
-    <main className="preview-page discovery-page discovery-page--live">
+    <main className="preview-page discovery-page">
+      <PreviewHeader kind="venues" live={isLiveData} hideTopline />
       <div className="preview-content">
         <div className="preview-section-grid discovery-section-grid">
           <section className="preview-panel preview-panel--wide discovery-main-panel">
