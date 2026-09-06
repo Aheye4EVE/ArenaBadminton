@@ -33,7 +33,6 @@ import {
 } from "lucide-react";
 import { courts as demoCourts, events as demoEvents, groups, navItems, type Court, type Event, type Group } from "@/lib/demo-data";
 import AccountMenu from "@/components/account-menu";
-import CourtIllustration from "@/components/court-illustration";
 import ThaiAreaSelect from "@/components/thai-area-select";
 import type { HeaderProfileSummary } from "@/types/profile";
 
@@ -102,7 +101,7 @@ function SectionHeading({
     <div className="mb-4 flex items-end justify-between gap-4">
       <div>
         {eyebrow ? <p lang={/[A-Za-z]/.test(eyebrow) ? "en" : "th"} className={cx("section-eyebrow", `section-eyebrow--${tone}`)}>{eyebrow}</p> : null}
-        <h2 className="section-title">{title}</h2>
+        <h2 lang={/[A-Za-z]/.test(title) ? "en" : "th"} className="section-title">{title}</h2>
       </div>
       {href ? (
         <Link className="section-link" href={href}>
@@ -481,26 +480,23 @@ export default function ArenaHome({
           <section className="dashboard-layout">
             <div className="dashboard-main">
               <div className="dashboard-columns">
-                <section className="dashboard-card dashboard-card--pink">
-                  <SectionHeading eyebrow="ชุมชนของเรา" title="ก๊วนแนะนำ" href="/groups" tone="pink" />
-                  <CourtIllustration kind="racket" />
+                <section className="dashboard-card dashboard-card--pink dashboard-card--groups">
+                  <SectionHeading title="ก๊วนแนะนำ" href="/groups" tone="pink" />
                   <div className="space-y-2">
                     {visibleGroups.slice(0, 5).map((group) => <GroupCard key={group.id} group={group} onJoin={(selectedGroup) => router.push(selectedGroup.detailHref ?? "/groups")} />)}
                     {visibleGroups.length === 0 ? <div className="empty-card"><Sparkles size={21} /><p>ยังไม่พบก๊วนจากตัวกรองนี้</p></div> : null}
                   </div>
                 </section>
 
-                <section className="dashboard-card dashboard-card--lavender">
-                  <SectionHeading eyebrow="Play more, feel more" title="กิจกรรม & ทัวร์นาเมนต์" href="/events" tone="purple" />
-                  <CourtIllustration kind="trophy" />
+                <section className="dashboard-card dashboard-card--lavender dashboard-card--events">
+                  <SectionHeading title="Event & Tournament" href="/events" tone="purple" />
                   <div className="space-y-2">
                     {homeDataErrors?.events ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลกิจกรรมจริงไม่สำเร็จ ลองเปิดหน้ากิจกรรมอีกครั้ง</p><Link href="/events" className="section-link">เปิดกิจกรรม <ArrowRight size={14} /></Link></div> : homepageEvents.length > 0 ? homepageEvents.map((event) => <EventCard key={event.id} event={event} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีกิจกรรมที่เปิดรับสมัคร" : "ยังไม่พบกิจกรรม"}</p></div>}
                   </div>
                 </section>
 
-                <section className="dashboard-card dashboard-card--mint">
-                  <SectionHeading eyebrow="Find your court" title="สนามแบดแนะนำ" href="/venues" tone="mint" />
-                  <CourtIllustration kind="shuttle" />
+                <section className="dashboard-card dashboard-card--mint dashboard-card--venues">
+                  <SectionHeading title="สนามแบดแนะนำ" href="/venues" tone="mint" />
                   <div className="space-y-2">
                     {homeDataErrors?.venues ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลสนามจริงไม่สำเร็จ ลองเปิดหน้าสนามอีกครั้ง</p><Link href="/venues" className="section-link">เปิดสนาม <ArrowRight size={14} /></Link></div> : homepageCourts.length > 0 ? homepageCourts.map((court, index) => <CourtCard key={court.id} court={court} index={index} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีสนามที่เปิดให้ค้นหา" : "ยังไม่พบสนาม"}</p></div>}
                   </div>
