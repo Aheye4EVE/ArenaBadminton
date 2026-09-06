@@ -3,10 +3,18 @@ export type GeoCoordinates = {
   longitude: number;
 };
 
+function finiteCoordinate(value: unknown) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string" && value.trim() === "") return null;
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 export function normalizeCoordinates(latitude: unknown, longitude: unknown): GeoCoordinates | null {
-  const parsedLatitude = typeof latitude === "number" ? latitude : Number(latitude);
-  const parsedLongitude = typeof longitude === "number" ? longitude : Number(longitude);
-  if (!Number.isFinite(parsedLatitude) || !Number.isFinite(parsedLongitude)) return null;
+  const parsedLatitude = finiteCoordinate(latitude);
+  const parsedLongitude = finiteCoordinate(longitude);
+  if (parsedLatitude === null || parsedLongitude === null) return null;
   if (parsedLatitude < -90 || parsedLatitude > 90 || parsedLongitude < -180 || parsedLongitude > 180) return null;
   if (parsedLatitude === 0 && parsedLongitude === 0) return null;
   return { latitude: parsedLatitude, longitude: parsedLongitude };
@@ -24,8 +32,8 @@ export function haversineDistanceKm(from: GeoCoordinates, to: GeoCoordinates) {
 }
 
 export function formatDistanceKm(value: unknown) {
-  const distanceKm = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(distanceKm) || distanceKm < 0) return null;
+  const distanceKm = finiteCoordinate(value);
+  if (distanceKm === null || distanceKm < 0) return null;
   if (distanceKm < 1) return `${Math.round(distanceKm * 1000)} ม.`;
   return `${distanceKm < 10 ? distanceKm.toFixed(1) : distanceKm.toFixed(0)} กม.`;
 }
