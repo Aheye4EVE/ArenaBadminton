@@ -270,6 +270,10 @@ function ProfileSummaryCard({ account, onClose, desktop = false }: { account: He
             <Crown size={19} fill="currentColor" aria-label="สมาชิก Arena" />
           </div>
 
+          <p>@{account.handle}</p>
+          <span className="account-profile__title-pill">{account.levelLabel}</span>
+          <span className={`account-profile__rank-pill account-profile__rank-pill--${account.skillRankColor}`}>Tier {account.skillRankTier} · {account.skillRankName}</span>
+
           <div className="account-profile__score-row" aria-label="Skill BP และ Ranking">
             <div className="account-profile__score-card account-profile__score-card--bp">
               <Gem size={14} aria-hidden="true" />
@@ -285,10 +289,6 @@ function ProfileSummaryCard({ account, onClose, desktop = false }: { account: He
             <span className="account-profile__points-balance"><Gem size={15} fill="currentColor" aria-hidden="true" /><span><small>Point</small><strong>{formatNumber(account.gemsBalance)}</strong></span></span>
             <Link href="/shop" className="account-profile__points-topup" onClick={onClose}>เติมพ้อยท์ <ArrowRight size={11} /></Link>
           </div>
-
-          <p>@{account.handle}</p>
-          <span className="account-profile__title-pill">{account.levelLabel}</span>
-          <span className={`account-profile__rank-pill account-profile__rank-pill--${account.skillRankColor}`}>Tier {account.skillRankTier} · {account.skillRankName}</span>
         </div>
       </div>
 

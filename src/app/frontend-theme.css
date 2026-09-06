@@ -835,23 +835,25 @@
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity {
+    align-items: flex-start;
     gap: 10px;
     margin-top: 12px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-avatar--large {
-    width: 58px;
-    height: 58px;
-    border-width: 2px;
-    box-shadow: 0 0 0 2px rgba(246, 92, 168, .18), 0 7px 15px rgba(111, 86, 190, .14);
+    width: 100px;
+    height: 100px;
+    border-width: 3px;
+    box-shadow: 0 0 0 3px rgba(246, 92, 168, .18), 0 9px 20px rgba(111, 86, 190, .14);
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-avatar--large .account-avatar__status {
-    width: 12px;
-    height: 12px;
-    border-width: 1px;
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity-copy {
     flex: 1 1 auto;
     min-width: 0;
+    padding-top: 1px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-row {
     gap: 4px;
