@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { HeaderProfileSummary } from "@/types/profile";
 import { FALLBACK_SKILL_RANKS, getSkillRank } from "@/lib/skill-ranks";
+import { safeMediaUrl } from "@/lib/safe-media-url";
 
 export async function getSupabaseServerClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -120,10 +121,10 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
     id: user.id,
     displayName: typeof profile.display_name === "string" && profile.display_name.trim() ? profile.display_name : "ผู้เล่นใหม่",
     handle: typeof profile.handle === "string" ? profile.handle : `player_${user.id.replaceAll("-", "").slice(0, 12)}`,
-    avatarUrl: typeof profile.avatar_url === "string" ? profile.avatar_url : null,
+    avatarUrl: safeMediaUrl(profile.avatar_url),
     avatarFocusX: clamp(asNumber(profile.avatar_focus_x, 50), 0, 100),
     avatarFocusY: clamp(asNumber(profile.avatar_focus_y, 50), 0, 100),
-    profileBackgroundUrl: typeof profile.profile_background_url === "string" ? profile.profile_background_url : null,
+    profileBackgroundUrl: safeMediaUrl(profile.profile_background_url),
     backgroundFocusX: clamp(asNumber(profile.profile_background_focus_x, 50), 0, 100),
     backgroundFocusY: clamp(asNumber(profile.profile_background_focus_y, 50), 0, 100),
     bio: typeof profile.bio === "string" ? profile.bio : null,

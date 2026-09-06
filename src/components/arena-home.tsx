@@ -267,7 +267,7 @@ export default function ArenaHome({
   };
 
   return (
-    <div className="arena-page">
+    <div className={cx("arena-page", (account || isAuthenticated) && "arena-page--with-profile-card")}>
       <section className="hero-stage">
         <div className="hero-container relative z-10 mx-auto max-w-[1540px] px-4 pb-16 pt-5 sm:px-6 lg:px-8">
           <header className="arena-header flex items-center gap-3">

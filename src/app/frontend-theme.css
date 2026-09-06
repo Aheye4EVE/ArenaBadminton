@@ -716,9 +716,9 @@
     display: none;
   }
   .frontend-shell .account-menu--has-desktop-card > .account-desktop-card {
-    position: absolute;
-    top: calc(100% + 14px);
-    right: 0;
+    position: fixed;
+    top: 98px;
+    right: max(14px, calc((100vw - 1540px) / 2 + 32px));
     z-index: 85;
     display: block;
     width: min(330px, calc(100vw - 24px));
@@ -739,6 +739,11 @@
   .frontend-shell .account-menu--has-desktop-card > .account-popover,
   .frontend-shell .account-menu--has-desktop-card > .account-backdrop {
     display: none;
+  }
+
+  .frontend-shell .arena-page--with-profile-card .hero-container,
+  .frontend-shell .arena-page--with-profile-card .dashboard-area > div {
+    padding-right: clamp(350px, 26vw, 390px);
   }
 }
 
