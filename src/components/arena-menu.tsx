@@ -74,6 +74,7 @@ export default function ArenaMenu() {
         onClick={() => setOpen((current) => !current)}
       >
         {open ? <X size={23} strokeWidth={2.2} aria-hidden="true" /> : <Image src="/assets/arena-shuttle-menu.png" alt="" width={40} height={40} aria-hidden="true" priority />}
+        <span className="arena-menu__label" lang="en">Menu</span>
       </button>
 
       {open ? (

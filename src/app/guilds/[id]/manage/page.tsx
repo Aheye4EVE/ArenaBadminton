@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import GuildManagePanel from "@/components/guild-manage-panel";
 import type { GuildJoinRequestData, GuildMemberData } from "@/components/guild-detail";
+import { safeMediaUrl } from "@/lib/safe-media-url";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 
 export const metadata: Metadata = { title: "จัดการ Guild | Arena-Badminton" };
@@ -39,5 +40,5 @@ export default async function GuildManagePage({ params }: { params: Promise<{ id
   const expansionItems = (itemsResult.data ?? []).flatMap((item) => { const quantity = quantityByItem.get(item.id) ?? 0; return quantity > 0 ? [{ id: item.id, name: item.name, icon: item.icon, slug: item.slug, quantity }] : []; });
 
   const guild = guildResult.data;
-  return <GuildManagePanel guild={{ id: guild.id, name: guild.name, description: guild.description, logoUrl: guild.logo_url, province: guild.province, district: guild.district, subdistrict: guild.subdistrict, visibility: guild.visibility, joinPolicy: guild.join_policy, level: numberValue(guild.level, 1), expTotal: numberValue(guild.exp_total), maxMembers: numberValue(guild.max_members, 32) }} members={members} requests={requests} expansionItems={expansionItems} />;
+  return <GuildManagePanel guild={{ id: guild.id, name: guild.name, description: guild.description, logoUrl: safeMediaUrl(guild.logo_url), province: guild.province, district: guild.district, subdistrict: guild.subdistrict, visibility: guild.visibility, joinPolicy: guild.join_policy, level: numberValue(guild.level, 1), expTotal: numberValue(guild.exp_total), maxMembers: numberValue(guild.max_members, 32) }} members={members} requests={requests} expansionItems={expansionItems} />;
 }

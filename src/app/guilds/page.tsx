@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import GuildsBrowser, { type GuildCardData } from "@/components/guilds-browser";
+import { safeMediaUrl } from "@/lib/safe-media-url";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 import { matchesLocationFilters, matchesSearchTerms, searchTerms } from "@/lib/search-utils";
 
@@ -61,7 +62,7 @@ export default async function GuildsPage({ searchParams }: { searchParams: Promi
     id: guild.id,
     name: guild.name,
     description: guild.description,
-    logoUrl: guild.logo_url,
+    logoUrl: safeMediaUrl(guild.logo_url),
     province: guild.province,
     district: guild.district,
     level: numberValue(guild.level, 1),
