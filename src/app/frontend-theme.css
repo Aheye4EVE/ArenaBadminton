@@ -759,10 +759,14 @@
 }
 
 @media (min-width: 1181px) {
+  /* Keep the main composition centered in the full desktop canvas. The
+     profile card remains a fixed right-side dock, so its position is not
+     affected by the hero/dashboard alignment. */
   .frontend-shell .dashboard-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .frontend-shell .arena-page--with-profile-card {
     --arena-profile-dock-space: clamp(230px, 20vw, 292px);
     --arena-home-content-max: clamp(780px, 66vw, 880px);
+    --arena-profile-center-shift: calc((var(--arena-profile-dock-space) + 20px) / 2);
   }
   .frontend-shell .account-menu--has-desktop-card {
     position: relative;
@@ -817,7 +821,7 @@
     justify-self: center;
     margin-right: 0;
     margin-left: 0;
-    transform: none;
+    transform: translateX(var(--arena-profile-center-shift));
   }
   .frontend-shell .arena-page--with-profile-card .dashboard-area > div {
     width: min(calc(100% - var(--arena-profile-dock-space) - 20px), var(--arena-home-content-max));
@@ -826,14 +830,13 @@
     margin-right: 0;
     padding-left: 0;
     padding-right: 0;
-    transform: none;
+    transform: translateX(var(--arena-profile-center-shift));
   }
 }
 
 @media (min-width: 1181px) {
   /* The desktop dock is intentionally denser than the mobile popover so it
-     can sit inside the narrow right-side reference area without covering the
-     search surface or the dashboard. */
+     can keep the complete profile readable at desktop widths. */
   .frontend-shell .account-desktop-card .account-profile--desktop:not(.account-profile--setup) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -849,7 +852,7 @@
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-auth__eyebrow {
     gap: 4px;
-    font-size: .66rem;
+    font-size: .85rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-auth__eyebrow svg {
@@ -895,11 +898,11 @@
     height: 13px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-card small {
-    font-size: .47rem;
+    font-size: .65rem;
     line-height: 1.05;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-card strong {
-    font-size: .69rem;
+    font-size: .9rem;
     line-height: 1.05;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-row {
@@ -916,18 +919,18 @@
     height: 13px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-balance small {
-    font-size: .45rem;
+    font-size: .64rem;
     line-height: 1.05;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-balance strong {
-    font-size: .65rem;
+    font-size: .85rem;
     line-height: 1.05;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-topup {
     gap: 2px;
     padding: 3px 5px;
     border-radius: 7px;
-    font-size: .5rem;
+    font-size: .68rem;
     line-height: 1.05;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record {
@@ -946,11 +949,11 @@
     height: 13px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record-item small {
-    font-size: .45rem;
+    font-size: .64rem;
     line-height: 1.05;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record-item strong {
-    font-size: .69rem;
+    font-size: .9rem;
     line-height: 1.05;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row {
@@ -958,7 +961,7 @@
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row h2 {
-    font-size: 1.08rem;
+    font-size: 1.3rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row svg {
@@ -966,14 +969,14 @@
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity-copy > p {
     margin: 2px 0 6px;
-    font-size: .6rem;
+    font-size: .8rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__title-pill,
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__rank-pill {
     max-width: 100%;
     padding: 2px 6px;
-    font-size: .53rem;
+    font-size: .72rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__rank-pill {
@@ -984,11 +987,11 @@
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-row {
     gap: 6px;
-    font-size: .72rem;
+    font-size: .92rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-row strong {
-    font-size: .62rem;
+    font-size: .8rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-track {
@@ -1010,11 +1013,11 @@
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats strong {
     margin-top: 2px;
-    font-size: .94rem;
+    font-size: 1.15rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats span {
-    font-size: .6rem;
+    font-size: .8rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions {
@@ -1033,11 +1036,11 @@
     height: 13px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link strong {
-    font-size: .57rem;
+    font-size: .76rem;
     line-height: 1.05;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link small {
-    font-size: .43rem;
+    font-size: .62rem;
     line-height: 1.05;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link > svg:last-child {
@@ -1058,13 +1061,13 @@
     gap: 5px;
     margin-top: 7px;
     padding-top: 7px;
-    font-size: .5rem;
+    font-size: .68rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer > span,
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer button {
     gap: 4px;
-    font-size: .5rem;
+    font-size: .68rem;
     line-height: 1.1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer svg {
