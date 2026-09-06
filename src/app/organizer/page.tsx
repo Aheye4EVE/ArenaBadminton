@@ -3,7 +3,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import CreateGroupForm from "@/components/create-group-form";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
-import { shouldShowQaData } from "@/lib/config";
 
 export const metadata: Metadata = { title: "Organizer Hub | Arena-Badminton" };
 export const dynamic = "force-dynamic";
@@ -19,32 +18,39 @@ function todayInBangkok() {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
-export default async function OrganizerPage() {
+type SearchParams = Record<string, string | string[] | undefined>;
+
+function firstParam(params: SearchParams, key: string) {
+  const value = params[key];
+  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+}
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export default async function OrganizerPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const { supabase, user, profile } = await getAuthenticatedProfile();
   if (!supabase || !user) redirect("/auth/login?message=auth_required");
   if (!profile?.profile_completed_at) redirect("/profile/setup");
 
-  let venues: Array<{
+  const requestedVenueId = firstParam(await searchParams, "venue");
+  let initialVenue: {
     id: string;
     name: string;
     province: string | null;
     district: string | null;
     subdistrict: string | null;
     address: string | null;
-  }> = [];
-  let venuesUnavailable = false;
-  let venuesQuery = supabase
-    .from("venues")
-    .select("id, name, province, district, subdistrict, address")
-    .eq("status", "active")
-    .order("name", { ascending: true })
-    .limit(200);
-  if (!shouldShowQaData()) venuesQuery = venuesQuery.not("name", "like", "[QA ONLY]%");
-  const venuesResult = await venuesQuery;
-  if (venuesResult.error) {
-    venuesUnavailable = true;
-  } else {
-    venues = venuesResult.data ?? [];
+  } | null = null;
+  let requestedVenueUnavailable = false;
+  if (uuidPattern.test(requestedVenueId)) {
+    const venueResult = await supabase
+      .from("venues")
+      .select("id, name, province, district, subdistrict, address")
+      .eq("id", requestedVenueId)
+      .eq("status", "active")
+      .maybeSingle();
+    if (venueResult.data) initialVenue = venueResult.data;
+    else requestedVenueUnavailable = true;
   }
 
   let guilds: Array<{ id: string; name: string; level: number; max_members: number }> = [];
@@ -77,8 +83,8 @@ export default async function OrganizerPage() {
 
         <div className="organizer-live-layout">
           <section className="organizer-live-panel">
-            <CreateGroupForm minimumDate={todayInBangkok()} venues={venues} guilds={guilds} />
-            {venuesUnavailable ? <p className="group-form__location-help">ไม่สามารถโหลดรายชื่อสนามได้ชั่วคราว คุณยังกรอกรายละเอียดสถานที่ด้วยตัวเองได้</p> : null}
+            <CreateGroupForm minimumDate={todayInBangkok()} initialVenue={initialVenue} guilds={guilds} />
+            {requestedVenueUnavailable ? <p className="group-form__location-help">สนามที่แนบมากับลิงก์ไม่พร้อมใช้งานแล้ว กรุณาค้นหาสนามใหม่จากตัวเลือก</p> : null}
           </section>
           <aside className="organizer-live-sidebar">
             <section className="groups-side-card organizer-side-card"><div className="organizer-side-card__badge">LIVE GROUP</div><h2>ก๊วนของคุณจะเป็นพื้นที่เปิด</h2><p>เว็บทำหน้าที่เป็นพื้นที่กลาง ใครจะจัดก๊วนแบบไหนก็ออกแบบได้เอง ภายใต้กติกาความปลอดภัยของระบบ</p><div className="organizer-side-stat"><span>เจ้าของก๊วน</span><strong>{profile.display_name}</strong></div><div className="organizer-side-stat"><span>สถานะบัญชี</span><strong className="organizer-side-stat__ready">พร้อมจัดก๊วน ✓</strong></div></section>

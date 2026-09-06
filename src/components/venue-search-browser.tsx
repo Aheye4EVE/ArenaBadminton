@@ -5,7 +5,6 @@ import {
   ChevronDown,
   Filter,
   MapPin,
-  Navigation,
   RotateCcw,
   Search,
   SlidersHorizontal,
@@ -13,19 +12,10 @@ import {
 } from "lucide-react";
 import ThaiAreaSelect from "@/components/thai-area-select";
 import { PreviewHeader } from "@/components/preview-page";
-import type { Court } from "@/lib/demo-data";
-import VenueMap from "@/components/venue-map";
+import { areaLabel, type DirectoryFilters, type DirectoryVenue } from "@/lib/venue-directory";
+import { safeMediaUrl } from "@/lib/safe-media-url";
 
-export type VenueSearchFilters = {
-  q: string;
-  province: string;
-  district: string;
-  subdistrict: string;
-  availability: "all" | "available";
-  rating: "all" | "4" | "4.5";
-  courtCount: "all" | "5plus" | "10plus";
-  sort: "rating" | "distance" | "name";
-};
+export type VenueSearchFilters = DirectoryFilters;
 
 function activeFilterCount(filters: VenueSearchFilters) {
   return [
@@ -33,44 +23,58 @@ function activeFilterCount(filters: VenueSearchFilters) {
     filters.province,
     filters.district,
     filters.subdistrict,
-    filters.availability !== "all" ? filters.availability : "",
-    filters.rating !== "all" ? filters.rating : "",
-    filters.courtCount !== "all" ? filters.courtCount : "",
-    filters.sort !== "rating" ? filters.sort : "",
+    filters.activity !== "all" ? filters.activity : "",
+    filters.sort !== "area" ? filters.sort : "",
   ].filter(Boolean).length;
 }
 
-function availabilityLabel(value: Court["availability"]) {
-  return value === "available" ? "มีคิวว่าง" : "ควรเช็กคิวก่อน";
+function pageHref(filters: VenueSearchFilters, page: number) {
+  const params = new URLSearchParams();
+  if (filters.q) params.set("q", filters.q);
+  if (filters.province) params.set("province", filters.province);
+  if (filters.district) params.set("district", filters.district);
+  if (filters.subdistrict) params.set("subdistrict", filters.subdistrict);
+  if (filters.activity !== "all") params.set("activity", filters.activity);
+  if (filters.sort !== "area") params.set("sort", filters.sort);
+  if (page > 1) params.set("page", String(page));
+  const query = params.toString();
+  return query ? `/venues?${query}` : "/venues";
 }
 
-function VenueCard({ court }: { court: Court }) {
+function areaPath(venue: DirectoryVenue) {
+  return [venue.subdistrict, venue.district, venue.province].filter(Boolean).join(" · ") || "ยังไม่ระบุพื้นที่";
+}
+
+function VenueCard({ venue }: { venue: DirectoryVenue }) {
+  const imageUrl = safeMediaUrl(venue.cover_image_url);
+  const sourceUrl = typeof venue.source_url === "string" && /^https?:\/\//u.test(venue.source_url) ? venue.source_url : null;
+  const areaMatch = areaLabel(venue.area_score);
+
   return (
-    <article id={court.id} className="venue-card venue-card--discovery">
+    <article className="venue-card venue-card--directory">
       <div className="venue-card__image" aria-hidden="true">
-        {court.imageUrl ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={court.imageUrl} alt="" />
-          </>
-        ) : <span>{court.image}</span>}
-        <small><MapPin size={12} /> {court.province}</small>
+        {imageUrl ? <img src={imageUrl} alt="" loading="lazy" /> : <span>🏸</span>}
+        <small><MapPin size={12} /> {areaMatch || "ทะเบียนสนาม"}</small>
       </div>
-      <div>
-        <div className="discovery-card__topline">
-          <span className={court.availability === "available" ? "discovery-status discovery-status--available" : "discovery-status"}>
-            {court.availability === "available" ? <CheckCircle2 size={12} /> : null} {availabilityLabel(court.availability)}
+      <div className="venue-card--directory__body">
+        <div className="directory-card__topline">
+          <span className={venue.open_groups > 0 ? "directory-status directory-status--open" : "directory-status"}>
+            {venue.open_groups > 0 ? <CheckCircle2 size={12} /> : null}
+            {venue.open_groups > 0 ? `${venue.open_groups} ก๊วนกำลังรับสมัคร` : "ยังไม่มีก๊วนเปิดรับ"}
           </span>
-          <span className="discovery-rating"><Star size={13} fill="currentColor" /> {court.rating}</span>
+          <span className="discovery-rating"><Star size={13} fill="currentColor" /> {venue.rating.toFixed(1)}</span>
         </div>
-        <h2>{court.name}</h2>
-        <p><MapPin size={14} /> {court.subdistrict} · {court.district}</p>
-        <p className="venue-card__address">{court.address} · {court.province}</p>
+        <h2><Link href={`/venues/${venue.id}`}>{venue.name}</Link></h2>
+        <p><MapPin size={14} /> {areaPath(venue)}</p>
+        <p className="venue-card__address">{venue.address || "ยังไม่มีข้อมูลที่อยู่"}</p>
         <div className="venue-card__stats">
-          <span><Navigation size={13} /> {court.distance}</span>
-          <span>🏟️ {court.courtCount} คอร์ท</span>
+          <span>🏸 {venue.completed_90} ก๊วนใน 90 วัน</span>
+          {venue.court_count !== null ? <span>🏟️ {venue.court_count} คอร์ท</span> : <span>ยังไม่ระบุจำนวนคอร์ท</span>}
         </div>
-        <Link href={`/venues/${court.id}`} className="discovery-card__link">ดูรายละเอียดสนาม <ArrowRight size={14} /></Link>
+        <div className="directory-card__links">
+          <Link href={`/venues/${venue.id}`} className="discovery-card__link">ดูรายละเอียด <ArrowRight size={14} /></Link>
+          {sourceUrl ? <a href={sourceUrl} target="_blank" rel="noreferrer" className="directory-source-link">แหล่งข้อมูล ↗</a> : null}
+        </div>
       </div>
     </article>
   );
@@ -82,14 +86,22 @@ export default function VenueSearchBrowser({
   totalCount,
   isLiveData = false,
   loadError,
+  authRequired = false,
+  profileArea,
 }: {
-  venues: Court[];
+  venues: DirectoryVenue[];
   filters: VenueSearchFilters;
   totalCount: number;
   isLiveData?: boolean;
   loadError?: string;
+  authRequired?: boolean;
+  profileArea?: string;
 }) {
   const filterCount = activeFilterCount(filters);
+  const pageSize = 24;
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
+  const previousPage = filters.page > 1 ? filters.page - 1 : null;
+  const nextPage = filters.page < pageCount ? filters.page + 1 : null;
 
   return (
     <main className="preview-page discovery-page">
@@ -105,36 +117,33 @@ export default function VenueSearchBrowser({
 
               <div className="groups-filter-toolbar">
                 <div className="groups-quick-filters">
-                  <label className="group-filter-control"><span>สถานะสนาม</span><div className="group-filter-select-wrap"><select name="availability" defaultValue={filters.availability}><option value="all">ทุกสถานะสนาม</option><option value="available">มีคิวว่าง</option></select><ChevronDown size={15} /></div></label>
-                  <label className="group-filter-control"><span>คะแนนรีวิว</span><div className="group-filter-select-wrap"><select name="rating" defaultValue={filters.rating}><option value="all">ทุกคะแนน</option><option value="4">4.0 ดาวขึ้นไป</option><option value="4.5">4.5 ดาวขึ้นไป</option></select><ChevronDown size={15} /></div></label>
-                  <label className="group-filter-control"><span>จำนวนคอร์ท</span><div className="group-filter-select-wrap"><select name="courtCount" defaultValue={filters.courtCount}><option value="all">ทุกขนาดสนาม</option><option value="5plus">อย่างน้อย 5 คอร์ท</option><option value="10plus">อย่างน้อย 10 คอร์ท</option></select><ChevronDown size={15} /></div></label>
+                  <label className="group-filter-control"><span>กิจกรรมที่สนาม</span><div className="group-filter-select-wrap"><select name="activity" defaultValue={filters.activity}><option value="all">ทุกสถานะกิจกรรม</option><option value="open">มีก๊วนเปิดรับ</option><option value="history">เคยจัดก๊วนใน 90 วัน</option></select><ChevronDown size={15} /></div></label>
+                  <label className="group-filter-control"><span>เรียงลำดับ</span><div className="group-filter-select-wrap"><select name="sort" defaultValue={filters.sort}><option value="area">พื้นที่ของคุณก่อน</option><option value="popular">ก๊วนที่จัดบ่อย</option><option value="open">ก๊วนที่กำลังรับสมัคร</option><option value="name">ชื่อสนาม A–Z</option></select><ChevronDown size={15} /></div></label>
                 </div>
 
-                <details className="groups-advanced-filter" open={Boolean(filters.province || filters.district || filters.subdistrict || filters.sort !== "rating")}>
+                <details className="groups-advanced-filter" open={Boolean(filters.province || filters.district || filters.subdistrict)}>
                   <summary><SlidersHorizontal size={16} /><span>ค้นหาแบบละเอียด</span><span>{filterCount > 0 ? `${filterCount} ตัวกรอง` : "จังหวัด / อำเภอ / ตำบล"}</span><ChevronDown size={16} /></summary>
                   <div className="groups-advanced-filter__body">
                     <ThaiAreaSelect mode="search" initialProvince={filters.province} initialDistrict={filters.district} initialSubdistrict={filters.subdistrict} />
-                    <p className="groups-filter-help"><MapPin size={14} />เลือกพื้นที่เพื่อค้นหาสนามใกล้คุณ ระบบจะเปิดเขตและตำบลตามจังหวัดที่เลือก</p>
-                    <div className="groups-secondary-filter-grid groups-secondary-filter-grid--two">
-                      <label className="group-filter-control"><span>เรียงลำดับ</span><div className="group-filter-select-wrap"><select name="sort" defaultValue={filters.sort}><option value="rating">คะแนนสูงสุด</option><option value="distance">ระยะทางใกล้สุด</option><option value="name">ชื่อสนาม A–Z</option></select><ChevronDown size={15} /></div></label>
-                    </div>
+                    <p className="groups-filter-help"><MapPin size={14} />ระบบจับคู่พื้นที่ตามจังหวัด → อำเภอ/เขต → ตำบล/แขวงจาก Profile ของคุณ ไม่คำนวณระยะทาง GPS</p>
                     <div className="groups-filter-actions"><Link href="/venues" className="group-secondary-action"><RotateCcw size={15} /> ล้างตัวกรอง</Link><button type="submit" className="group-primary-action"><Filter size={15} /> ใช้ตัวกรอง</button></div>
                   </div>
                 </details>
               </div>
             </form>
 
-            <div className="discovery-results-heading"><div><p className="muted-label">Find your court</p><h2>สนามแบดที่ตรงกับคุณ</h2></div><span>{totalCount} สนาม</span></div>
-            {loadError ? <div className="discovery-error" role="alert"><strong>โหลดข้อมูลสนามไม่สำเร็จ</strong><span>{loadError}</span><Link href="/venues" className="group-secondary-action"><RotateCcw size={15} /> ลองใหม่</Link></div> : venues.length > 0 ? <div className="venue-grid venue-grid--discovery">{venues.map((court) => <VenueCard key={court.id} court={court} />)}</div> : <div className="discovery-empty"><span>🗺️</span><h2>{isLiveData ? "ยังไม่มีสนามที่เปิดให้ค้นหา" : "ยังไม่พบสนามตามตัวกรอง"}</h2><p>{isLiveData ? "เมื่อมีสนามในระบบ สนามจะแสดงที่หน้านี้" : "ลองเปลี่ยนพื้นที่ คะแนน หรือจำนวนคอร์ท แล้วค้นหาอีกครั้ง"}</p><Link href="/venues" className="group-primary-action"><RotateCcw size={15} /> เริ่มค้นหาใหม่</Link></div>}
+            <div className="discovery-results-heading"><div><p className="muted-label">Find your court</p><h2>สนามแบดในระบบ</h2><small>{profileArea ? `พื้นที่ใน Profile: ${profileArea}` : "เลือกพื้นที่ใน Profile เพื่อจัดลำดับสนามตามพื้นที่"}</small></div><span>{totalCount.toLocaleString("th-TH")} สนาม</span></div>
+            {authRequired ? <div className="discovery-empty discovery-empty--login"><span>🔐</span><h2>เข้าสู่ระบบเพื่อค้นหาสนาม</h2><p>ระบบจะใช้จังหวัด อำเภอ/เขต และตำบล/แขวงจาก Profile เพื่อจัดลำดับให้คุณ โดยไม่ต้องใช้ GPS</p><Link href="/auth/login?next=/venues" className="group-primary-action">เข้าสู่ระบบ</Link></div> : loadError ? <div className="discovery-error" role="alert"><strong>โหลดข้อมูลสนามไม่สำเร็จ</strong><span>{loadError}</span><Link href="/venues" className="group-secondary-action"><RotateCcw size={15} /> ลองใหม่</Link></div> : venues.length > 0 ? <div className="venue-grid venue-grid--discovery venue-grid--directory">{venues.map((venue) => <VenueCard key={venue.id} venue={venue} />)}</div> : <div className="discovery-empty"><span>🗺️</span><h2>{isLiveData ? "ยังไม่พบสนามตามตัวกรอง" : "เข้าสู่ระบบเพื่อดูข้อมูลสนาม"}</h2><p>{isLiveData ? "ลองเปลี่ยนชื่อสนามหรือพื้นที่ แล้วค้นหาอีกครั้ง" : "รายชื่อสนามจะเชื่อมกับพื้นที่ใน Profile ของคุณ"}</p><Link href="/venues" className="group-primary-action"><RotateCcw size={15} /> เริ่มค้นหาใหม่</Link></div>}
+            {!authRequired && !loadError && totalCount > pageSize ? <nav className="directory-pagination" aria-label="แบ่งหน้ารายการสนาม"><span>หน้า {filters.page} / {pageCount}</span><div>{previousPage ? <Link href={pageHref(filters, previousPage)}>← ก่อนหน้า</Link> : <span aria-disabled="true">← ก่อนหน้า</span>}{nextPage ? <Link href={pageHref(filters, nextPage)}>ถัดไป →</Link> : <span aria-disabled="true">ถัดไป →</span>}</div></nav> : null}
           </section>
 
           <aside className="discovery-sidebar">
-            <VenueMap venues={venues} />
-            <section className="preview-panel preview-panel--soft discovery-tip-card"><p className="muted-label">Court guide</p><h2>เลือกสนามให้เหมาะกับคุณ</h2><ul><li><span>01</span>เช็กระยะทางและเวลาเดินทาง</li><li><span>02</span>ดูจำนวนคอร์ทก่อนชวนเพื่อน</li><li><span>03</span>กดเช็กคิวกับสนามอีกครั้งก่อนจอง</li></ul></section>
+            <section className="preview-panel preview-panel--soft discovery-tip-card"><p className="muted-label">Area directory</p><h2>ระบบสนามที่พร้อมต่อยอด</h2><ul><li><span>01</span>ค้นหาจากชื่อและที่อยู่สาธารณะ</li><li><span>02</span>จัดลำดับตามพื้นที่ใน Profile</li><li><span>03</span>ผูกสนามเดียวกันกับหลายก๊วนและกิจกรรม</li></ul><Link href="/venues/suggest" className="section-link">เสนอชื่อสนามที่ยังไม่มี <ArrowRight size={14} /></Link></section>
+            <section className="preview-panel preview-panel--soft discovery-tip-card discovery-tip-card--notice"><p>ข้อมูลจำนวนคอร์ท คิวว่าง และคะแนนจะแสดงเฉพาะเมื่อมีข้อมูลที่ยืนยันได้ ระบบจะไม่เดาพิกัดหรือสถานะจากชื่อสนาม</p></section>
           </aside>
         </div>
       </div>
-      <footer className="preview-footer"><Link href="/">Arena-Badminton</Link><span>{isLiveData ? "Live data · Supabase" : "Guest preview · เข้าสู่ระบบเพื่อดูข้อมูลจริง"}</span></footer>
+      <footer className="preview-footer"><Link href="/">Arena-Badminton</Link><span>{isLiveData ? "ทะเบียนสนาม · Supabase" : "เข้าสู่ระบบเพื่อดูข้อมูลจริง"}</span></footer>
     </main>
   );
 }

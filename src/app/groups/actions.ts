@@ -180,14 +180,34 @@ export async function createGroupAction(_previousState: GroupActionState, formDa
     selectedVenue = data;
   }
 
-  const locationParts = [
-    parsed.data.locationText ?? selectedVenue?.name,
-    parsed.data.subdistrict ?? selectedVenue?.subdistrict,
-    parsed.data.district ?? selectedVenue?.district,
-    parsed.data.province ?? selectedVenue?.province,
-    selectedVenue?.address,
-  ].filter(Boolean);
-  const searchableLocation = locationParts.join(" · ");
+  const locationParts = selectedVenue
+    ? [
+      selectedVenue.name,
+      parsed.data.locationText,
+      selectedVenue.subdistrict,
+      selectedVenue.district,
+      selectedVenue.province,
+      selectedVenue.address,
+    ].filter(Boolean)
+    : [
+      parsed.data.locationText,
+      parsed.data.subdistrict,
+      parsed.data.district,
+      parsed.data.province,
+    ].filter(Boolean);
+  let searchableLocation = locationParts.join(" · ");
+  // Keep the canonical venue and administrative hierarchy even when an
+  // imported address is long. The optional meeting-point text remains the
+  // first-class detail shown on the group.
+  if (selectedVenue && searchableLocation.length > 240) {
+    searchableLocation = [
+      selectedVenue.name,
+      parsed.data.locationText,
+      selectedVenue.subdistrict,
+      selectedVenue.district,
+      selectedVenue.province,
+    ].filter(Boolean).join(" · ");
+  }
   if (!searchableLocation) return { error: "กรุณาเลือกสนามหรือกรอกรายละเอียดสถานที่", fieldErrors: { locationText: ["กรุณากรอกจุดนัดพบ"] } };
   if (searchableLocation.length > 240) {
     return { error: "รายละเอียดพื้นที่ยาวเกินไป กรุณาลดความยาวลง", fieldErrors: { locationText: ["ลดความยาวสถานที่หรือพื้นที่ลง"] } };

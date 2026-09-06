@@ -26,16 +26,15 @@ type MemberRow = {
 
 type VenueRow = {
   id: string;
-  latitude: number | string | null;
-  longitude: number | string | null;
+  province: string | null;
+  district: string | null;
+  subdistrict: string | null;
 };
 
 type UserLocation = {
   province: string;
   district: string;
   subdistrict: string;
-  latitude: number | null;
-  longitude: number | null;
 };
 
 type RankedGroup = {
@@ -43,7 +42,6 @@ type RankedGroup = {
   organizerGroupCount: number;
   memberCount: number;
   locationMatchScore: number;
-  distanceKm: number | null;
   startsAtMs: number;
 };
 
@@ -71,23 +69,20 @@ function asNumber(value: unknown) {
 }
 
 function normalizedLocation(value: unknown) {
-  return asString(value)
+  const trimmed = asString(value).split(/\s*[—–-]\s*/u, 1)[0] ?? "";
+  if (/กรุงเทพ(?:มหานคร|ฯ)?/u.test(trimmed)) return "กรุงเทพมหานคร";
+  return trimmed
     .toLocaleLowerCase("th-TH")
-    .replace(/จังหวัด|กรุงเทพฯ|อำเภอ|เขต|ตำบล|แขวง/g, "")
+    .replace(/จังหวัด|อำเภอ|เขต|ตำบล|แขวง/g, "")
     .replace(/\s+/g, "");
 }
 
 function readUserLocation(profile: unknown): UserLocation {
   const profileRecord = (profile ?? {}) as Record<string, unknown>;
-  const latitude = asNumber(profileRecord.latitude);
-  const longitude = asNumber(profileRecord.longitude);
-
   return {
     province: normalizedLocation(profileRecord.province),
     district: normalizedLocation(profileRecord.district),
     subdistrict: normalizedLocation(profileRecord.subdistrict),
-    latitude: latitude !== null && latitude >= -90 && latitude <= 90 ? latitude : null,
-    longitude: longitude !== null && longitude >= -180 && longitude <= 180 ? longitude : null,
   };
 }
 
@@ -95,45 +90,18 @@ function hasUserLocation(location: UserLocation) {
   return Boolean(
     location.province ||
       location.district ||
-      location.subdistrict ||
-      (location.latitude !== null && location.longitude !== null),
+      location.subdistrict,
   );
 }
 
-function locationMatchScore(locationText: string, userLocation: UserLocation) {
+function getLocationMatchScore(locationText: string, userLocation: UserLocation) {
   const haystack = normalizedLocation(locationText);
   if (!haystack) return 0;
+  if (userLocation.province && !haystack.includes(userLocation.province)) return 0;
   if (userLocation.subdistrict && haystack.includes(userLocation.subdistrict)) return 3;
   if (userLocation.district && haystack.includes(userLocation.district)) return 2;
   if (userLocation.province && haystack.includes(userLocation.province)) return 1;
   return 0;
-}
-
-function distanceInKm(
-  latitude: number | null,
-  longitude: number | null,
-  userLocation: UserLocation,
-) {
-  if (
-    latitude === null ||
-    longitude === null ||
-    userLocation.latitude === null ||
-    userLocation.longitude === null
-  ) {
-    return null;
-  }
-
-  const toRadians = (value: number) => (value * Math.PI) / 180;
-  const earthRadiusKm = 6371;
-  const latitudeDelta = toRadians(latitude - userLocation.latitude);
-  const longitudeDelta = toRadians(longitude - userLocation.longitude);
-  const latitudeOne = toRadians(userLocation.latitude);
-  const latitudeTwo = toRadians(latitude);
-  const haversine =
-    Math.sin(latitudeDelta / 2) ** 2 +
-    Math.sin(longitudeDelta / 2) ** 2 * Math.cos(latitudeOne) * Math.cos(latitudeTwo);
-
-  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
 }
 
 function formatDate(startsAt: Date) {
@@ -168,14 +136,7 @@ function stableAvatarSet(id: string) {
 }
 
 function compareProximity(left: RankedGroup, right: RankedGroup) {
-  if (left.distanceKm !== null && right.distanceKm !== null) {
-    const distanceDifference = left.distanceKm - right.distanceKm;
-    if (Math.abs(distanceDifference) > 0.1) return distanceDifference;
-  } else if (left.locationMatchScore !== right.locationMatchScore) {
-    return right.locationMatchScore - left.locationMatchScore;
-  }
-
-  return 0;
+  return right.locationMatchScore - left.locationMatchScore;
 }
 
 export async function getRecommendedGroups(context: RecommendationContext): Promise<Group[]> {
@@ -226,14 +187,12 @@ export async function getRecommendedGroups(context: RecommendationContext): Prom
     organizerCounts.set(organizerGroup.owner_id, (organizerCounts.get(organizerGroup.owner_id) ?? 0) + 1);
   }
 
-  const venueIds = userLocation.latitude !== null && userLocation.longitude !== null
-    ? [...new Set(rows.map((row) => row.venue_id).filter((venueId): venueId is string => Boolean(venueId)))]
-    : [];
+  const venueIds = [...new Set(rows.map((row) => row.venue_id).filter((venueId): venueId is string => Boolean(venueId)))];
   let venues: VenueRow[] = [];
   if (venueIds.length > 0) {
     const venuesResult = await supabase
       .from("venues")
-      .select("id, latitude, longitude")
+      .select("id, province, district, subdistrict")
       .in("id", venueIds);
     if (!venuesResult.error) venues = (venuesResult.data ?? []) as VenueRow[];
   }
@@ -252,9 +211,16 @@ export async function getRecommendedGroups(context: RecommendationContext): Prom
       const minLevel = Math.min(99, Math.max(1, asNumber(row.min_level) ?? 1));
       const maxLevel = Math.min(99, Math.max(minLevel, asNumber(row.max_level) ?? 99));
       const venue = row.venue_id ? venueMap.get(row.venue_id) : undefined;
-      const venueLatitude = asNumber(venue?.latitude);
-      const venueLongitude = asNumber(venue?.longitude);
-      const distanceKm = distanceInKm(venueLatitude, venueLongitude, userLocation);
+      const venueProvince = normalizedLocation(venue?.province);
+      const venueDistrict = normalizedLocation(venue?.district);
+      const venueSubdistrict = normalizedLocation(venue?.subdistrict);
+      const locationMatchScore = venue
+        ? venueProvince && userLocation.province && venueProvince === userLocation.province
+          ? venueDistrict && userLocation.district && venueDistrict === userLocation.district
+            ? venueSubdistrict && userLocation.subdistrict && venueSubdistrict === userLocation.subdistrict ? 3 : 2
+            : 1
+          : 0
+        : getLocationMatchScore(row.location_text, userLocation);
       const organizerGroupCount = organizerCounts.get(row.owner_id) ?? 0;
       const nearFullLimit = Math.max(1, Math.ceil(capacity * 0.15));
 
@@ -273,21 +239,19 @@ export async function getRecommendedGroups(context: RecommendationContext): Prom
           avatars: stableAvatarSet(row.id),
           detailHref: `/groups/${row.id}`,
           organizerGroupCount,
-          ...(distanceKm !== null ? { distanceKm: Math.round(distanceKm * 10) / 10 } : {}),
         },
         organizerGroupCount,
         memberCount,
-        locationMatchScore: locationMatchScore(row.location_text, userLocation),
-        distanceKm,
+        locationMatchScore,
         startsAtMs: startsAt.getTime(),
       };
     })
     .filter((item): item is RankedGroup => item !== null);
 
   const userHasLocation = hasUserLocation(userLocation);
-  // Never recommend a full group. When a profile has location data, proximity
-  // is the first ranking signal; organizer history and current occupancy then
-  // break ties. Without a location, organizer history leads the ranking.
+  // Never recommend a full group. When a profile has administrative area data,
+  // the same subdistrict/district/province is the first ranking signal. No GPS
+  // coordinates or kilometer estimates are used here.
   ranked.sort((left, right) => {
     if (userHasLocation) {
       const proximityDifference = compareProximity(left, right);

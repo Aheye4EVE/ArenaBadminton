@@ -2,6 +2,7 @@ import type { AuthenticatedProfileContext } from "@/lib/supabase-server";
 import { shouldShowQaData } from "@/lib/config";
 import type { Court, Event } from "@/lib/demo-data";
 import { safeMediaUrl } from "@/lib/safe-media-url";
+import { searchVenues, type DirectoryFilters, type DirectoryVenue } from "@/lib/venue-directory";
 
 export type HomepageLiveData = {
   featuredEvents: Event[];
@@ -33,12 +34,12 @@ type LiveVenueRow = {
   district: string | null;
   subdistrict: string | null;
   address: string | null;
-  latitude: number | string | null;
-  longitude: number | string | null;
   cover_image_url: string | null;
-  court_count: number | string;
+  court_count: number | string | null;
   rating: number | string | null;
   availability: string | null;
+  area_score?: number;
+  open_groups?: number;
 };
 
 function asNumber(value: unknown) {
@@ -48,27 +49,6 @@ function asNumber(value: unknown) {
 
 function cleanText(value: unknown, maxLength: number) {
   return typeof value === "string" ? value.trim().replace(/\s+/g, " ").slice(0, maxLength) : "";
-}
-
-function validCoordinate(value: number | null, min: number, max: number) {
-  return value !== null && value >= min && value <= max ? value : null;
-}
-
-function distanceInKm(
-  latitude: number | null,
-  longitude: number | null,
-  userLatitude: number | null,
-  userLongitude: number | null,
-) {
-  if (latitude === null || longitude === null || userLatitude === null || userLongitude === null) return null;
-  const toRadians = (value: number) => (value * Math.PI) / 180;
-  const latitudeDelta = toRadians(latitude - userLatitude);
-  const longitudeDelta = toRadians(longitude - userLongitude);
-  const latitudeOne = toRadians(userLatitude);
-  const latitudeTwo = toRadians(latitude);
-  const haversine = Math.sin(latitudeDelta / 2) ** 2
-    + Math.sin(longitudeDelta / 2) ** 2 * Math.cos(latitudeOne) * Math.cos(latitudeTwo);
-  return 6371 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
 }
 
 function formatDate(value: string) {
@@ -83,16 +63,16 @@ function formatDate(value: string) {
   }).format(date);
 }
 
-function mapVenue(row: LiveVenueRow, userLatitude: number | null, userLongitude: number | null): Court {
+function mapVenue(row: LiveVenueRow | DirectoryVenue): Court {
   const name = cleanText(row.name, 160) || "สนามแบดมินตัน";
   const province = cleanText(row.province, 80);
   const district = cleanText(row.district, 80);
   const subdistrict = cleanText(row.subdistrict, 80);
   const address = cleanText(row.address, 240) || "ยังไม่มีข้อมูลที่อยู่";
-  const latitude = validCoordinate(asNumber(row.latitude), -90, 90);
-  const longitude = validCoordinate(asNumber(row.longitude), -180, 180);
-  const distanceKm = distanceInKm(latitude, longitude, userLatitude, userLongitude);
   const rating = Math.min(5, Math.max(0, asNumber(row.rating) ?? 0));
+  const areaScore = Math.min(3, Math.max(0, Math.trunc(asNumber("area_score" in row ? row.area_score : 0) ?? 0)));
+  const areaText = areaScore === 3 ? "ตำบล / แขวงเดียวกับคุณ" : areaScore === 2 ? "อำเภอ / เขตเดียวกับคุณ" : areaScore === 1 ? "จังหวัดเดียวกับคุณ" : "สนามในทะเบียน";
+  const openGroups = Math.max(0, Math.trunc(asNumber("open_groups" in row ? row.open_groups : 0) ?? 0));
 
   return {
     id: row.id,
@@ -101,15 +81,15 @@ function mapVenue(row: LiveVenueRow, userLatitude: number | null, userLongitude:
     province,
     subdistrict,
     address,
-    courtCount: Math.max(1, Math.round(asNumber(row.court_count) ?? 1)),
-    availability: row.availability === "waitlist" ? "waitlist" : "available",
-    distance: distanceKm === null ? "ยังไม่ระบุระยะทาง" : `${distanceKm.toFixed(1)} km`,
-    distanceKm: distanceKm ?? Number.MAX_SAFE_INTEGER,
+    courtCount: Math.max(0, Math.round(asNumber(row.court_count) ?? 0)),
+    availability: openGroups > 0 ? "available" : "waitlist",
+    distance: areaText,
+    distanceKm: Number.MAX_SAFE_INTEGER,
     rating: rating.toFixed(1),
     image: "🏟️",
     imageUrl: safeMediaUrl(row.cover_image_url),
-    latitude: latitude ?? 0,
-    longitude: longitude ?? 0,
+    latitude: 0,
+    longitude: 0,
   };
 }
 
@@ -154,9 +134,6 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
   const { supabase, user, profile } = context;
   if (!supabase || !user) return null;
 
-  const userLatitude = validCoordinate(asNumber(profile?.latitude), -90, 90);
-  const userLongitude = validCoordinate(asNumber(profile?.longitude), -180, 180);
-
   let tournamentsQuery = supabase
     .from("tournaments")
     .select("id, title, description, starts_at, format, max_entries, venue_id")
@@ -166,13 +143,15 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
     .limit(6);
   if (!shouldShowQaData()) tournamentsQuery = tournamentsQuery.not("title", "like", "[QA ONLY]%");
 
-  let venuesQuery = supabase
-    .from("venues")
-    .select("id, name, province, district, subdistrict, address, latitude, longitude, cover_image_url, court_count, rating, availability")
-    .eq("status", "active")
-    .order("rating", { ascending: false })
-    .limit(50);
-  if (!shouldShowQaData()) venuesQuery = venuesQuery.not("name", "like", "[QA ONLY]%");
+  const venueFilters: DirectoryFilters = {
+    q: "",
+    province: typeof profile?.province === "string" ? profile.province : "",
+    district: typeof profile?.district === "string" ? profile.district : "",
+    subdistrict: typeof profile?.subdistrict === "string" ? profile.subdistrict : "",
+    sort: "area",
+    activity: "open",
+    page: 1,
+  };
 
   const marketplaceQuery = supabase
     .from("marketplace_listings")
@@ -185,13 +164,16 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
 
   const [tournamentsResult, venuesResult, marketplaceResult] = await Promise.all([
     tournamentsQuery,
-    venuesQuery,
+    searchVenues(supabase, venueFilters, 3).catch(() => null),
     marketplaceQuery,
   ]);
 
   const tournamentRows = (tournamentsResult.data ?? []) as Array<Record<string, unknown>>;
-  const venueRows = (venuesResult.data ?? []) as LiveVenueRow[];
-  const venueMap = new Map(venueRows.map((venue) => [venue.id, venue]));
+  const tournamentVenueIds = [...new Set(tournamentRows.map((row) => typeof row.venue_id === "string" ? row.venue_id : "").filter(Boolean))];
+  const { data: tournamentVenueRows } = tournamentVenueIds.length > 0
+    ? await supabase.from("venues").select("id, name, province, district, subdistrict, address, cover_image_url, court_count, rating, availability").in("id", tournamentVenueIds)
+    : { data: [] as LiveVenueRow[] };
+  const venueMap = new Map(((tournamentVenueRows ?? []) as LiveVenueRow[]).map((venue) => [venue.id, venue]));
 
   let featuredEvents: Event[] = [];
   let eventsError = Boolean(tournamentsResult.error);
@@ -213,14 +195,7 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
     });
   }
 
-  const mappedVenues = !venuesResult.error
-    ? venueRows.map((row) => mapVenue(row, userLatitude, userLongitude))
-    : [];
-  const hasUserCoordinates = userLatitude !== null && userLongitude !== null;
-  mappedVenues.sort((left, right) => {
-    if (hasUserCoordinates && left.distanceKm !== right.distanceKm) return left.distanceKm - right.distanceKm;
-    return Number(right.rating) - Number(left.rating);
-  });
+  const mappedVenues = venuesResult ? venuesResult.items.map(mapVenue) : [];
 
   let marketplaceRows: Array<Record<string, unknown>> = [];
   let marketplaceSortMode: HomepageLiveData["marketplaceSortMode"] = "views";
@@ -250,7 +225,7 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
     marketplaceSortMode,
     errors: {
       events: eventsError,
-      venues: Boolean(venuesResult.error),
+      venues: venuesResult === null,
       marketplace: marketplaceError,
     },
   };

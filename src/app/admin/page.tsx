@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { AlertTriangle, ArrowRight, Award, Gem, MailCheck, Settings2, ShieldCheck, Store, Swords, UserCog, Users } from "lucide-react";
+import { AlertTriangle, ArrowRight, Award, Gem, MailCheck, MapPin, Settings2, ShieldCheck, Store, Swords, UserCog, Users } from "lucide-react";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 
 export const metadata: Metadata = { title: "Admin Console | Arena-Badminton" };
@@ -55,6 +55,14 @@ const adminTools = [
     title: "ตรวจสอบ Report",
     description: "ดูแลรายงานจาก Community, สนาม, Guild และ Marketplace พร้อมบันทึกผลการตรวจสอบ",
     tone: "admin-hub-card--gold",
+  },
+  {
+    href: "/admin/venues",
+    icon: MapPin,
+    eyebrow: "Venue Registry",
+    title: "ตรวจสอบทะเบียนสนาม",
+    description: "ตรวจสอบชื่อสนามและพื้นที่จากข้อเสนอของ Community ก่อนเผยแพร่เข้าสู่ระบบกลาง",
+    tone: "admin-hub-card--purple",
   },
   {
     href: "/admin/auth",

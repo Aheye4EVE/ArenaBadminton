@@ -4,16 +4,9 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, Clock3, Coins, MapPin, Shield, Users } from "lucide-react";
 import { createGroupAction, type GroupActionState } from "@/app/groups/actions";
-import ThaiAreaSelect from "@/components/thai-area-select";
+import VenuePicker, { type VenuePickerVenue } from "@/components/venue-picker";
 
-export type OrganizerVenueOption = {
-  id: string;
-  name: string;
-  province: string | null;
-  district: string | null;
-  subdistrict: string | null;
-  address: string | null;
-};
+export type OrganizerVenueOption = VenuePickerVenue;
 
 export type OrganizerGuildOption = {
   id: string;
@@ -30,7 +23,7 @@ function fieldClass(state: GroupActionState, field: string) {
   return errorFor(state, field) ? "group-form-field group-form-field--error" : "group-form-field";
 }
 
-export default function CreateGroupForm({ minimumDate, venues, guilds = [] }: { minimumDate: string; venues: OrganizerVenueOption[]; guilds?: OrganizerGuildOption[] }) {
+export default function CreateGroupForm({ minimumDate, initialVenue, guilds = [] }: { minimumDate: string; initialVenue?: OrganizerVenueOption | null; guilds?: OrganizerGuildOption[] }) {
   const [state, formAction, isPending] = useActionState(createGroupAction, {});
 
   return (
@@ -49,12 +42,7 @@ export default function CreateGroupForm({ minimumDate, venues, guilds = [] }: { 
       <div className="group-form__grid">
         <label className={`${fieldClass(state, "venueId")} group-form-field--venue`}>
           <span><MapPin size={15} /> เลือกสนามจากระบบ <b>*</b></span>
-          <div className="group-form-select-wrap">
-            <select name="venueId" defaultValue="" required={venues.length > 0} aria-describedby="group-venue-help">
-              <option value="">{venues.length > 0 ? "เลือกสนามแบดมินตัน" : "ยังไม่มีสนามที่เปิดให้เลือก"}</option>
-              {venues.map((venue) => <option key={venue.id} value={venue.id}>{venue.name} · {[venue.district, venue.province].filter(Boolean).join(" · ")}</option>)}
-            </select>
-          </div>
+          <VenuePicker initialVenue={initialVenue} venueError={errorFor(state, "venueId")} provinceError={errorFor(state, "province")} districtError={errorFor(state, "district")} subdistrictError={errorFor(state, "subdistrict")} />
           {errorFor(state, "venueId") ? <small>{errorFor(state, "venueId")}</small> : null}
         </label>
         <label className={fieldClass(state, "locationText")}>
@@ -69,13 +57,7 @@ export default function CreateGroupForm({ minimumDate, venues, guilds = [] }: { 
         </label>
       </div>
 
-      <ThaiAreaSelect
-        mode="form"
-        provinceError={errorFor(state, "province")}
-        districtError={errorFor(state, "district")}
-        subdistrictError={errorFor(state, "subdistrict")}
-      />
-      <p id="group-venue-help" className="group-form__location-help"><MapPin size={15} />เลือกสนามจากข้อมูล Google Maps/สนามในระบบ แล้วกรอกจุดนัดพบและพื้นที่เพื่อให้ก๊วนถูกค้นหาเจอง่ายขึ้น</p>
+      <p id="group-venue-help" className="group-form__location-help"><MapPin size={15} />พิมพ์ชื่อสนามเพื่อค้นหาอัตโนมัติ ระบบจะเติมจังหวัด อำเภอ/เขต และตำบล/แขวงจากทะเบียนสนามให้เอง หรือเลือกพื้นที่ด้วยตัวเองเมื่อยังไม่มีสนามในทะเบียน</p>
 
       <label className={`${fieldClass(state, "guildId")} group-form-field--full`}>
         <span><Shield size={15} /> อ้างอิง Guild <small>(ไม่บังคับ)</small></span>

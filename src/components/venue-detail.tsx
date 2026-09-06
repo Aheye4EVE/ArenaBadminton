@@ -6,11 +6,11 @@ import Link from "next/link";
 import { ArrowLeft, ExternalLink, MapPin, MessageCircle, Navigation, ShieldAlert, Star } from "lucide-react";
 import VenueReviewForm from "@/components/venue-review-form";
 
-export type VenueDetailData = { id: string; name: string; address: string; province: string | null; district: string | null; subdistrict: string | null; courtCount: number; rating: number; availability: string; latitude: number | null; longitude: number | null; coverImageUrl: string | null };
+export type VenueDetailData = { id: string; name: string; address: string; province: string | null; district: string | null; subdistrict: string | null; courtCount: number | null; rating: number; availability: string; coverImageUrl: string | null; sourceUrl: string | null; verifiedAt: string | null; openGroupCount: number; completedGroupCount: number };
 export type VenueReviewData = { id: string; rating: number; body: string; createdAt: string; userId: string; displayName: string; handle: string; avatarUrl: string | null };
 
 function mapsUrl(venue: VenueDetailData) {
-  const query = venue.latitude !== null && venue.longitude !== null ? `${venue.latitude},${venue.longitude}` : [venue.name, venue.address, venue.district, venue.province].filter(Boolean).join(", ");
+  const query = [venue.name, venue.address, venue.subdistrict, venue.district, venue.province].filter(Boolean).join(", ");
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
@@ -37,8 +37,9 @@ export default function VenueDetail({ venue, reviews, initialReview, signedIn }:
 
         <div className="venue-detail-stats">
           <div><Star size={18} fill="currentColor" /><span><small>คะแนนเฉลี่ย</small><strong>{venue.rating.toFixed(1)} / 5</strong></span></div>
-          <div><span>🏟️</span><span><small>จำนวนคอร์ท</small><strong>{venue.courtCount} คอร์ท</strong></span></div>
-          <div><span>●</span><span><small>สถานะ</small><strong>{venue.availability === "available" ? "มีคิวว่าง" : "ควรเช็กคิว"}</strong></span></div>
+          <div><span>🏟️</span><span><small>จำนวนคอร์ท</small><strong>{venue.courtCount === null ? "ยังไม่ระบุ" : `${venue.courtCount} คอร์ท`}</strong></span></div>
+          <div><span>👥</span><span><small>ก๊วนที่เปิดรับ</small><strong>{venue.openGroupCount} ก๊วน</strong></span></div>
+          <div><span>📅</span><span><small>จัดก๊วนแล้ว</small><strong>{venue.completedGroupCount} ก๊วน</strong></span></div>
           <div><ShieldAlert size={18} /><span><small>ความปลอดภัย</small><strong>รายงานได้</strong></span></div>
         </div>
 
@@ -53,7 +54,7 @@ export default function VenueDetail({ venue, reviews, initialReview, signedIn }:
           </aside>
         </div>
 
-        <footer className="venue-detail-footer"><Link href="/venues"><ArrowLeft size={14} /> กลับรายการสนาม</Link><Link href={`/moderation/report?targetType=venue&targetId=${venue.id}&returnTo=/venues/${venue.id}`} className="venue-review-report"><ShieldAlert size={13} /> รายงานข้อมูลสนาม</Link><span>ข้อมูลสนามและรีวิวจากผู้เล่น Arena</span></footer>
+        <footer className="venue-detail-footer"><Link href="/venues"><ArrowLeft size={14} /> กลับรายการสนาม</Link>{venue.sourceUrl ? <a href={venue.sourceUrl} target="_blank" rel="noreferrer"><ExternalLink size={13} /> แหล่งข้อมูล</a> : null}<Link href={`/moderation/report?targetType=venue&targetId=${venue.id}&returnTo=/venues/${venue.id}`} className="venue-review-report"><ShieldAlert size={13} /> รายงานข้อมูลสนาม</Link><span>{venue.verifiedAt ? "มีการบันทึกแหล่งอ้างอิงแล้ว" : "ข้อมูลสนามจากทะเบียน Community"}</span></footer>
       </div>
     </main>
   );
