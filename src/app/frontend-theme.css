@@ -838,8 +838,7 @@
     width: 9px;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity-copy > p {
-    margin: 1px 0 4px;
-    margin-bottom: 2px;
+    margin: 1px 0 2px;
     font-size: .4rem;
     line-height: 1;
   }
