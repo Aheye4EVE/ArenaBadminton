@@ -54,18 +54,14 @@
 .frontend-shell :is(.groups-shell, .matches-shell, .shop-live-shell, .profile-overview-shell, .community-live-shell, .notifications-shell, .guilds-shell, .guild-create-shell, .guild-detail-shell, .guild-manage-shell, .tournament-create-shell, .tournament-detail-shell, .venue-detail-shell, .marketplace-shell, .marketplace-detail-shell, .friends-shell) { width: min(1240px, calc(100% - 40px)); padding-top: 16px; }
 .frontend-shell :is(.preview-header, .preview-content, .preview-footer) { width: min(1240px, calc(100% - 40px)); }
 
-/* Navigation stays accessible on every inner page. */
-.frontend-navigation { position: relative; z-index: 45; display: flex; align-items: center; gap: 16px; width: min(1520px, calc(100% - 40px)); margin: 0 auto; padding-top: 18px; }
+/* The global menu is the single navigation entry point on every customer page. */
+.frontend-header { position: relative; z-index: 95; display: flex; align-items: center; gap: 16px; width: min(1520px, calc(100% - 40px)); margin: 0 auto; padding-top: 18px; }
 .frontend-brand { flex: 0 0 145px; display: grid; line-height: .91; transform: rotate(-3deg); font-family: var(--font-fredoka), sans-serif; font-weight: 700; filter: drop-shadow(0 3px 1px #7355b444); }
 .frontend-brand > span { color: #ff86a7; font-size: 34px; -webkit-text-stroke: 4px white; paint-order: stroke fill; }
 .frontend-brand strong { color: #a25be6; font-size: 25px; font-weight: 700; -webkit-text-stroke: 3px white; paint-order: stroke fill; }
 .frontend-brand__sparkle { padding-left: 5px; color: #ffe088; font-size: 22px; }
-.frontend-navigation__links { display: flex; align-items: center; justify-content: center; flex: 1; gap: 3px; min-width: 0; padding: 7px; border: 2px solid #fff; border-radius: 28px; background: linear-gradient(110deg, #fff8ffef, #edf6fff0); box-shadow: var(--shadow); }
-.frontend-navigation__links a { display: flex; justify-content: center; align-items: center; gap: 7px; min-height: 43px; padding: 9px 10px; border-radius: 19px; color: #482c7a; white-space: nowrap; font-size: .78rem; font-weight: 500; transition: background .18s ease, color .18s ease; }
-.frontend-navigation__links a:hover, .frontend-navigation__links a[aria-current="page"] { background: #fff; color: #df2e87; box-shadow: 0 3px 12px #b985ca17; }
-.frontend-navigation__links svg { flex-shrink: 0; }
-.frontend-navigation__actions { display: flex; flex: 0 0 auto; gap: 7px; }
-.frontend-navigation__actions a { display: grid; place-items: center; width: 44px; height: 44px; background: #fffffff2; border: 2px solid white; border-radius: 50%; color: #923baa; box-shadow: var(--soft-shadow); }
+.frontend-header__actions { display: flex; flex: 0 0 auto; gap: 7px; margin-left: auto; }
+.frontend-header__actions a { display: grid; place-items: center; width: 44px; height: 44px; background: #fffffff2; border: 2px solid white; border-radius: 50%; color: #923baa; box-shadow: var(--soft-shadow); }
 .frontend-footer { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 14px 24px; width: min(1240px, calc(100% - 40px)); margin: 12px auto 0; padding: 16px 24px 22px; font-size: .78rem; color: #523582; border-radius: 24px 24px 0 0; background: #fcf7ffeb; }
 .frontend-footer > span:first-child { color: #9948c3; font-size: 1rem; font-weight: 600; }
 .frontend-footer a { font-weight: 500; color: #b3378c; }
@@ -472,7 +468,7 @@
   .frontend-shell :is(.group-row__meta, .event-row__meta, .court-row__meta) { font-size: .73rem; }
   .frontend-shell .dashboard-rail { grid-template-columns: 1fr; }
   .frontend-shell .join-card { grid-column: auto; }
-  .frontend-shell .dashboard-area { padding-bottom: 95px; }
+  .frontend-shell .dashboard-area { padding-bottom: 24px; }
   .frontend-navigation { width: calc(100% - 24px); padding-top: 12px; gap: 10px; }
   .frontend-brand { flex-basis: 125px; }
   .frontend-brand > span { font-size: 29px; }
@@ -1378,5 +1374,158 @@
   .frontend-shell .desktop-nav__item {
     flex: 0 0 auto;
     padding-inline: 9px;
+  }
+}
+
+/* One shared menu control replaces the old desktop navbar and the separate
+   mobile-only menu. It is intentionally viewport-bound so page-level cards
+   cannot push it into an overlapping position on inner routes. */
+.frontend-shell .arena-menu {
+  position: relative;
+  z-index: 120;
+  flex: 0 0 auto;
+}
+.frontend-shell .arena-menu__trigger {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  padding: 7px;
+  border: 2px solid #fff;
+  border-radius: 20px;
+  color: #8859e7;
+  background: #ffffffed;
+  box-shadow: 0 8px 20px #ab55d32b;
+  cursor: pointer;
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.frontend-shell .arena-menu__trigger:hover,
+.frontend-shell .arena-menu__trigger--open {
+  background: #fff;
+  box-shadow: 0 11px 25px #9d55d144;
+  transform: translateY(-2px);
+}
+.frontend-shell .arena-menu__trigger img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 3px #704aab2b);
+}
+.frontend-shell .arena-menu__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: #40236b14;
+  backdrop-filter: blur(2px);
+  cursor: default;
+}
+.frontend-shell .arena-menu__panel {
+  position: fixed;
+  top: clamp(76px, 11svh, 118px);
+  left: clamp(12px, 3vw, 48px);
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: min(430px, calc(100vw - 24px));
+  max-height: min(76svh, 650px);
+  overflow: auto;
+  padding: 14px;
+  border: 2px solid #fff;
+  border-radius: 25px;
+  background: #fffbfff7;
+  box-shadow: 0 22px 65px #59347742;
+  scrollbar-width: thin;
+  scrollbar-color: #c9a5e9 transparent;
+}
+.frontend-shell .arena-menu__panel a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  color: #4e2d7b;
+  font-size: .85rem;
+  font-weight: 600;
+  line-height: 1.25;
+  transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+.frontend-shell .arena-menu__panel a:hover,
+.frontend-shell .arena-menu__panel a[aria-current="page"] {
+  border-color: #efd8f2;
+  color: #d3348e;
+  background: linear-gradient(135deg, #fff1f9, #f5f0ff);
+  transform: translateX(2px);
+}
+.frontend-shell .arena-menu__panel a svg {
+  flex: 0 0 auto;
+  color: #a65bd2;
+}
+.frontend-shell .arena-menu__panel a span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.frontend-shell .frontend-header {
+  gap: 16px;
+}
+.frontend-shell .frontend-header__actions {
+  min-width: 0;
+}
+
+@media (max-width: 680px) {
+  .frontend-shell .frontend-header {
+    width: calc(100% - 24px);
+    gap: 10px;
+    padding-top: 12px;
+  }
+  .frontend-shell .frontend-header .arena-menu__trigger,
+  .frontend-shell .arena-header .arena-menu__trigger {
+    width: 43px;
+    height: 43px;
+    padding: 5px;
+    border-radius: 16px;
+  }
+  .frontend-shell .frontend-header .frontend-brand {
+    flex: 0 1 125px;
+    min-width: 0;
+  }
+  .frontend-shell .frontend-header__actions {
+    gap: 5px;
+  }
+  .frontend-shell .frontend-header__actions a {
+    width: 42px;
+    height: 42px;
+  }
+  .frontend-shell .arena-menu__panel {
+    top: 68px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-height: min(78svh, 600px);
+    padding: 11px;
+    border-radius: 22px;
+  }
+  .frontend-shell .arena-menu__panel a {
+    min-height: 45px;
+    padding: 10px;
+    font-size: .8rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .frontend-shell .arena-menu__panel {
+    grid-template-columns: 1fr;
   }
 }

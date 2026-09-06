@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import {
   ArrowRight,
@@ -14,60 +14,23 @@ import {
   Eye,
   Filter,
   Gem,
-  Home,
   MapPin,
-  MapPinned,
-  Menu,
-  MessageCircle,
   Navigation,
-  Plus,
   PackageSearch,
   Search,
-  Shield,
-  ShoppingCart,
   Sparkles,
   Star,
-  Store,
   Trophy,
-  UserRound,
   Users,
-  X,
 } from "lucide-react";
-import { courts as demoCourts, events as demoEvents, groups, navItems, type Court, type Event, type Group } from "@/lib/demo-data";
+import { courts as demoCourts, events as demoEvents, groups, type Court, type Event, type Group } from "@/lib/demo-data";
+import ArenaMenu from "@/components/arena-menu";
 import AccountMenu from "@/components/account-menu";
 import ThaiAreaSelect from "@/components/thai-area-select";
 import type { HomepageMarketplaceListing } from "@/lib/home-data";
 import type { HeaderProfileSummary } from "@/types/profile";
 
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
-
-function NavIcon({ name, size = 18 }: { name: string; size?: number }) {
-  const props = { size, strokeWidth: 2.15 };
-  switch (name) {
-    case "home":
-      return <Home {...props} />;
-    case "users":
-      return <Users {...props} />;
-    case "shield":
-      return <Shield {...props} />;
-    case "search":
-      return <Search {...props} />;
-    case "map":
-      return <MapPinned {...props} />;
-    case "calendar":
-      return <CalendarDays {...props} />;
-    case "shopping-cart":
-      return <ShoppingCart {...props} />;
-    case "trophy":
-      return <Trophy {...props} />;
-    case "message":
-      return <MessageCircle {...props} />;
-    case "store":
-      return <Store {...props} />;
-    default:
-      return <Sparkles {...props} />;
-  }
-}
 
 function AvatarStack({ avatars }: { avatars: string[] }) {
   return (
@@ -255,7 +218,6 @@ export default function ArenaHome({
   isLiveData?: boolean;
 }) {
   const router = useRouter();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchType, setSearchType] = useState("ก๊วน");
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("ทั้งหมด");
@@ -298,31 +260,13 @@ export default function ArenaHome({
       <section className="hero-stage">
         <div className="hero-container relative z-10 mx-auto max-w-[1540px] px-4 pb-16 pt-5 sm:px-6 lg:px-8">
           <header className="arena-header flex items-center gap-3">
-            <button
-              type="button"
-              className="menu-button"
-              aria-label={mobileMenuOpen ? "ปิดเมนู" : "เปิดเมนู"}
-              aria-expanded={mobileMenuOpen}
-              aria-controls="arena-menu"
-              onClick={() => setMobileMenuOpen((open) => !open)}
-            >
-              {mobileMenuOpen ? <X size={22} /> : <Menu size={23} />}
-            </button>
+            <ArenaMenu />
 
             <Link href="/" className="brand-lockup" aria-label="Arena Badminton หน้าหลัก">
               <span className="brand-lockup__word">Arena</span>
               <span className="brand-lockup__sub">Badminton</span>
               <span className="brand-lockup__tag"><span className="font-english" lang="en">Community</span> ของคนรักแบดมินตัน</span>
             </Link>
-
-            <nav className="desktop-nav" aria-label="เมนูหลัก">
-              {navItems.map((item, index) => (
-                <Link key={item.href + item.label} href={item.href} aria-label={item.label} title={item.label} aria-current={index === 0 ? "page" : undefined} className={cx("desktop-nav__item", index === 0 && "desktop-nav__item--active")}>
-                  <NavIcon name={item.icon} size={17} />
-                  <span lang={/^[A-Za-z]+$/.test(item.label) ? "en" : "th"}>{item.label}</span>
-                </Link>
-              ))}
-            </nav>
 
             <div className="header-actions">
               <Link href="/notifications" className="icon-action" aria-label="การแจ้งเตือน">
@@ -335,26 +279,6 @@ export default function ArenaHome({
               <AccountMenu account={account} isAuthenticated={isAuthenticated} />
             </div>
           </header>
-
-          <AnimatePresence>
-            {mobileMenuOpen ? (
-              <motion.nav
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mobile-menu"
-                id="arena-menu"
-                aria-label="เมนูทั้งหมด"
-                onKeyDown={(event) => { if (event.key === "Escape") setMobileMenuOpen(false); }}
-              >
-                {navItems.map((item) => (
-                  <Link key={item.href + item.label} href={item.href} onClick={() => setMobileMenuOpen(false)}>
-                    <NavIcon name={item.icon} size={17} /> {item.label}
-                  </Link>
-                ))}
-              </motion.nav>
-            ) : null}
-          </AnimatePresence>
 
           <div className="hero-copy">
             <motion.p
@@ -550,14 +474,6 @@ export default function ArenaHome({
           </section>
         </div>
       </main>
-
-      <nav className="mobile-bottom-nav" aria-label="เมนูหลักมือถือ">
-        <Link href="/" className="mobile-bottom-nav__item mobile-bottom-nav__item--active"><Home size={19} /><span>หน้าหลัก</span></Link>
-        <Link href="/groups" className="mobile-bottom-nav__item"><Search size={19} /><span>ค้นหา</span></Link>
-        <Link href="/organizer" className="mobile-bottom-nav__create"><Plus size={22} /></Link>
-        <Link href="/ranking" className="mobile-bottom-nav__item"><Trophy size={19} /><span lang="en">Ranking</span></Link>
-        <Link href="/profile" className="mobile-bottom-nav__item"><UserRound size={19} /><span lang="en">Profile</span></Link>
-      </nav>
 
     </div>
   );

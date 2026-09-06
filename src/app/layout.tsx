@@ -22,6 +22,11 @@ const mitr = Mitr({
 export const metadata: Metadata = {
   title: "Arena-Badminton",
   description: "หาก๊วนง่าย นัดตีสะดวก เพื่อนใหม่เพียบ",
+  icons: {
+    icon: "/assets/arena-shuttle-menu.png",
+    shortcut: "/assets/arena-shuttle-menu.png",
+    apple: "/assets/arena-shuttle-menu.png",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
