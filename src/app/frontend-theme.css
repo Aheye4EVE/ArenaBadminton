@@ -126,6 +126,7 @@
 .frontend-shell .dashboard-card--groups { background-image: linear-gradient(90deg, #ffe6f5f7 0%, #ffe9f5e6 42%, #ffe8f566 100%), url("/assets/home-card-groups-v1.png"); }
 .frontend-shell .dashboard-card--events { background-image: linear-gradient(90deg, #f3ecfff7 0%, #f0eaffeb 42%, #e3ddff62 100%), url("/assets/home-card-events-v1.png"); }
 .frontend-shell .dashboard-card--venues { background-image: linear-gradient(90deg, #ddfbfbf7 0%, #e1faf5eb 42%, #c9f3ee62 100%), url("/assets/home-card-venues-v1.png"); }
+.frontend-shell .dashboard-card--marketplace { background-image: linear-gradient(90deg, #fff0e8f7 0%, #fce9f1eb 42%, #e9e2ff62 100%), url("/assets/home-card-marketplace-v1.png"); }
 .frontend-shell .dashboard-card .mb-4 > div { min-width: 0; }
 .frontend-shell .section-title { overflow: hidden; color: #443077; font-size: 1.18rem; font-weight: 600; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
 .frontend-shell .section-eyebrow { font-size: .74rem; }
@@ -134,6 +135,19 @@
 .frontend-shell .section-eyebrow--mint { color: #118b89; }
 .frontend-shell .section-link { font-size: .75rem; color: #9744c2; }
 .frontend-shell .court-illustration { display: block; width: calc(100% + 32px); height: auto; max-height: 145px; margin: -5px -16px 12px; filter: drop-shadow(0 7px 5px #9566bf17); }
+.frontend-shell .marketplace-home-sort-note { display: inline-flex; align-items: center; gap: 5px; margin: -8px 0 10px; color: #9a6c87; font-size: .68rem; font-weight: 700; }
+.frontend-shell .marketplace-home-list { display: grid; gap: 9px; }
+.frontend-shell .marketplace-home-item { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto 16px; align-items: center; gap: 9px; min-width: 0; min-height: 60px; padding: 7px 9px 7px 7px; border: 1px solid #fff; border-radius: 17px; background: #fffafcf0; box-shadow: 0 4px 13px #945bb113; color: #493274; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.frontend-shell .marketplace-home-item:hover { border-color: #e8a8c4; box-shadow: 0 8px 18px #945bb124; transform: translateY(-2px); }
+.frontend-shell .marketplace-home-item__image { display: grid; width: 52px; height: 52px; place-items: center; overflow: hidden; border-radius: 13px; background: linear-gradient(135deg, #f8ddf2, #e2ddff); color: #8d68c5; }
+.frontend-shell .marketplace-home-item__image img { width: 100%; height: 100%; object-fit: cover; }
+.frontend-shell .marketplace-home-item__body { display: grid; min-width: 0; gap: 2px; }
+.frontend-shell .marketplace-home-item__body strong { overflow: hidden; color: #493274; font-size: .77rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .marketplace-home-item__body small { display: inline-flex; min-width: 0; align-items: center; gap: 3px; overflow: hidden; color: #927e9b; font-size: .61rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .marketplace-home-item__price { color: #c54f9b; font-size: .71rem; font-weight: 900; }
+.frontend-shell .marketplace-home-item__status { max-width: 64px; padding: 4px 5px; border-radius: 999px; background: #e5faed; color: #389b6c; font-size: .56rem; font-weight: 800; text-align: center; white-space: nowrap; }
+.frontend-shell .marketplace-home-item__status--reserved { background: #fff1d9; color: #b77b33; }
+.frontend-shell .marketplace-home-item__arrow { color: #ab6bc6; }
 .frontend-shell :is(.group-row, .event-row, .court-row) { background: #fffcfff2; border: 1px solid #fff; border-radius: 18px; box-shadow: 0 4px 13px #945bb113; }
 .frontend-shell .group-row__title, .frontend-shell .event-row__title, .frontend-shell .court-row__title { font-size: .85rem; color: #3e2d6a; }
 .frontend-shell :is(.group-row__meta, .event-row__meta, .court-row__meta) { color: #786a90; }
@@ -745,6 +759,7 @@
 }
 
 @media (min-width: 1181px) {
+  .frontend-shell .dashboard-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .frontend-shell .arena-page--with-profile-card {
     --arena-profile-dock-space: clamp(230px, 20vw, 292px);
     --arena-home-content-max: clamp(780px, 66vw, 880px);

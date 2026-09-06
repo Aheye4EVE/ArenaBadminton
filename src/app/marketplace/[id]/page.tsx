@@ -14,6 +14,9 @@ export default async function MarketplaceDetailPage({ params }: { params: Promis
   if (!supabase || !user) redirect(`/auth/login?message=auth_required&next=/marketplace/${id}`);
   const { data: row } = await supabase.from("marketplace_listings").select("id, seller_id, title, description, category, condition_grade, price, province, district, subdistrict, image_url, status, created_at").eq("id", id).maybeSingle();
   if (!row) notFound();
+  if (row.status === "active" || row.status === "reserved") {
+    await supabase.rpc("record_marketplace_listing_view", { p_listing_id: id });
+  }
   const [{ data: seller }, { data: orders }] = await Promise.all([
     supabase.from("public_profile_directory").select("id, display_name, handle, avatar_url, level").eq("id", row.seller_id).maybeSingle(),
     supabase.from("marketplace_orders").select("id, buyer_id, seller_id, status, message, created_at, updated_at").eq("listing_id", id).order("created_at", { ascending: false }),

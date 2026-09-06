@@ -11,6 +11,7 @@ import {
   CalendarDays,
   ChevronDown,
   Dumbbell,
+  Eye,
   Filter,
   Gem,
   Home,
@@ -20,6 +21,7 @@ import {
   MessageCircle,
   Navigation,
   Plus,
+  PackageSearch,
   Search,
   Shield,
   ShoppingCart,
@@ -34,6 +36,7 @@ import {
 import { courts as demoCourts, events as demoEvents, groups, navItems, type Court, type Event, type Group } from "@/lib/demo-data";
 import AccountMenu from "@/components/account-menu";
 import ThaiAreaSelect from "@/components/thai-area-select";
+import type { HomepageMarketplaceListing } from "@/lib/home-data";
 import type { HeaderProfileSummary } from "@/types/profile";
 
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
@@ -201,12 +204,38 @@ function CourtCard({ court, index }: { court: Court; index: number }) {
   );
 }
 
+const marketplaceCategoryLabels: Record<string, string> = { racket: "ไม้แบด", shoes: "รองเท้า", bag: "กระเป๋า", apparel: "เสื้อผ้า", equipment: "อุปกรณ์", other: "อื่น ๆ" };
+const marketplaceConditionLabels: Record<string, string> = { new: "ของใหม่", like_new: "เหมือนใหม่", good: "สภาพดี", fair: "มีร่องรอย", for_parts: "ขายตามสภาพ" };
+
+function MarketplaceHomeRow({ listing }: { listing: HomepageMarketplaceListing }) {
+  return (
+    <Link href={`/marketplace/${listing.id}`} className="marketplace-home-item">
+      <span className="marketplace-home-item__image" aria-hidden="true">
+        {listing.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={listing.imageUrl} alt="" loading="lazy" />
+        ) : <PackageSearch size={22} />}
+      </span>
+      <span className="marketplace-home-item__body">
+        <strong>{listing.title}</strong>
+        <small><Eye size={12} /> {listing.viewCount.toLocaleString("th-TH")} ครั้ง · {marketplaceCategoryLabels[listing.category] ?? listing.category}</small>
+        <span className="marketplace-home-item__price">฿{listing.price.toLocaleString("th-TH", { maximumFractionDigits: 2 })}</span>
+      </span>
+      <span className={cx("marketplace-home-item__status", listing.status === "reserved" && "marketplace-home-item__status--reserved")}>
+        {listing.status === "reserved" ? "มีคนจอง" : marketplaceConditionLabels[listing.conditionGrade] ?? listing.conditionGrade}
+      </span>
+      <ArrowRight className="marketplace-home-item__arrow" size={16} aria-hidden="true" />
+    </Link>
+  );
+}
+
 export default function ArenaHome({
   account,
   isAuthenticated,
   recommendedGroups,
   featuredEvents,
   featuredCourts,
+  featuredMarketplaceListings,
   homeDataErrors,
   isLiveData = false,
 }: {
@@ -215,9 +244,11 @@ export default function ArenaHome({
   recommendedGroups?: Group[];
   featuredEvents?: Event[];
   featuredCourts?: Court[];
+  featuredMarketplaceListings?: HomepageMarketplaceListing[];
   homeDataErrors?: {
     events: boolean;
     venues: boolean;
+    marketplace: boolean;
   };
   isLiveData?: boolean;
 }) {
@@ -230,6 +261,7 @@ export default function ArenaHome({
   const homepageGroups = recommendedGroups ?? groups;
   const homepageEvents = isLiveData ? (featuredEvents ?? []) : demoEvents;
   const homepageCourts = isLiveData ? (featuredCourts ?? []) : demoCourts;
+  const homepageMarketplaceListings = isLiveData ? (featuredMarketplaceListings ?? []) : [];
 
   const visibleGroups = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -499,6 +531,14 @@ export default function ArenaHome({
                   <SectionHeading title="สนามแบดแนะนำ" href="/venues" tone="mint" />
                   <div className="space-y-2">
                     {homeDataErrors?.venues ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลสนามจริงไม่สำเร็จ ลองเปิดหน้าสนามอีกครั้ง</p><Link href="/venues" className="section-link">เปิดสนาม <ArrowRight size={14} /></Link></div> : homepageCourts.length > 0 ? homepageCourts.map((court, index) => <CourtCard key={court.id} court={court} index={index} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีสนามที่เปิดให้ค้นหา" : "ยังไม่พบสนาม"}</p></div>}
+                  </div>
+                </section>
+
+                <section className="dashboard-card dashboard-card--marketplace">
+                  <SectionHeading title="สินค้ามือสอง" href="/marketplace" tone="purple" />
+                  <p className="marketplace-home-sort-note"><Eye size={13} /> เรียงจากยอดเข้าชมสูงสุด · รายการที่ยังไม่ขาย</p>
+                  <div className="marketplace-home-list">
+                    {homeDataErrors?.marketplace ? <div className="empty-card" role="alert"><PackageSearch size={21} /><p>โหลดข้อมูลตลาดมือสองไม่สำเร็จ</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div> : homepageMarketplaceListings.length > 0 ? homepageMarketplaceListings.map((listing) => <MarketplaceHomeRow key={listing.id} listing={listing} />) : <div className="empty-card"><PackageSearch size={21} /><p>{isLiveData ? "ยังไม่มีสินค้าที่เปิดขาย" : "เข้าสู่ตลาดมือสองเพื่อดูสินค้าจาก Community"}</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div>}
                   </div>
                 </section>
               </div>

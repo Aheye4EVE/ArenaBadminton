@@ -6,10 +6,23 @@ import { safeMediaUrl } from "@/lib/safe-media-url";
 export type HomepageLiveData = {
   featuredEvents: Event[];
   featuredCourts: Court[];
+  featuredMarketplaceListings: HomepageMarketplaceListing[];
   errors: {
     events: boolean;
     venues: boolean;
+    marketplace: boolean;
   };
+};
+
+export type HomepageMarketplaceListing = {
+  id: string;
+  title: string;
+  category: string;
+  conditionGrade: string;
+  price: number;
+  imageUrl: string | null;
+  status: "active" | "reserved";
+  viewCount: number;
 };
 
 type LiveVenueRow = {
@@ -122,6 +135,20 @@ function mapEvent(row: Record<string, unknown>, venue?: LiveVenueRow, index = 0)
   };
 }
 
+function mapMarketplaceListing(row: Record<string, unknown>): HomepageMarketplaceListing {
+  const status = row.status === "reserved" ? "reserved" : "active";
+  return {
+    id: typeof row.id === "string" ? row.id : "",
+    title: cleanText(row.title, 160) || "สินค้าแบดมินตัน",
+    category: cleanText(row.category, 40) || "equipment",
+    conditionGrade: cleanText(row.condition_grade, 40) || "good",
+    price: Math.max(0, asNumber(row.price) ?? 0),
+    imageUrl: safeMediaUrl(row.image_url),
+    status,
+    viewCount: Math.max(0, Math.trunc(asNumber(row.view_count) ?? 0)),
+  };
+}
+
 export async function getHomepageLiveData(context: AuthenticatedProfileContext): Promise<HomepageLiveData | null> {
   const { supabase, user, profile } = context;
   if (!supabase || !user) return null;
@@ -146,9 +173,19 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
     .limit(50);
   if (!shouldShowQaData()) venuesQuery = venuesQuery.not("name", "like", "[QA ONLY]%");
 
-  const [tournamentsResult, venuesResult] = await Promise.all([
+  const marketplaceQuery = supabase
+    .from("marketplace_listings")
+    .select("id, title, category, condition_grade, price, image_url, status, view_count")
+    .in("status", ["active", "reserved"])
+    .order("view_count", { ascending: false })
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(4);
+
+  const [tournamentsResult, venuesResult, marketplaceResult] = await Promise.all([
     tournamentsQuery,
     venuesQuery,
+    marketplaceQuery,
   ]);
 
   const tournamentRows = (tournamentsResult.data ?? []) as Array<Record<string, unknown>>;
@@ -184,12 +221,18 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
     return Number(right.rating) - Number(left.rating);
   });
 
+  const featuredMarketplaceListings = !marketplaceResult.error
+    ? ((marketplaceResult.data ?? []) as Array<Record<string, unknown>>).map(mapMarketplaceListing).filter((listing) => listing.id)
+    : [];
+
   return {
     featuredEvents,
     featuredCourts: mappedVenues.slice(0, 3),
+    featuredMarketplaceListings,
     errors: {
       events: eventsError,
       venues: Boolean(venuesResult.error),
+      marketplace: Boolean(marketplaceResult.error),
     },
   };
 }
