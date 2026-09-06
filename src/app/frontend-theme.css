@@ -1547,3 +1547,138 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* The supplied Arena artwork is the single visual brand across customer and
+   admin routes. Keep the original text in the DOM for accessible link names,
+   but present the attached artwork consistently in the rendered UI. */
+.frontend-shell .brand-lockup,
+.frontend-shell .frontend-brand {
+  display: block;
+  height: auto;
+  min-height: 0;
+  line-height: 0;
+  background: none;
+  overflow: visible;
+}
+.frontend-shell .brand-lockup {
+  width: clamp(142px, 13vw, 178px);
+  min-width: 142px;
+  flex: 0 1 clamp(142px, 13vw, 178px);
+  transform: rotate(-1deg);
+}
+.frontend-shell .frontend-brand {
+  width: 145px;
+  min-width: 115px;
+  flex: 0 1 145px;
+  aspect-ratio: 1466 / 799;
+}
+.frontend-shell .brand-lockup > img,
+.frontend-shell .frontend-brand > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 3px #7355b444);
+}
+
+:is(.auth-brand, .preview-brand, .community-live-brand, .notifications-brand,
+    .marketplace-brand, .messages-brand, .groups-brand, .guilds-brand,
+    .shop-live-brand, .profile-overview-brand, .admin-users-brand,
+    .admin-hub-brand, .admin-shop-brand, .admin-trophy-brand, .bp-rules-brand) {
+  display: block !important;
+  width: clamp(130px, 18vw, 180px);
+  min-width: 0;
+  flex: 0 1 180px;
+  aspect-ratio: 1466 / 799;
+  height: auto;
+  min-height: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: transparent !important;
+  background: url("/assets/arena-logo.png") center / contain no-repeat !important;
+  overflow: hidden;
+  text-indent: -9999px;
+  white-space: nowrap;
+}
+:is(.auth-brand, .preview-brand, .community-live-brand, .notifications-brand,
+    .marketplace-brand, .messages-brand, .groups-brand, .guilds-brand,
+    .shop-live-brand, .profile-overview-brand, .admin-users-brand,
+    .admin-hub-brand, .admin-shop-brand, .admin-trophy-brand, .bp-rules-brand) > * {
+  color: transparent !important;
+  background: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+}
+
+/* Generated transparent artwork replaces the old text-only hero treatment
+   without changing the semantic h1/p elements used by the page. */
+.frontend-shell .hero-kicker {
+  display: flex;
+  width: min(100%, 315px);
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 2px;
+  font-size: 0;
+  line-height: 0;
+  -webkit-text-stroke: 0;
+}
+.frontend-shell .hero-kicker img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+.frontend-shell .hero-title {
+  display: block;
+  width: min(100%, 760px);
+  margin: 0;
+  line-height: 0;
+  font-size: 0;
+  letter-spacing: normal;
+  filter: drop-shadow(0 5px 0 #ab7bc745) drop-shadow(0 0 7px #fff8);
+}
+.frontend-shell .hero-title img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+.frontend-shell .account-profile__footer {
+  justify-content: flex-end;
+}
+
+@media (max-width: 680px) {
+  .frontend-shell .brand-lockup {
+    width: 112px;
+    min-width: 0;
+    flex-basis: 112px;
+    margin-right: auto;
+  }
+  .frontend-shell .frontend-brand {
+    width: 112px;
+    min-width: 0;
+    flex-basis: 112px;
+  }
+  .frontend-shell .hero-kicker {
+    width: min(100%, 280px);
+  }
+  .frontend-shell .hero-title {
+    width: min(100%, 640px);
+  }
+  :is(.auth-brand, .preview-brand, .community-live-brand, .notifications-brand,
+      .marketplace-brand, .messages-brand, .groups-brand, .guilds-brand,
+      .shop-live-brand, .profile-overview-brand, .admin-users-brand,
+      .admin-hub-brand, .admin-shop-brand, .admin-trophy-brand, .bp-rules-brand) {
+    width: 130px;
+    flex-basis: 130px;
+  }
+}
+
+@media (max-width: 420px) {
+  .frontend-shell .account-profile__footer {
+    align-items: flex-end;
+  }
+}

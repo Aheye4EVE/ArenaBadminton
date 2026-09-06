@@ -23,9 +23,9 @@ export const metadata: Metadata = {
   title: "Arena-Badminton",
   description: "หาก๊วนง่าย นัดตีสะดวก เพื่อนใหม่เพียบ",
   icons: {
-    icon: "/assets/arena-shuttle-menu.png",
-    shortcut: "/assets/arena-shuttle-menu.png",
-    apple: "/assets/arena-shuttle-menu.png",
+    icon: "/assets/arena-logo-favicon.png",
+    shortcut: "/assets/arena-logo-favicon.png",
+    apple: "/assets/arena-logo-favicon.png",
   },
 };
 

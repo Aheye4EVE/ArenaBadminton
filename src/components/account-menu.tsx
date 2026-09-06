@@ -17,7 +17,6 @@ import {
   Gem,
   LockKeyhole,
   LogOut,
-  Medal,
   Sparkles,
   ShieldCheck,
   Trophy,
@@ -352,7 +351,6 @@ function ProfileSummaryCard({ account, onClose, desktop = false }: { account: He
       </div>
 
       <div className="account-profile__footer">
-        <span><Medal size={15} /> ชนะแล้ว {formatNumber(account.stats.wins)} แมตช์</span>
         <form action={signOut}>
           <button type="submit"><LogOut size={15} /> ออกจากระบบ</button>
         </form>

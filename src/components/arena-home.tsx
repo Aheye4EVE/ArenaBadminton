@@ -1,19 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { useMemo, useState, type CSSProperties, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import {
   ArrowRight,
   BarChart3,
-  Bell,
   CalendarDays,
   ChevronDown,
   Dumbbell,
   Eye,
   Filter,
-  Gem,
   MapPin,
   Navigation,
   PackageSearch,
@@ -263,19 +262,10 @@ export default function ArenaHome({
             <ArenaMenu />
 
             <Link href="/" className="brand-lockup" aria-label="Arena Badminton หน้าหลัก">
-              <span className="brand-lockup__word">Arena</span>
-              <span className="brand-lockup__sub">Badminton</span>
-              <span className="brand-lockup__tag"><span className="font-english" lang="en">Community</span> ของคนรักแบดมินตัน</span>
+              <Image src="/assets/arena-logo.png" alt="Arena-Badminton" width={1466} height={799} priority />
             </Link>
 
             <div className="header-actions">
-              <Link href="/notifications" className="icon-action" aria-label="การแจ้งเตือน">
-                <Bell size={19} />
-                {account && account.unreadNotificationCount > 0 ? <span className="notification-dot">{Math.min(99, account.unreadNotificationCount)}</span> : null}
-              </Link>
-              <Link href="/shop" className="gem-balance" aria-label={account ? `ยอด Diamond ${account.gemsBalance}` : "ยอด Diamond ต้องเข้าสู่ระบบก่อน"}>
-                <Gem size={18} fill="currentColor" /> <span>{account ? account.gemsBalance.toLocaleString("th-TH") : "—"}</span>
-              </Link>
               <AccountMenu account={account} isAuthenticated={isAuthenticated} />
             </div>
           </header>
@@ -287,7 +277,7 @@ export default function ArenaHome({
               transition={{ duration: 0.5 }}
               className="hero-kicker"
             >
-              <span>♡</span> <span lang="en">Find your game</span> <span>♡</span>
+              <Image src="/assets/hero-find-your-game.png" alt="Find your game" width={2048} height={768} priority />
             </motion.p>
             <motion.h1
               initial={{ opacity: 0, y: 14 }}
@@ -296,7 +286,7 @@ export default function ArenaHome({
               className="hero-title"
               aria-label="Arena-Badminton"
             >
-              {Array.from("Arena-Badminton").map((letter, index) => <span key={index} aria-hidden="true" style={{ "--letter-color": ["#ff4f9e", "#ff6da9", "#ff8587", "#ffa54c", "#ffc642", "#ffcc4b", "#abcf41", "#47cdb6", "#29c6e5", "#4bafff", "#7094ff", "#9280f2", "#a871ed", "#a260e8", "#aa5fe3"][index] } as CSSProperties}>{letter}</span>)}
+              <Image src="/assets/arena-title-mascot.png" alt="Arena-Badminton" width={2135} height={736} priority />
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 12 }}

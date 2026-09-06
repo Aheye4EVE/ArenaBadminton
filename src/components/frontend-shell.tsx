@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Bell, UserRound } from "lucide-react";
@@ -18,7 +19,7 @@ export default function FrontendShell({ children }: { children: ReactNode }) {
       <a className="frontend-skip-link" href="#arena-content">ข้ามไปเนื้อหา</a>
       {!home ? <header className="frontend-header">
         <ArenaMenu key={pathname} />
-        <Link className="frontend-brand" href="/" aria-label="Arena-Badminton หน้าหลัก"><span lang="en">Arena<span className="frontend-brand__sparkle" aria-hidden="true">✦</span></span><strong lang="en">Badminton</strong></Link>
+        <Link className="frontend-brand" href="/" aria-label="Arena-Badminton หน้าหลัก"><Image src="/assets/arena-logo.png" alt="Arena-Badminton" width={1466} height={799} priority /></Link>
         <div className="frontend-header__actions"><Link href="/notifications" aria-label="การแจ้งเตือน"><Bell size={19} /></Link><Link href="/profile" aria-label="โปรไฟล์ของฉัน"><UserRound size={20} /></Link></div>
       </header> : null}
       <div id="arena-content" className="frontend-content" tabIndex={-1}>{children}</div>
