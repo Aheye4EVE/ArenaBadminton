@@ -767,6 +767,10 @@
     --arena-profile-dock-space: clamp(230px, 20vw, 292px);
     --arena-home-content-max: clamp(780px, 66vw, 880px);
     --arena-profile-center-shift: calc((var(--arena-profile-dock-space) + 20px) / 2);
+    --arena-profile-card-width: min(clamp(295px, 22.176vw, 362px), calc(100% - 16px));
+    --arena-profile-card-right: clamp(10px, 1.25vw, 22px);
+    --arena-profile-safe-gap: 16px;
+    --arena-search-content-max: min(var(--arena-home-content-max), calc(100% - var(--arena-profile-card-right) - var(--arena-profile-card-right) - var(--arena-profile-card-width) - var(--arena-profile-card-width) - var(--arena-profile-safe-gap) - var(--arena-profile-safe-gap)));
   }
   .frontend-shell .account-menu--has-desktop-card {
     position: relative;
@@ -822,6 +826,9 @@
     margin-right: 0;
     margin-left: 0;
     transform: translateX(var(--arena-profile-center-shift));
+  }
+  .frontend-shell .arena-page--with-profile-card .hero-copy .search-shell {
+    width: min(100%, var(--arena-search-content-max));
   }
   .frontend-shell .arena-page--with-profile-card .dashboard-area > div {
     width: min(calc(100% - var(--arena-profile-dock-space) - 20px), var(--arena-home-content-max));
