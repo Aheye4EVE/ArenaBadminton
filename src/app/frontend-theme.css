@@ -640,6 +640,248 @@
 .frontend-shell .account-popover--profile .account-profile__metrics strong { font-size: .73rem; }
 .frontend-shell .account-popover--profile .account-profile__footer { margin-top: 8px; padding-top: 8px; font-size: .57rem; }
 
+/* Mobile and tablet profile popovers use the same information order as the
+   desktop dock, while the panel itself is centered inside an 80% viewport
+   frame so every edge keeps a deliberate breathing space. */
+@media (max-width: 1180px) {
+  .frontend-shell .account-popover--profile {
+    top: 10svh;
+    right: 10vw;
+    bottom: auto;
+    left: 10vw;
+    width: auto;
+    height: min(80svh, calc(100svh - 24px));
+    max-height: none;
+    border-radius: 27px;
+  }
+  .frontend-shell .account-popover--profile .account-profile {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(8px, 1.5vw, 12px);
+    row-gap: 0;
+    align-content: space-between;
+    min-height: 100%;
+    padding: clamp(18px, 2.6vw, 24px);
+    border-radius: 25px;
+  }
+  .frontend-shell .account-popover--profile .account-profile > :is(.account-profile__topline, .account-profile__identity, .account-profile__record, .account-profile__level, .account-profile__stats, .account-profile__quick-actions, .account-profile__footer) {
+    grid-column: 1 / -1;
+  }
+  .frontend-shell .account-popover--profile .account-auth__eyebrow {
+    gap: 5px;
+    font-size: .85rem;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__topline {
+    gap: 6px;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__identity {
+    align-items: flex-start;
+    gap: clamp(9px, 1.5vw, 13px);
+    margin-top: 12px;
+  }
+  .frontend-shell .account-popover--profile .account-avatar--large {
+    width: clamp(82px, 13vw, 112px);
+    height: clamp(82px, 13vw, 112px);
+    border-width: 3px;
+    box-shadow: 0 0 0 3px rgba(246, 92, 168, .18), 0 9px 20px rgba(111, 86, 190, .14);
+  }
+  .frontend-shell .account-popover--profile .account-avatar--large .account-avatar__status {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__identity-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-top: 1px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__name-row {
+    gap: 3px;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__name-row h2 {
+    font-size: clamp(1.15rem, 2.1vw, 1.3rem);
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__name-row svg {
+    width: 16px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__identity-copy > p {
+    margin: 2px 0 6px;
+    font-size: .8rem;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__title-pill,
+  .frontend-shell .account-popover--profile .account-profile__rank-pill {
+    max-width: 100%;
+    padding: 3px 7px;
+    font-size: .72rem;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__rank-pill {
+    margin-top: 2px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__score-row {
+    gap: 4px;
+    margin-top: 5px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__score-card {
+    gap: 4px;
+    min-height: 30px;
+    padding: 4px 5px;
+    border-radius: 9px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__score-card > svg {
+    width: 13px;
+    height: 13px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__score-card small {
+    font-size: .65rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-popover--profile .account-profile__score-card strong {
+    font-size: .9rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-popover--profile .account-profile__points-row {
+    gap: 4px;
+    margin-top: 4px;
+    padding: 4px 5px;
+    border-radius: 9px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__points-balance {
+    gap: 4px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__points-balance > svg {
+    width: 13px;
+    height: 13px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__points-balance small {
+    font-size: .64rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-popover--profile .account-profile__points-balance strong {
+    font-size: .85rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-popover--profile .account-profile__points-topup {
+    gap: 2px;
+    padding: 3px 5px;
+    border-radius: 7px;
+    font-size: .68rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-popover--profile .account-profile__record {
+    gap: 4px;
+    margin-top: 9px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__record-item {
+    gap: 3px;
+    min-height: 35px;
+    padding: 5px 2px;
+    border-radius: 9px;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-popover--profile .account-profile__record-item > svg {
+    width: 13px;
+    height: 13px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__record-item small {
+    font-size: .64rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-popover--profile .account-profile__record-item strong {
+    font-size: .9rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-popover--profile .account-profile__level {
+    margin-top: 12px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__level-row {
+    gap: 6px;
+    font-size: .92rem;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__level-row strong {
+    font-size: .8rem;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__level-track {
+    height: 6px;
+    margin-top: 5px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__stats {
+    gap: 0;
+    margin: 12px 0 8px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__stats > div {
+    gap: 1px;
+    padding: 7px 2px;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__stats svg {
+    width: 16px;
+    height: 16px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__stats strong {
+    margin-top: 2px;
+    font-size: 1.15rem;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__stats span {
+    font-size: .8rem;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__quick-actions {
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__quick-actions .account-profile__social-link {
+    gap: 2px;
+    min-height: 42px;
+    padding: 5px 2px;
+    border-radius: 9px;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-popover--profile .account-profile__quick-actions .account-profile__social-link > svg:first-child {
+    width: 13px;
+    height: 13px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__quick-actions .account-profile__social-link strong {
+    font-size: .76rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-popover--profile .account-profile__quick-actions .account-profile__social-link small {
+    font-size: .62rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-popover--profile .account-profile__quick-actions .account-profile__social-link > svg:last-child {
+    right: 3px;
+    bottom: 3px;
+    width: 9px;
+    height: 9px;
+  }
+  .frontend-shell .account-popover--profile .account-profile__footer {
+    gap: 5px;
+    margin-top: 7px;
+    padding-top: 7px;
+    font-size: .68rem;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__footer > span,
+  .frontend-shell .account-popover--profile .account-profile__footer button {
+    gap: 4px;
+    font-size: .68rem;
+    line-height: 1.1;
+  }
+  .frontend-shell .account-popover--profile .account-profile__footer svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
 @media (max-width: 900px) {
   .frontend-shell .profile-overview-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
