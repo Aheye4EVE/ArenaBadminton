@@ -1,6 +1,7 @@
 import type { getAuthenticatedProfile } from "@/lib/supabase-server";
 import { groups as demoGroups, type Group } from "@/lib/demo-data";
 import { shouldShowQaData } from "@/lib/config";
+import { haversineDistanceKm, normalizeCoordinates, type GeoCoordinates } from "@/lib/geolocation";
 
 type RecommendationContext = Awaited<ReturnType<typeof getAuthenticatedProfile>>;
 
@@ -8,6 +9,7 @@ type GroupRow = {
   id: string;
   owner_id: string;
   venue_id: string | null;
+  guild_id: string | null;
   title: string;
   location_text: string;
   starts_at: string;
@@ -26,15 +28,23 @@ type MemberRow = {
 
 type VenueRow = {
   id: string;
+  name: string | null;
   province: string | null;
   district: string | null;
   subdistrict: string | null;
+  latitude: number | string | null;
+  longitude: number | string | null;
 };
 
 type UserLocation = {
   province: string;
   district: string;
   subdistrict: string;
+  coordinates: GeoCoordinates | null;
+};
+
+export type RecommendationOptions = {
+  coordinates?: GeoCoordinates | null;
 };
 
 type RankedGroup = {
@@ -42,6 +52,8 @@ type RankedGroup = {
   organizerGroupCount: number;
   memberCount: number;
   locationMatchScore: number;
+  distanceKm: number | null;
+  guildPriority: number;
   startsAtMs: number;
 };
 
@@ -83,6 +95,7 @@ function readUserLocation(profile: unknown): UserLocation {
     province: normalizedLocation(profileRecord.province),
     district: normalizedLocation(profileRecord.district),
     subdistrict: normalizedLocation(profileRecord.subdistrict),
+    coordinates: normalizeCoordinates(profileRecord.latitude, profileRecord.longitude),
   };
 }
 
@@ -135,17 +148,13 @@ function stableAvatarSet(id: string) {
   return avatarSets[hash % avatarSets.length];
 }
 
-function compareProximity(left: RankedGroup, right: RankedGroup) {
-  return right.locationMatchScore - left.locationMatchScore;
-}
-
-export async function getRecommendedGroups(context: RecommendationContext): Promise<Group[]> {
+export async function getRecommendedGroups(context: RecommendationContext, options: RecommendationOptions = {}): Promise<Group[]> {
   const { supabase, user, profile } = context;
   if (!supabase || !user) return fallbackGroups();
 
   let groupQuery = supabase
     .from("groups")
-    .select("id, owner_id, venue_id, title, location_text, starts_at, duration_minutes, capacity, min_level, max_level, play_type, status")
+    .select("id, owner_id, venue_id, guild_id, title, location_text, starts_at, duration_minutes, capacity, min_level, max_level, play_type, status")
     .eq("status", "published")
     .gt("starts_at", new Date().toISOString())
     .order("starts_at", { ascending: true })
@@ -192,11 +201,15 @@ export async function getRecommendedGroups(context: RecommendationContext): Prom
   if (venueIds.length > 0) {
     const venuesResult = await supabase
       .from("venues")
-      .select("id, province, district, subdistrict")
+      .select("id, name, province, district, subdistrict, latitude, longitude")
       .in("id", venueIds);
     if (!venuesResult.error) venues = (venuesResult.data ?? []) as VenueRow[];
   }
   const venueMap = new Map(venues.map((venue) => [venue.id, venue]));
+  const requestedCoordinates = options.coordinates
+    ? normalizeCoordinates(options.coordinates.latitude, options.coordinates.longitude)
+    : null;
+  const userCoordinates = requestedCoordinates ?? userLocation.coordinates;
 
   const ranked = rows
     .map((row, index): RankedGroup | null => {
@@ -221,6 +234,10 @@ export async function getRecommendedGroups(context: RecommendationContext): Prom
             : 1
           : 0
         : getLocationMatchScore(row.location_text, userLocation);
+      const venueCoordinates = normalizeCoordinates(venue?.latitude, venue?.longitude);
+      const distanceKm = userCoordinates && venueCoordinates
+        ? haversineDistanceKm(userCoordinates, venueCoordinates)
+        : null;
       const organizerGroupCount = organizerCounts.get(row.owner_id) ?? 0;
       const nearFullLimit = Math.max(1, Math.ceil(capacity * 0.15));
 
@@ -229,6 +246,7 @@ export async function getRecommendedGroups(context: RecommendationContext): Prom
           id: row.id,
           title: asString(row.title) || "ก๊วนแบดมินตัน",
           location: asString(row.location_text) || "ไม่ระบุสถานที่",
+          venueName: asString(venue?.name) || undefined,
           dateLabel: formatDate(startsAt),
           timeLabel: formatTime(startsAt, durationMinutes),
           level: levelLabel(minLevel, maxLevel),
@@ -239,28 +257,40 @@ export async function getRecommendedGroups(context: RecommendationContext): Prom
           avatars: stableAvatarSet(row.id),
           detailHref: `/groups/${row.id}`,
           organizerGroupCount,
+          distanceKm: distanceKm ?? undefined,
         },
         organizerGroupCount,
         memberCount,
         locationMatchScore,
+        distanceKm,
+        guildPriority: row.guild_id ? 1 : 0,
         startsAtMs: startsAt.getTime(),
       };
     })
     .filter((item): item is RankedGroup => item !== null);
 
   const userHasLocation = hasUserLocation(userLocation);
-  // Never recommend a full group. When a profile has administrative area data,
-  // the same subdistrict/district/province is the first ranking signal. No GPS
-  // coordinates or kilometer estimates are used here.
+  const userHasGps = userCoordinates !== null;
+  // Never recommend a full group. GPS is the primary signal when available;
+  // the profile's administrative area is the safe fallback when it is not.
   ranked.sort((left, right) => {
-    if (userHasLocation) {
-      const proximityDifference = compareProximity(left, right);
-      if (proximityDifference !== 0) return proximityDifference;
+    if (userHasGps) {
+      if (left.distanceKm === null && right.distanceKm !== null) return 1;
+      if (left.distanceKm !== null && right.distanceKm === null) return -1;
+      if (left.distanceKm !== null && right.distanceKm !== null) {
+        const distanceDifference = left.distanceKm - right.distanceKm;
+        if (distanceDifference !== 0) return distanceDifference;
+      } else if (left.locationMatchScore !== right.locationMatchScore) {
+        return right.locationMatchScore - left.locationMatchScore;
+      }
+    } else if (userHasLocation && left.locationMatchScore !== right.locationMatchScore) {
+      return right.locationMatchScore - left.locationMatchScore;
     }
 
     if (left.organizerGroupCount !== right.organizerGroupCount) {
       return right.organizerGroupCount - left.organizerGroupCount;
     }
+    if (left.guildPriority !== right.guildPriority) return right.guildPriority - left.guildPriority;
     if (left.memberCount !== right.memberCount) return right.memberCount - left.memberCount;
     return left.startsAtMs - right.startsAtMs;
   });

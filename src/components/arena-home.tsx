@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   ArrowRight,
   BarChart3,
@@ -13,6 +13,7 @@ import {
   Dumbbell,
   Eye,
   Filter,
+  LocateFixed,
   MapPin,
   Navigation,
   PackageSearch,
@@ -26,6 +27,7 @@ import { courts as demoCourts, events as demoEvents, groups, type Court, type Ev
 import ArenaMenu from "@/components/arena-menu";
 import AccountMenu from "@/components/account-menu";
 import ThaiAreaSelect from "@/components/thai-area-select";
+import { formatDistanceKm, normalizeCoordinates, type GeoCoordinates } from "@/lib/geolocation";
 import type { HomepageMarketplaceListing } from "@/lib/home-data";
 import type { HeaderProfileSummary } from "@/types/profile";
 
@@ -85,6 +87,10 @@ function GroupCard({
   onJoin: (group: Group) => void;
 }) {
   const percent = Math.min(100, Math.round((group.members / group.capacity) * 100));
+  const distanceLabel = formatDistanceKm(group.distanceKm);
+  const locationLabel = group.venueName && group.location && group.location !== group.venueName
+    ? `${group.venueName} · ${group.location}`
+    : group.venueName || group.location;
   return (
     <motion.article whileHover={{ y: -3 }} className="group-row">
       <div className={cx("group-rank", `group-rank--${group.accent}`)}>
@@ -94,8 +100,9 @@ function GroupCard({
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 lang={/[A-Za-z]/.test(group.title) ? "en" : "th"} className="group-row__title">{group.title}</h3>
-            <p className="group-row__meta">
-              <MapPin size={13} /> {group.location}
+            <p className="group-row__meta group-row__venue-meta">
+              <MapPin size={13} /> <span>{locationLabel}</span>
+              {distanceLabel ? <span className="group-distance-badge"><LocateFixed size={12} /> ห่าง {distanceLabel}</span> : null}
             </p>
             <p className="group-row__meta">
               <CalendarDays size={13} /> {group.dateLabel} · {group.timeLabel}
@@ -169,6 +176,15 @@ function CourtCard({ court, index }: { court: Court; index: number }) {
 const marketplaceCategoryLabels: Record<string, string> = { racket: "ไม้แบด", shoes: "รองเท้า", bag: "กระเป๋า", apparel: "เสื้อผ้า", equipment: "อุปกรณ์", other: "อื่น ๆ" };
 const marketplaceConditionLabels: Record<string, string> = { new: "ของใหม่", like_new: "เหมือนใหม่", good: "สภาพดี", fair: "มีร่องรอย", for_parts: "ขายตามสภาพ" };
 
+type GroupGpsState = "idle" | "loading" | "ready" | "denied" | "unavailable" | "error";
+
+function groupGpsErrorMessage(error: GeolocationPositionError) {
+  if (error.code === error.PERMISSION_DENIED) return "ยังไม่ได้อนุญาต GPS · ใช้พื้นที่ใน Profile เป็นสำรอง";
+  if (error.code === error.POSITION_UNAVAILABLE) return "ระบุตำแหน่งไม่สำเร็จ · ใช้พื้นที่ใน Profile เป็นสำรอง";
+  if (error.code === error.TIMEOUT) return "ค้นหาตำแหน่งใช้เวลานานเกินไป · ลองใหม่ได้อีกครั้ง";
+  return "ค้นหาตำแหน่งไม่สำเร็จ · ใช้พื้นที่ใน Profile เป็นสำรอง";
+}
+
 function MarketplaceHomeRow({ listing, showViewCount }: { listing: HomepageMarketplaceListing; showViewCount: boolean }) {
   return (
     <Link href={`/marketplace/${listing.id}`} className="marketplace-home-item">
@@ -220,12 +236,97 @@ export default function ArenaHome({
   const [searchType, setSearchType] = useState("ก๊วน");
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("ทั้งหมด");
+  const [gpsGroups, setGpsGroups] = useState<Group[] | null>(null);
+  const [groupGpsState, setGroupGpsState] = useState<GroupGpsState>("idle");
+  const [groupGpsMessage, setGroupGpsMessage] = useState("");
+  const groupRequestIdRef = useRef(0);
+  const groupAbortRef = useRef<AbortController | null>(null);
   const selectedSkill = activeFilter === "มือใหม่" ? "beginner" : activeFilter === "มือกลาง" ? "intermediate" : activeFilter === "มือสูง" ? "advanced" : "all";
-  const homepageGroups = recommendedGroups ?? groups;
+  const homepageGroups = gpsGroups ?? recommendedGroups ?? groups;
   const homepageEvents = isLiveData ? (featuredEvents ?? []) : demoEvents;
   const homepageCourts = isLiveData ? (featuredCourts ?? []) : demoCourts;
   const homepageMarketplaceListings = isLiveData ? (featuredMarketplaceListings ?? []) : [];
   const marketplaceUsesViews = marketplaceSortMode !== "latest";
+
+  const fetchGpsGroups = useCallback(async (coordinates: GeoCoordinates) => {
+    const requestId = ++groupRequestIdRef.current;
+    groupAbortRef.current?.abort();
+    const controller = new AbortController();
+    groupAbortRef.current = controller;
+    setGroupGpsState("loading");
+    setGroupGpsMessage("กำลังเรียงก๊วนตามสนามที่ใกล้คุณ...");
+
+    try {
+      const response = await fetch("/api/groups/recommended", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        cache: "no-store",
+        signal: controller.signal,
+        body: JSON.stringify(coordinates),
+      });
+      const payload = await response.json() as { items?: Group[]; error?: string };
+      if (!response.ok || !Array.isArray(payload.items)) throw new Error(payload.error || "โหลดก๊วนใกล้คุณไม่สำเร็จ");
+      if (requestId !== groupRequestIdRef.current) return;
+      setGpsGroups(payload.items);
+      setGroupGpsState("ready");
+      setGroupGpsMessage("GPS เปิดอยู่ · เรียงจากสนามที่ใกล้ที่สุด");
+    } catch (error: unknown) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      if (requestId !== groupRequestIdRef.current) return;
+      setGroupGpsState("error");
+      setGroupGpsMessage("โหลดก๊วนตาม GPS ไม่สำเร็จ · ใช้พื้นที่ใน Profile เป็นสำรอง");
+    } finally {
+      if (requestId === groupRequestIdRef.current) groupAbortRef.current = null;
+    }
+  }, []);
+
+  const requestGroupGps = useCallback(() => {
+    if (!isAuthenticated) {
+      setGroupGpsState("unavailable");
+      setGroupGpsMessage("เข้าสู่ระบบเพื่อจัดอันดับก๊วนตามตำแหน่ง");
+      return;
+    }
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setGroupGpsState("unavailable");
+      setGroupGpsMessage("เบราว์เซอร์นี้ไม่รองรับ GPS · ใช้พื้นที่ใน Profile เป็นสำรอง");
+      return;
+    }
+
+    setGroupGpsState("loading");
+    setGroupGpsMessage("กำลังขอตำแหน่งปัจจุบัน...");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coordinates = normalizeCoordinates(position.coords.latitude, position.coords.longitude);
+        if (!coordinates) {
+          setGroupGpsState("error");
+          setGroupGpsMessage("ข้อมูลตำแหน่งไม่สมบูรณ์ · ใช้พื้นที่ใน Profile เป็นสำรอง");
+          return;
+        }
+        void fetchGpsGroups(coordinates);
+      },
+      (error) => {
+        setGroupGpsState(error.code === error.PERMISSION_DENIED ? "denied" : "error");
+        setGroupGpsMessage(groupGpsErrorMessage(error));
+      },
+      { enableHighAccuracy: false, maximumAge: 300_000, timeout: 10_000 },
+    );
+  }, [fetchGpsGroups, isAuthenticated]);
+
+  useEffect(() => () => {
+    groupRequestIdRef.current += 1;
+    groupAbortRef.current?.abort();
+  }, []);
+
+  const profileGpsIsActive = !gpsGroups && (recommendedGroups ?? []).some((group) => Number.isFinite(group.distanceKm));
+  const groupLocationLabel = groupGpsState === "loading"
+    ? groupGpsMessage
+    : groupGpsState === "ready"
+      ? groupGpsMessage
+      : profileGpsIsActive
+        ? "ใช้พิกัดใน Profile เป็นค่าเริ่มต้น"
+        : groupGpsMessage || "ใช้พื้นที่ใน Profile เป็นสำรอง · กดเพื่อใช้ GPS";
+  const groupGpsButtonLabel = groupGpsState === "loading" ? "กำลังค้นหา..." : groupGpsState === "ready" ? "อัปเดตตำแหน่ง" : "ก๊วนใกล้ฉัน";
 
   const visibleGroups = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -431,6 +532,12 @@ export default function ArenaHome({
               <div className="dashboard-columns">
                 <section className="dashboard-card dashboard-card--pink dashboard-card--groups">
                   <SectionHeading title="ก๊วนแนะนำ" href="/groups" tone="pink" />
+                  <div className="group-recommendation-toolbar" aria-live="polite">
+                    <span className="group-recommendation-location"><MapPin size={13} /> {groupLocationLabel}</span>
+                    {isAuthenticated ? <button type="button" className="group-location-button" onClick={requestGroupGps} disabled={groupGpsState === "loading"}>
+                      <LocateFixed size={13} /> {groupGpsButtonLabel}
+                    </button> : null}
+                  </div>
                   <div className="space-y-2">
                     {visibleGroups.slice(0, 5).map((group) => <GroupCard key={group.id} group={group} onJoin={(selectedGroup) => router.push(selectedGroup.detailHref ?? "/groups")} />)}
                     {visibleGroups.length === 0 ? <div className="empty-card"><Sparkles size={21} /><p>ยังไม่พบก๊วนจากตัวกรองนี้</p></div> : null}

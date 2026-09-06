@@ -3,6 +3,7 @@ import { shouldShowQaData } from "@/lib/config";
 import type { Court, Event } from "@/lib/demo-data";
 import { safeMediaUrl } from "@/lib/safe-media-url";
 import { searchVenues, type DirectoryFilters, type DirectoryVenue } from "@/lib/venue-directory";
+import { formatDistanceKm } from "@/lib/geolocation";
 
 export type HomepageLiveData = {
   featuredEvents: Event[];
@@ -40,6 +41,9 @@ type LiveVenueRow = {
   availability: string | null;
   area_score?: number;
   open_groups?: number;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+  distance_km?: number | string | null;
 };
 
 function asNumber(value: unknown) {
@@ -73,6 +77,8 @@ function mapVenue(row: LiveVenueRow | DirectoryVenue): Court {
   const areaScore = Math.min(3, Math.max(0, Math.trunc(asNumber("area_score" in row ? row.area_score : 0) ?? 0)));
   const areaText = areaScore === 3 ? "ตำบล / แขวงเดียวกับคุณ" : areaScore === 2 ? "อำเภอ / เขตเดียวกับคุณ" : areaScore === 1 ? "จังหวัดเดียวกับคุณ" : "สนามในทะเบียน";
   const openGroups = Math.max(0, Math.trunc(asNumber("open_groups" in row ? row.open_groups : 0) ?? 0));
+  const distanceKm = asNumber("distance_km" in row ? row.distance_km : null);
+  const distanceLabel = formatDistanceKm(distanceKm);
 
   return {
     id: row.id,
@@ -83,13 +89,13 @@ function mapVenue(row: LiveVenueRow | DirectoryVenue): Court {
     address,
     courtCount: Math.max(0, Math.round(asNumber(row.court_count) ?? 0)),
     availability: openGroups > 0 ? "available" : "waitlist",
-    distance: areaText,
-    distanceKm: Number.MAX_SAFE_INTEGER,
+    distance: distanceLabel ? `ห่าง ${distanceLabel}` : areaText,
+    distanceKm: distanceKm ?? Number.MAX_SAFE_INTEGER,
     rating: rating.toFixed(1),
     image: "🏟️",
     imageUrl: safeMediaUrl(row.cover_image_url),
-    latitude: 0,
-    longitude: 0,
+    latitude: asNumber(row.latitude) ?? 0,
+    longitude: asNumber(row.longitude) ?? 0,
   };
 }
 

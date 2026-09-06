@@ -13,6 +13,7 @@ export type Group = {
   detailHref?: string;
   organizerGroupCount?: number;
   distanceKm?: number;
+  venueName?: string;
 };
 
 export type Event = {
