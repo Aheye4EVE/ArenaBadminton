@@ -51,7 +51,7 @@ export default function MatchesBrowser({ matches }: { matches: MatchListItem[] }
   return (
     <main className="matches-page">
       <div className="matches-shell">
-        <header className="groups-topbar"><Link href="/" className="groups-brand" aria-label="กลับหน้าหลัก Arena-Badminton"><span>Arena</span><em>-Badminton</em></Link><nav className="groups-nav" aria-label="เมนูหน้าการแข่งขัน"><Link href="/groups">ก๊วน</Link><Link className="groups-nav__active" href="/matches">แมตช์</Link><Link href="/profile">Profile</Link></nav><Link href="/groups" className="group-primary-action"><Plus size={16} /> เข้าร่วมก๊วน</Link></header>
+        <header className="groups-topbar"><Link href="/" className="groups-brand" aria-label="กลับหน้าหลัก Arena-Badminton"><span>Arena</span><em>-Badminton</em></Link><Link href="/groups" className="group-primary-action"><Plus size={16} /> เข้าร่วมก๊วน</Link></header>
 
         <section className="matches-hero"><div><p lang="en">My competition desk</p><h1>แมตช์ของฉัน</h1><span>เช็กอิน ส่งผล และยืนยันผลการแข่งขัน เพื่อรับ EXP และคำนวณ BP อย่างโปร่งใส</span></div><div className="matches-hero__art" aria-hidden="true"><Trophy size={42} /><Swords size={27} /></div></section>
 

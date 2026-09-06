@@ -144,7 +144,6 @@ export default function GroupsBrowser({
       <div className="groups-shell">
         <header className="groups-topbar">
           <Link href="/" className="groups-brand" aria-label="กลับหน้าหลัก Arena-Badminton"><span>Arena</span><em>-Badminton</em></Link>
-          <nav className="groups-nav" aria-label="เมนูหน้าก๊วน"><Link href="/">หน้าหลัก</Link><Link className="groups-nav__active" href="/groups">ก๊วน</Link><Link href="/profile">Profile</Link></nav>
           <Link href="/organizer" className="group-primary-action"><Plus size={17} /> สร้างก๊วน</Link>
         </header>
 

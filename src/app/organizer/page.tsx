@@ -70,7 +70,6 @@ export default async function OrganizerPage() {
       <div className="groups-shell">
         <header className="groups-topbar">
           <Link href="/" className="groups-brand" aria-label="กลับหน้าหลัก Arena-Badminton"><span>Arena</span><em>-Badminton</em></Link>
-          <nav className="groups-nav" aria-label="เมนู Organizer"><Link href="/groups">ก๊วนทั้งหมด</Link><Link className="groups-nav__active" href="/organizer">สร้างก๊วน</Link><Link href="/profile">Profile</Link></nav>
           <span className="organizer-user-chip">🧑🏻 {profile.display_name}</span>
         </header>
 

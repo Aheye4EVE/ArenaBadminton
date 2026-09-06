@@ -112,7 +112,7 @@ export default function CommunityBrowser({ posts, currentProfile, signedIn }: { 
 
   return <main className="community-live-page">
     <div className="community-live-shell">
-      <header className="community-live-topbar"><Link href="/" className="community-live-brand" aria-label="กลับหน้าหลัก Arena-Badminton"><span>Arena</span><em>-Badminton</em></Link><nav aria-label="เมนู Community"><Link href="/groups">ก๊วน</Link><Link href="/events">กิจกรรม</Link><Link className="community-live-nav__active" href="/community">Community</Link><Link href="/profile">Profile</Link></nav><Link href={signedIn ? "/profile" : "/auth/login"} className="community-live-user">{currentProfile ? <><Avatar profile={currentProfile} /><span>Lv.{currentProfile.level}</span></> : <><UserRound size={17} /><span>เข้าสู่ระบบ</span></>}</Link></header>
+      <header className="community-live-topbar"><Link href="/" className="community-live-brand" aria-label="กลับหน้าหลัก Arena-Badminton"><span>Arena</span><em>-Badminton</em></Link><Link href={signedIn ? "/profile" : "/auth/login"} className="community-live-user">{currentProfile ? <><Avatar profile={currentProfile} /><span>Lv.{currentProfile.level}</span></> : <><UserRound size={17} /><span>เข้าสู่ระบบ</span></>}</Link></header>
       <section className="community-live-hero"><div><p lang="en">Arena Community</p><h1>คอมมูนิตี้คนรักแบด</h1><span>แชร์โมเมนต์ หา Partner และชวนเพื่อนลงสนามด้วยกัน</span></div><div className="community-live-hero__art" aria-hidden="true">💬<i>✦</i>🏸</div></section>
       <div className="community-live-layout">
         <section className="community-live-main">

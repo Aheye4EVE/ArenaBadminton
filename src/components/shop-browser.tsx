@@ -81,7 +81,6 @@ export default function ShopBrowser({
       <div className="shop-live-shell">
         <header className="shop-live-topbar">
           <Link href="/" className="shop-live-brand" aria-label="กลับหน้าหลัก Arena-Badminton"><span>Arena</span><em>-Badminton</em></Link>
-          <nav className="shop-live-nav" aria-label="เมนูร้านค้า"><Link href="/groups">ก๊วน</Link><Link href="/matches">แมตช์</Link><Link className="shop-live-nav__active" href="/shop">ร้านค้า</Link><Link href="/profile">Profile</Link></nav>
           <div className="shop-live-user"><span>🧑🏻</span><span>Shop & Inventory</span></div>
         </header>
 
