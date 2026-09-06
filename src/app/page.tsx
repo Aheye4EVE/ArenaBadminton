@@ -24,7 +24,6 @@ export default async function HomePage() {
     recommendedGroups={recommendedGroups}
     featuredEvents={homepageLiveData?.featuredEvents}
     featuredCourts={homepageLiveData?.featuredCourts}
-    communityStats={homepageLiveData?.communityStats}
     homeDataErrors={homepageLiveData?.errors}
     isLiveData={Boolean(homepageLiveData)}
   />;

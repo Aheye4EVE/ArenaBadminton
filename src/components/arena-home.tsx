@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
@@ -14,11 +13,9 @@ import {
   Dumbbell,
   Filter,
   Gem,
-  Gift,
   Home,
   MapPin,
   MapPinned,
-  Medal,
   Menu,
   MessageCircle,
   Navigation,
@@ -34,11 +31,10 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { brands, courts as demoCourts, events as demoEvents, groups, navItems, type Court, type Event, type Group } from "@/lib/demo-data";
+import { courts as demoCourts, events as demoEvents, groups, navItems, type Court, type Event, type Group } from "@/lib/demo-data";
 import AccountMenu from "@/components/account-menu";
 import CourtIllustration from "@/components/court-illustration";
 import ThaiAreaSelect from "@/components/thai-area-select";
-import type { HomepageStats } from "@/lib/home-data";
 import type { HeaderProfileSummary } from "@/types/profile";
 
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
@@ -212,7 +208,6 @@ export default function ArenaHome({
   recommendedGroups,
   featuredEvents,
   featuredCourts,
-  communityStats,
   homeDataErrors,
   isLiveData = false,
 }: {
@@ -221,11 +216,9 @@ export default function ArenaHome({
   recommendedGroups?: Group[];
   featuredEvents?: Event[];
   featuredCourts?: Court[];
-  communityStats?: HomepageStats;
   homeDataErrors?: {
     events: boolean;
     venues: boolean;
-    stats: boolean;
   };
   isLiveData?: boolean;
 }) {
@@ -485,18 +478,6 @@ export default function ArenaHome({
 
       <main className="dashboard-area">
         <div className="mx-auto max-w-[1540px] px-4 sm:px-6 lg:px-8">
-          <section className="partner-strip" aria-label="Partner Brands">
-            <span className="partner-strip__label" lang="en">Partner Brands</span>
-            <div className="partner-strip__brands">
-              {brands.map((brand) => (
-                <span key={brand.name} className={cx("partner-brand", `partner-brand--${brand.slug}`)}>
-                  <Image src={brand.logo} alt={brand.alt} width={150} height={44} className="partner-brand__logo" />
-                </span>
-              ))}
-            </div>
-            <span className="partner-strip__more" aria-label="จำนวน Partner Brands">6 brands</span>
-          </section>
-
           <section className="dashboard-layout">
             <div className="dashboard-main">
               <div className="dashboard-columns">
@@ -526,66 +507,7 @@ export default function ArenaHome({
                 </section>
               </div>
 
-              <section className="feature-actions">
-                <Link href="/organizer" className="feature-action">
-                  <span className="feature-action__icon feature-action__icon--purple"><Users size={21} /></span>
-                  <span><strong>สร้างก๊วนของคุณ</strong><small>นัดเพื่อนง่าย ไปตีด้วยกัน</small></span>
-                  <ArrowRight size={17} />
-                </Link>
-                <Link href="/venues" className="feature-action">
-                  <span className="feature-action__icon feature-action__icon--pink"><CalendarDays size={21} /></span>
-                  <span><strong>ค้นหาสนามใกล้คุณ</strong><small>เลือกสนาม แล้วนัดก๊วนได้เลย</small></span>
-                  <ArrowRight size={17} />
-                </Link>
-                <Link href="/community" className="feature-action">
-                  <span className="feature-action__icon feature-action__icon--blue"><UserRound size={21} /></span>
-                  <span><strong>หาคู่ตี & เพิ่มเพื่อน</strong><small>ขยายสังคมคนรักแบด</small></span>
-                  <ArrowRight size={17} />
-                </Link>
-                <Link href="/shop" className="feature-action">
-                  <span className="feature-action__icon feature-action__icon--yellow"><Gift size={21} /></span>
-                  <span><strong>สะสมแต้ม & แลกรางวัล</strong><small>เล่นสนุก ได้ของรางวัล</small></span>
-                  <ArrowRight size={17} />
-                </Link>
-              </section>
             </div>
-
-            <aside className="dashboard-rail">
-              <section className="download-card">
-                <div>
-                  <p className="download-card__eyebrow">Arena in your pocket</p>
-                  <h2>พกก๊วนไปทุกที่<br /><span className="font-english" lang="en">Arena-Badminton</span></h2>
-                  <p>เปิดเว็บบนมือถือ แล้วนัดตีได้เลย!</p>
-                  <Link className="download-card__cta" href="/groups">หาก๊วนถัดไป <ArrowRight size={14} /></Link>
-                </div>
-                <div className="phone-mock" aria-hidden="true"><div className="phone-mock__screen"><span>🏸</span><strong lang="en">Arena</strong><small lang="en">Badminton</small></div></div>
-              </section>
-
-              <section className="community-card">
-                <div className="community-card__heading"><h2 lang="en">Community</h2><span className="community-card__live-label">{isLiveData ? "Live" : "Preview"}</span><Sparkles size={17} /></div>
-                <div className="community-stats">
-                  <div><Users size={18} /><strong>สมาชิกทั้งหมด</strong><b>{communityStats?.members === null || communityStats?.members === undefined ? "—" : `${communityStats.members.toLocaleString("th-TH")} คน`}</b></div>
-                  <div><Users size={18} /><strong>ก๊วนทั้งหมด</strong><b>{communityStats?.groups === null || communityStats?.groups === undefined ? "—" : `${communityStats.groups.toLocaleString("th-TH")} ก๊วน`}</b></div>
-                  <div><Medal size={18} /><strong>แมตช์ในระบบ</strong><b>{communityStats?.matches === null || communityStats?.matches === undefined ? "—" : `${communityStats.matches.toLocaleString("th-TH")} แมตช์`}</b></div>
-                  <div><MapPin size={18} /><strong>สนามในระบบ</strong><b>{communityStats?.venues === null || communityStats?.venues === undefined ? "—" : `${communityStats.venues.toLocaleString("th-TH")} สนาม`}</b></div>
-                </div>
-                {homeDataErrors?.stats ? <p className="community-card__note" role="status">สถิติบางรายการยังโหลดไม่ได้</p> : null}
-              </section>
-
-              <Link href="/friends" className="chat-card">
-                <span className="chat-card__icon"><Users size={22} /></span>
-                <span><strong>เพื่อน & Messenger</strong><small>แอดเพื่อนก่อนเริ่มแชท</small></span>
-                <ArrowRight size={18} />
-              </Link>
-
-              <Link href="/marketplace" className="chat-card chat-card--market"><span className="chat-card__icon"><Store size={22} /></span><span><strong>ตลาดมือสอง</strong><small>ส่งต่ออุปกรณ์ให้เพื่อนนักแบด</small></span><ArrowRight size={18} /></Link>
-
-              <section className="join-card">
-                <div className="join-card__bubble">ชวนเพื่อน<br />มาตีแบดกัน!</div>
-                <div className="join-card__art" aria-hidden="true">🐰🏸</div>
-                <Link href="/community" className="join-card__button">มารวมก๊วน <ArrowRight size={15} /></Link>
-              </section>
-            </aside>
           </section>
         </div>
       </main>

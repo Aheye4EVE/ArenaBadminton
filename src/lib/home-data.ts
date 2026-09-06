@@ -3,21 +3,12 @@ import { shouldShowQaData } from "@/lib/config";
 import type { Court, Event } from "@/lib/demo-data";
 import { safeMediaUrl } from "@/lib/safe-media-url";
 
-export type HomepageStats = {
-  members: number | null;
-  groups: number | null;
-  matches: number | null;
-  venues: number | null;
-};
-
 export type HomepageLiveData = {
   featuredEvents: Event[];
   featuredCourts: Court[];
-  communityStats: HomepageStats;
   errors: {
     events: boolean;
     venues: boolean;
-    stats: boolean;
   };
 };
 
@@ -131,10 +122,6 @@ function mapEvent(row: Record<string, unknown>, venue?: LiveVenueRow, index = 0)
   };
 }
 
-function countValue(result: { count?: number | null; error?: unknown }) {
-  return result.error ? null : result.count ?? 0;
-}
-
 export async function getHomepageLiveData(context: AuthenticatedProfileContext): Promise<HomepageLiveData | null> {
   const { supabase, user, profile } = context;
   if (!supabase || !user) return null;
@@ -159,13 +146,9 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
     .limit(50);
   if (!shouldShowQaData()) venuesQuery = venuesQuery.not("name", "like", "[QA ONLY]%");
 
-  const [tournamentsResult, venuesResult, membersResult, groupsResult, matchesResult, venueCountResult] = await Promise.all([
+  const [tournamentsResult, venuesResult] = await Promise.all([
     tournamentsQuery,
     venuesQuery,
-    supabase.from("public_profile_directory").select("id", { count: "exact", head: true }),
-    supabase.from("groups").select("id", { count: "exact", head: true }).in("status", ["published", "full", "completed"]).not("title", "like", "[QA ONLY]%"),
-    supabase.from("matches").select("id", { count: "exact", head: true }).neq("status", "cancelled"),
-    supabase.from("venues").select("id", { count: "exact", head: true }).eq("status", "active"),
   ]);
 
   const tournamentRows = (tournamentsResult.data ?? []) as Array<Record<string, unknown>>;
@@ -204,16 +187,9 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
   return {
     featuredEvents,
     featuredCourts: mappedVenues.slice(0, 3),
-    communityStats: {
-      members: countValue(membersResult),
-      groups: countValue(groupsResult),
-      matches: countValue(matchesResult),
-      venues: countValue(venueCountResult),
-    },
     errors: {
       events: eventsError,
       venues: Boolean(venuesResult.error),
-      stats: Boolean(membersResult.error || groupsResult.error || matchesResult.error || venueCountResult.error),
     },
   };
 }
