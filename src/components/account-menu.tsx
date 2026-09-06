@@ -24,6 +24,7 @@ import {
   TrendingUp,
   UserRound,
   Users,
+  XCircle,
   X,
 } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
@@ -289,6 +290,21 @@ function ProfileSummaryCard({ account, onClose, desktop = false }: { account: He
             <span className="account-profile__points-balance"><Gem size={15} fill="currentColor" aria-hidden="true" /><span><small>Point</small><strong>{formatNumber(account.gemsBalance)}</strong></span></span>
             <Link href="/shop" className="account-profile__points-topup" onClick={onClose}>เติมพ้อยท์ <ArrowRight size={11} /></Link>
           </div>
+        </div>
+      </div>
+
+      <div className="account-profile__record" aria-label="ประวัติการแข่ง">
+        <div className="account-profile__record-item account-profile__record-item--rate">
+          <TrendingUp size={17} aria-hidden="true" />
+          <span><small>Win rate</small><strong>{account.stats.winRate.toFixed(1)}%</strong></span>
+        </div>
+        <div className="account-profile__record-item account-profile__record-item--wins">
+          <Trophy size={17} aria-hidden="true" />
+          <span><small>ชนะ</small><strong>{formatNumber(account.stats.wins)}</strong></span>
+        </div>
+        <div className="account-profile__record-item account-profile__record-item--losses">
+          <XCircle size={17} aria-hidden="true" />
+          <span><small>แพ้</small><strong>{formatNumber(account.stats.losses)}</strong></span>
         </div>
       </div>
 

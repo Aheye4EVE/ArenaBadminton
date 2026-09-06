@@ -38,6 +38,8 @@ export type HeaderProfileSummary = {
     joinedGroups: number;
     matchesPlayed: number;
     wins: number;
+    losses: number;
+    winRate: number;
   };
 };
 

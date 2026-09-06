@@ -318,6 +318,16 @@
 .frontend-shell .account-profile__quick-actions .account-profile__social-link small { font-size: .48rem; line-height: 1.05; }
 .frontend-shell .account-profile__quick-actions .account-profile__social-link > svg:last-child { position: absolute; right: 3px; bottom: 3px; width: 10px; height: 10px; opacity: .72; }
 .frontend-shell .account-profile__quick-actions .account-profile__social-link > b { position: absolute; top: 2px; right: 2px; min-width: 15px; height: 15px; padding: 0 3px; font-size: .5rem; }
+.frontend-shell .account-profile__record { display: grid; grid-template-columns: 1.15fr repeat(2, minmax(0, 1fr)); gap: 5px; margin-top: 10px; }
+.frontend-shell .account-profile__record-item { display: flex; align-items: center; justify-content: center; min-width: 0; gap: 4px; padding: 6px 3px; border: 1px solid rgba(255, 255, 255, .92); border-radius: 10px; background: rgba(255, 255, 255, .68); }
+.frontend-shell .account-profile__record-item > svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.frontend-shell .account-profile__record-item > span { display: grid; min-width: 0; gap: 1px; }
+.frontend-shell .account-profile__record-item small, .frontend-shell .account-profile__record-item strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.frontend-shell .account-profile__record-item small { color: #918bab; font-size: .49rem; line-height: 1.1; }
+.frontend-shell .account-profile__record-item strong { color: #453a7e; font-family: var(--font-fredoka), var(--font-mitr), sans-serif; font-size: .72rem; line-height: 1.1; }
+.frontend-shell .account-profile__record-item--rate { color: #6487d2; background: rgba(239, 245, 255, .78); }
+.frontend-shell .account-profile__record-item--wins { color: #d89b2e; background: rgba(255, 249, 222, .78); }
+.frontend-shell .account-profile__record-item--losses { color: #d4779d; background: rgba(255, 239, 247, .78); }
 .frontend-shell .profile-overview-social { display: inline-flex; align-items: center; gap: 5px; padding: .58rem .7rem; border: 1px solid rgba(116, 100, 185, .13); border-radius: 11px; color: #7b68bc; background: rgba(255, 255, 255, .72); font-size: .68rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
 .frontend-shell .profile-overview-social:hover { color: #df5f9f; background: #fff; }
 
@@ -819,7 +829,7 @@
     padding: 17px;
     border-radius: 24px;
   }
-  .frontend-shell .account-desktop-card .account-profile--desktop:not(.account-profile--setup) > :is(.account-profile__topline, .account-profile__identity, .account-profile__level, .account-profile__stats, .account-profile__quick-actions, .account-profile__footer) {
+  .frontend-shell .account-desktop-card .account-profile--desktop:not(.account-profile--setup) > :is(.account-profile__topline, .account-profile__identity, .account-profile__record, .account-profile__level, .account-profile__stats, .account-profile__quick-actions, .account-profile__footer) {
     grid-column: 1 / -1;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-auth__eyebrow {
@@ -903,6 +913,29 @@
     padding: 3px 5px;
     border-radius: 7px;
     font-size: .5rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record {
+    gap: 4px;
+    margin-top: 9px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record-item {
+    gap: 3px;
+    min-height: 35px;
+    padding: 5px 2px;
+    border-radius: 9px;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record-item > svg {
+    width: 13px;
+    height: 13px;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record-item small {
+    font-size: .45rem;
+    line-height: 1.05;
+  }
+  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record-item strong {
+    font-size: .69rem;
     line-height: 1.05;
   }
   .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row {

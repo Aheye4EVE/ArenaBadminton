@@ -71,12 +71,13 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
   }
 
   const { supabase, user, profile } = profileContext;
-  const [levelsResult, createdGroupsResult, joinedGroupsResult, matchesResult, winsResult, walletResult, notificationsResult, rankResult, adminResult, guildMembershipResult, directMembershipsResult, pendingFriendshipsResult, friendsResult, skillRanksResult] = await Promise.all([
+  const [levelsResult, createdGroupsResult, joinedGroupsResult, matchesResult, winsResult, lossesResult, walletResult, notificationsResult, rankResult, adminResult, guildMembershipResult, directMembershipsResult, pendingFriendshipsResult, friendsResult, skillRanksResult] = await Promise.all([
     supabase.from("level_definitions").select("level, required_exp, label").order("level", { ascending: true }),
     supabase.from("groups").select("id", { count: "exact", head: true }).eq("owner_id", user.id),
     supabase.from("group_members").select("group_id", { count: "exact", head: true }).eq("user_id", user.id).in("membership_status", ["registered", "attended"]),
     supabase.from("exp_ledger").select("id", { count: "exact", head: true }).eq("user_id", user.id).in("source_type", ["match_win", "match_loss"]),
     supabase.from("exp_ledger").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("source_type", "match_win"),
+    supabase.from("exp_ledger").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("source_type", "match_loss"),
     supabase.from("user_wallets").select("gems_balance").eq("user_id", user.id).maybeSingle(),
     supabase.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", user.id).is("read_at", null),
     supabase.rpc("get_current_user_rank"),
@@ -112,6 +113,10 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
     ? null
     : Math.max(1, Math.trunc(asNumber(rankResult.data, 1)));
   const skillBp = Math.max(1000, asNumber(profile.skill_bp, 1000));
+  const wins = Math.max(0, winsResult.count ?? 0);
+  const losses = Math.max(0, lossesResult.count ?? 0);
+  const matchesPlayed = Math.max(0, matchesResult.count ?? wins + losses);
+  const winRate = matchesPlayed > 0 ? clamp((wins / matchesPlayed) * 100, 0, 100) : 0;
   const rankDefinitions = Array.isArray(skillRanksResult.data)
     ? skillRanksResult.data.map((definition) => ({ tier: asNumber(definition.tier, 1), name: typeof definition.name === "string" ? definition.name : "มือใหม่", minBp: asNumber(definition.min_bp, 1000), color: typeof definition.color === "string" ? definition.color : "slate" }))
     : FALLBACK_SKILL_RANKS;
@@ -155,8 +160,10 @@ export async function getAuthenticatedProfileSummary(context?: AuthenticatedProf
     stats: {
       createdGroups: createdGroupsResult.count ?? 0,
       joinedGroups: joinedGroupsResult.count ?? 0,
-      matchesPlayed: matchesResult.count ?? 0,
-      wins: winsResult.count ?? 0,
+      matchesPlayed,
+      wins,
+      losses,
+      winRate,
     },
   };
 
