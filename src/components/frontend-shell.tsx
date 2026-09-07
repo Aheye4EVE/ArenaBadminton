@@ -19,7 +19,7 @@ export default function FrontendShell({ children }: { children: ReactNode }) {
       <a className="frontend-skip-link" href="#arena-content">ข้ามไปเนื้อหา</a>
       {!home ? <header className="frontend-header">
         <ArenaMenu key={pathname} />
-        <Link className="frontend-brand" href="/" aria-label="Arena-Badminton หน้าหลัก"><Image src="/assets/arena-logo.png" alt="Arena-Badminton" width={1466} height={799} priority /></Link>
+        <Link className="frontend-brand" href="/" aria-label="Arena-Badminton หน้าหลัก"><Image src="/assets/Logo-N.png" alt="Arena-Badminton" width={1698} height={926} quality={100} priority /></Link>
         <div className="frontend-header__actions"><Link href="/notifications" aria-label="การแจ้งเตือน"><Bell size={19} /></Link><Link href="/profile" aria-label="โปรไฟล์ของฉัน"><UserRound size={20} /></Link></div>
       </header> : null}
       <div id="arena-content" className="frontend-content" tabIndex={-1}>{children}</div>

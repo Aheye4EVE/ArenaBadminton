@@ -31,7 +31,7 @@
   height: 100vh;
   height: 100lvh;
   pointer-events: none;
-  background: #b5dbff url("/assets/rainbow-court-bg.webp") center center / cover no-repeat;
+  background: #b5dbff url("/assets/ANIMEBG.jpe") center center / cover no-repeat;
 }
 .frontend-background::after { content: ""; position: absolute; inset: 0; background: #f5efff14; }
 .frontend-shell[data-page="inner"] .frontend-background::after { background: #f4efff38; }
@@ -1601,7 +1601,7 @@
   border: 0 !important;
   border-radius: 0 !important;
   color: transparent !important;
-  background: url("/assets/arena-logo.png") center / contain no-repeat !important;
+  background: url("/assets/Logo-N.png") center / contain no-repeat !important;
   overflow: hidden;
   text-indent: -9999px;
   white-space: nowrap;
