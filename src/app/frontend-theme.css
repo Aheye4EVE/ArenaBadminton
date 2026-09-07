@@ -34,7 +34,7 @@
   background: #b5dbff url("/assets/ANIMEBG.jpe") center center / cover no-repeat;
 }
 .frontend-background::after { content: ""; position: absolute; inset: 0; background: #f5efff14; }
-.frontend-shell[data-page="inner"] .frontend-background::after { background: #f4efff38; }
+.frontend-shell[data-page="site"]:not(:has(.arena-page)) .frontend-background::after { background: #f4efff38; }
 .frontend-content { min-width: 0; outline: none; }
 .frontend-skip-link { position: fixed; top: 10px; left: 12px; z-index: 1000; padding: 12px 18px; border-radius: 14px; background: #fff; color: var(--ink); transform: translateY(-160%); }
 .frontend-skip-link:focus { transform: translateY(0); }
@@ -49,7 +49,7 @@
   background: transparent;
   color: var(--ink);
 }
-.frontend-shell[data-page="inner"] :is(.preview-page, .auth-page, .profile-setup-page, .groups-page, .group-detail-page, .matches-page, .shop-live-page, .profile-overview-page, .community-live-page, .notifications-page, .ranking-live-page, .guilds-page, .guild-create-page, .guild-detail-page, .guild-manage-page, .guild-invite-page, .tournament-create-page, .tournament-detail-page, .venue-detail-page, .marketplace-page, .marketplace-detail-page, .messages-page, .friends-page, .profile-history-page, .moderation-report-page) { min-height: calc(100svh - 170px); }
+.frontend-shell[data-page="site"]:not(:has(.arena-page)) :is(.preview-page, .auth-page, .profile-setup-page, .groups-page, .group-detail-page, .matches-page, .shop-live-page, .profile-overview-page, .community-live-page, .notifications-page, .ranking-live-page, .guilds-page, .guild-create-page, .guild-detail-page, .guild-manage-page, .guild-invite-page, .tournament-create-page, .tournament-detail-page, .venue-detail-page, .marketplace-page, .marketplace-detail-page, .messages-page, .friends-page, .profile-history-page, .moderation-report-page) { min-height: calc(100svh - 170px); }
 .frontend-shell .auth-page::before, .frontend-shell .auth-page__glow { display: none; }
 .frontend-shell :is(.groups-shell, .matches-shell, .shop-live-shell, .profile-overview-shell, .community-live-shell, .notifications-shell, .guilds-shell, .guild-create-shell, .guild-detail-shell, .guild-manage-shell, .tournament-create-shell, .tournament-detail-shell, .venue-detail-shell, .marketplace-shell, .marketplace-detail-shell, .friends-shell) { width: min(1240px, calc(100% - 40px)); padding-top: 16px; }
 .frontend-shell :is(.preview-header, .preview-content, .preview-footer) { width: min(1240px, calc(100% - 40px)); }
@@ -65,6 +65,8 @@
 .frontend-footer { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 14px 24px; width: min(1240px, calc(100% - 40px)); margin: 12px auto 0; padding: 16px 24px 22px; font-size: .78rem; color: #523582; border-radius: 24px 24px 0 0; background: #fcf7ffeb; }
 .frontend-footer > span:first-child { color: #9948c3; font-size: 1rem; font-weight: 600; }
 .frontend-footer a { font-weight: 500; color: #b3378c; }
+.frontend-shell:has(.arena-page) > .frontend-header,
+.frontend-shell:has(.arena-page) > .frontend-footer { display: none; }
 .frontend-shell :is(.groups-topbar, .guilds-topbar, .profile-setup-topbar, .shop-live-topbar, .profile-overview-topbar, .community-live-topbar, .notifications-topbar, .marketplace-topbar, .messages-topbar, .preview-header__topline) { min-height: 56px; padding: 10px 16px; border: 1px solid #fff; border-radius: 20px; background: #fffbfff0; box-shadow: var(--soft-shadow); }
 .frontend-shell .preview-header--heading-only .preview-heading { margin-top: 20px; }
 .frontend-shell :is(.groups-topbar, .guilds-topbar, .profile-setup-topbar, .shop-live-topbar, .profile-overview-topbar, .community-live-topbar, .notifications-topbar, .marketplace-topbar, .messages-topbar) nav { flex-wrap: wrap; }
