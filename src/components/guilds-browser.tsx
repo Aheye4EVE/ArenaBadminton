@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { ArrowRight, ChevronDown, Crown, Filter, MapPin, RotateCcw, Search, Shield, SlidersHorizontal, Sparkles, Users } from "lucide-react";
+import { ArrowRight, ChevronDown, Crown, Filter, MapPin, RotateCcw, Search, Shield, SlidersHorizontal, Sparkles, Trophy, Users } from "lucide-react";
 import { joinGuildAction, type GuildActionState } from "@/app/guilds/actions";
 import ThaiAreaSelect from "@/components/thai-area-select";
 
@@ -63,6 +63,7 @@ export default function GuildsBrowser({ guilds, currentGuildId, canCreate, creat
             </div>
           </details>
         </form>
+        <div className="guilds-discovery-links"><Link href="/guilds/ranking" className="guild-ranking-link"><Trophy size={16} /> Guild Ranking <ArrowRight size={14} /></Link></div>
         {currentGuildId ? <aside className="guilds-member-notice"><Sparkles size={17} /><span>คุณมี Guild ที่ใช้งานอยู่แล้ว ระบบจะให้เข้าร่วมได้ทีละ 1 Guild เพื่อให้สังกัดและ Contribution ชัดเจน</span><Link href={`/guilds/${currentGuildId}`}>เปิด Guild ของฉัน <ArrowRight size={14} /></Link></aside> : <aside className="guilds-member-notice"><Shield size={17} /><span>{creationLabel}</span>{canCreate ? <Link href="/guilds/create">เริ่มสร้าง Guild <ArrowRight size={14} /></Link> : null}</aside>}
         <section className="guilds-grid">
           {guilds.length > 0 ? guilds.map((guild) => <GuildCard key={guild.id} guild={guild} currentGuildId={currentGuildId} />) : <div className="guilds-empty"><Shield size={30} /><strong>ยังไม่มี Guild ที่เปิดให้ค้นหา</strong><span>สร้าง Guild แรกของคุณ แล้วชวนเพื่อนมาร่วมทีมได้เลย</span>{canCreate ? <Link href="/guilds/create" className="guild-primary-action">สร้าง Guild แรก <ArrowRight size={16} /></Link> : null}</div>}

@@ -29,6 +29,8 @@ export const AVATAR_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp", "i
 export const PROFILE_BACKGROUND_MAX_BYTES = 5 * 1024 * 1024;
 export const PROFILE_BACKGROUND_CONTENT_TYPES = AVATAR_CONTENT_TYPES;
 export const GUILD_LOGO_MAX_BYTES = 5 * 1024 * 1024;
+export const GUILD_COVER_MAX_BYTES = 5 * 1024 * 1024;
+export const GUILD_COVER_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
 export function publicObjectUrl(objectKey: string) {
   const baseUrl = process.env.R2_PUBLIC_BASE_URL?.trim().replace(/\/+$/, "");
@@ -138,6 +140,35 @@ export function resolveGuildLogoUpdate(formData: FormData, guildId: string) {
   if (!objectKey) return { value: undefined, error: null as string | null };
   if (!isOwnedGuildLogoObjectKey(objectKey, guildId)) {
     return { value: undefined, error: "Logo Guild ไม่ถูกต้อง กรุณาอัปโหลดใหม่อีกครั้ง" };
+  }
+
+  const value = publicObjectUrl(objectKey);
+  if (!value) return { value: undefined, error: "ยังไม่ได้ตั้งค่า Public URL ของ R2" };
+  return { value, error: null as string | null };
+}
+
+export function isOwnedGuildCoverObjectKey(value: string, guildId: string) {
+  const prefix = `guilds/${guildId}/cover/`;
+  const filename = value.startsWith(prefix) ? value.slice(prefix.length) : "";
+  return Boolean(
+    filename
+      && filename.length <= 180
+      && !filename.includes("..")
+      && !filename.includes("/")
+      && !filename.includes("\\")
+      && /^[a-zA-Z0-9._-]+$/.test(filename),
+  );
+}
+
+export function resolveGuildCoverUpdate(formData: FormData, guildId: string) {
+  const objectKeyValue = formData.get("coverObjectKey");
+  const objectKey = typeof objectKeyValue === "string" ? objectKeyValue.trim() : "";
+  const removeCover = formData.get("removeCover") === "true";
+
+  if (removeCover) return { value: null as string | null, error: null as string | null };
+  if (!objectKey) return { value: undefined, error: null as string | null };
+  if (!isOwnedGuildCoverObjectKey(objectKey, guildId)) {
+    return { value: undefined, error: "ภาพหน้าปก Guild ไม่ถูกต้อง กรุณาอัปโหลดใหม่อีกครั้ง" };
   }
 
   const value = publicObjectUrl(objectKey);

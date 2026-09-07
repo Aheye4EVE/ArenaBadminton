@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
-import { resolveGuildLogoUpdate } from "@/lib/r2-upload";
+import { resolveGuildCoverUpdate, resolveGuildLogoUpdate } from "@/lib/r2-upload";
 
 export type GuildActionState = {
   error?: string;
@@ -153,21 +153,26 @@ export async function updateGuildAction(_previousState: GuildActionState, formDa
   const { supabase } = await requireCompletedProfile();
   const logo = resolveGuildLogoUpdate(formData, parsed.data.guildId);
   if (logo.error) return { error: logo.error };
+  const cover = resolveGuildCoverUpdate(formData, parsed.data.guildId);
+  if (cover.error) return { error: cover.error };
   let logoUrl = logo.value;
-  if (logo.value === undefined) {
+  let coverUrl = cover.value;
+  if (logo.value === undefined || cover.value === undefined) {
     const { data: currentGuild, error: currentGuildError } = await supabase
       .from("guilds")
-      .select("logo_url")
+      .select("logo_url, cover_url")
       .eq("id", parsed.data.guildId)
       .maybeSingle();
-    if (currentGuildError) return { error: "โหลดข้อมูล Logo Guild ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" };
-    logoUrl = typeof currentGuild?.logo_url === "string" ? currentGuild.logo_url : null;
+    if (currentGuildError) return { error: "โหลดข้อมูลภาพ Guild ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" };
+    if (logo.value === undefined) logoUrl = typeof currentGuild?.logo_url === "string" ? currentGuild.logo_url : null;
+    if (cover.value === undefined) coverUrl = typeof currentGuild?.cover_url === "string" ? currentGuild.cover_url : null;
   }
   const { error } = await supabase.rpc("update_guild", {
     p_guild_id: parsed.data.guildId,
     p_name: parsed.data.name,
     p_description: parsed.data.description ?? null,
     p_logo_url: logoUrl,
+    p_cover_url: coverUrl,
     p_province: parsed.data.province ?? null,
     p_district: parsed.data.district ?? null,
     p_subdistrict: parsed.data.subdistrict ?? null,

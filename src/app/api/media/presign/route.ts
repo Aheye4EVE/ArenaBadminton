@@ -3,7 +3,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthenticatedUser, getSupabaseServerClient } from "@/lib/supabase-server";
-import { AVATAR_CONTENT_TYPES, AVATAR_MAX_BYTES, GUILD_LOGO_MAX_BYTES, PROFILE_BACKGROUND_CONTENT_TYPES, PROFILE_BACKGROUND_MAX_BYTES, publicObjectUrl } from "@/lib/r2-upload";
+import { AVATAR_CONTENT_TYPES, AVATAR_MAX_BYTES, GUILD_COVER_CONTENT_TYPES, GUILD_COVER_MAX_BYTES, GUILD_LOGO_MAX_BYTES, PROFILE_BACKGROUND_CONTENT_TYPES, PROFILE_BACKGROUND_MAX_BYTES, publicObjectUrl } from "@/lib/r2-upload";
 
 export const runtime = "nodejs";
 
@@ -11,7 +11,7 @@ const uploadRequestSchema = z.object({
   filename: z.string().trim().min(1).max(120),
   contentType: z.enum(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]),
   size: z.number().int().positive().max(10 * 1024 * 1024),
-  purpose: z.enum(["community", "avatar", "profile-background", "guild-logo", "marketplace"]).default("community"),
+  purpose: z.enum(["community", "avatar", "profile-background", "guild-logo", "guild-cover", "marketplace"]).default("community"),
   guildId: z.string().uuid().optional(),
 });
 
@@ -56,6 +56,18 @@ export async function POST(request: Request) {
         return NextResponse.json({ code: "GUILD_LOGO_FORBIDDEN", message: "เฉพาะ Guild Master หรือ Officer เท่านั้นที่อัปโหลด Logo ได้" }, { status: 403 });
       }
     }
+    if (body.purpose === "guild-cover") {
+      if (!body.guildId || !GUILD_COVER_CONTENT_TYPES.includes(body.contentType as (typeof GUILD_COVER_CONTENT_TYPES)[number]) || body.size > GUILD_COVER_MAX_BYTES) {
+        return NextResponse.json({ code: "INVALID_GUILD_COVER", message: "ภาพหน้าปก Guild ต้องเป็น JPG, PNG หรือ WebP ขนาดไม่เกิน 5 MB" }, { status: 422 });
+      }
+      const supabase = await getSupabaseServerClient();
+      const { data: membership, error: membershipError } = supabase
+        ? await supabase.from("guild_members").select("role").eq("guild_id", body.guildId).eq("user_id", user.id).eq("membership_status", "active").in("role", ["guild_master", "officer"]).maybeSingle()
+        : { data: null, error: new Error("Supabase is not configured") };
+      if (membershipError || !membership) {
+        return NextResponse.json({ code: "GUILD_COVER_FORBIDDEN", message: "เฉพาะ Guild Master หรือ Officer เท่านั้นที่อัปโหลดภาพหน้าปกได้" }, { status: 403 });
+      }
+    }
 
     const key = body.purpose === "avatar"
       ? `avatars/${user.id}/${crypto.randomUUID()}-${safeFilename(body.filename)}`
@@ -63,6 +75,8 @@ export async function POST(request: Request) {
         ? `profile-backgrounds/${user.id}/${crypto.randomUUID()}-${safeFilename(body.filename)}`
       : body.purpose === "guild-logo"
         ? `guilds/${body.guildId}/logo/${crypto.randomUUID()}-${safeFilename(body.filename)}`
+        : body.purpose === "guild-cover"
+          ? `guilds/${body.guildId}/cover/${crypto.randomUUID()}-${safeFilename(body.filename)}`
         : body.purpose === "marketplace"
           ? `marketplace/${user.id}/${crypto.randomUUID()}-${safeFilename(body.filename)}`
         : `media/${user.id}/${crypto.randomUUID()}-${safeFilename(body.filename)}`;

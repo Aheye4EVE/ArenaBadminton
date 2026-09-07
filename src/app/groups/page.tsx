@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import GroupsBrowser, { type GroupListItem, type GroupSearchFilters } from "@/components/groups-browser";
+import GroupsBrowser, {
+  type GroupListItem,
+  type GroupSearchFilters,
+} from "@/components/groups-browser";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 import { shouldShowQaData } from "@/lib/config";
-import { matchesLocationFilters, matchesSearchTerms, searchTerms } from "@/lib/search-utils";
+import {
+  matchesLocationFilters,
+  matchesSearchTerms,
+  searchTerms,
+} from "@/lib/search-utils";
 
 export const metadata: Metadata = { title: "ค้นหาก๊วน | Arena-Badminton" };
 export const dynamic = "force-dynamic";
@@ -34,24 +41,38 @@ type MembershipRow = {
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
-const playTypes = ["all", "open", "friendly", "training", "tournament"] as const;
+const playTypes = [
+  "all",
+  "open",
+  "friendly",
+  "training",
+  "tournament",
+] as const;
 const skillFilters = ["all", "beginner", "intermediate", "advanced"] as const;
 const dateFilters = ["all", "today", "tomorrow", "weekend", "next7"] as const;
 const availabilityFilters = ["all", "available"] as const;
 const feeFilters = ["all", "free", "paid"] as const;
 const sortFilters = ["soonest", "newest"] as const;
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function firstParam(params: SearchParams, key: string) {
   const value = params[key];
-  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+  return Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
 }
 
 function cleanSearchValue(value: string, maxLength = 80) {
   return value.trim().replace(/\s+/g, " ").slice(0, maxLength);
 }
 
-function allowedValue<T extends readonly string[]>(value: string, allowed: T, fallback: T[number]): T[number] {
-  return (allowed as readonly string[]).includes(value) ? (value as T[number]) : fallback;
+function allowedValue<T extends readonly string[]>(
+  value: string,
+  allowed: T,
+  fallback: T[number],
+): T[number] {
+  return (allowed as readonly string[]).includes(value)
+    ? (value as T[number])
+    : fallback;
 }
 
 function parseFilters(params: SearchParams): GroupSearchFilters {
@@ -63,7 +84,11 @@ function parseFilters(params: SearchParams): GroupSearchFilters {
     playType: allowedValue(firstParam(params, "playType"), playTypes, "all"),
     skill: allowedValue(firstParam(params, "skill"), skillFilters, "all"),
     date: allowedValue(firstParam(params, "date"), dateFilters, "all"),
-    availability: allowedValue(firstParam(params, "availability"), availabilityFilters, "all"),
+    availability: allowedValue(
+      firstParam(params, "availability"),
+      availabilityFilters,
+      "all",
+    ),
     fee: allowedValue(firstParam(params, "fee"), feeFilters, "all"),
     sort: allowedValue(firstParam(params, "sort"), sortFilters, "soonest"),
   };
@@ -90,57 +115,101 @@ function bangkokDayStart(offset: number) {
 
 function dateWindow(filter: GroupSearchFilters["date"]) {
   if (filter === "all") return null;
-  if (filter === "today") return { from: bangkokDayStart(0), to: bangkokDayStart(1) };
-  if (filter === "tomorrow") return { from: bangkokDayStart(1), to: bangkokDayStart(2) };
-  if (filter === "next7") return { from: bangkokDayStart(0), to: bangkokDayStart(7) };
+  if (filter === "today")
+    return { from: bangkokDayStart(0), to: bangkokDayStart(1) };
+  if (filter === "tomorrow")
+    return { from: bangkokDayStart(1), to: bangkokDayStart(2) };
+  if (filter === "next7")
+    return { from: bangkokDayStart(0), to: bangkokDayStart(7) };
 
   const weekday = new Date(`${bangkokDateKey()}T12:00:00+07:00`).getUTCDay();
-  if (weekday === 6) return { from: bangkokDayStart(0), to: bangkokDayStart(2) };
-  if (weekday === 0) return { from: bangkokDayStart(0), to: bangkokDayStart(1) };
+  if (weekday === 6)
+    return { from: bangkokDayStart(0), to: bangkokDayStart(2) };
+  if (weekday === 0)
+    return { from: bangkokDayStart(0), to: bangkokDayStart(1) };
   const saturdayOffset = 6 - weekday;
-  return { from: bangkokDayStart(saturdayOffset), to: bangkokDayStart(saturdayOffset + 2) };
+  return {
+    from: bangkokDayStart(saturdayOffset),
+    to: bangkokDayStart(saturdayOffset + 2),
+  };
 }
 
 function skillWindow(filter: GroupSearchFilters["skill"]) {
   if (filter === "all") return null;
-  return ({
-    beginner: { min: 1, max: 20 },
-    intermediate: { min: 21, max: 50 },
-    advanced: { min: 51, max: 99 },
-  } as const)[filter];
+  return (
+    {
+      beginner: { min: 1, max: 20 },
+      intermediate: { min: 21, max: 50 },
+      advanced: { min: 51, max: 99 },
+    } as const
+  )[filter];
 }
 
-export default async function GroupsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default async function GroupsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const { supabase, user, profile } = await getAuthenticatedProfile();
   if (!supabase || !user) redirect("/auth/login?message=auth_required");
   if (!profile?.profile_completed_at) redirect("/profile/setup");
 
-  const filters = parseFilters(await searchParams);
+  const rawSearchParams = await searchParams;
+  const requestedVenueId = firstParam(rawSearchParams, "venueId");
+  if (firstParam(rawSearchParams, "create") === "1") {
+    redirect(
+      uuidPattern.test(requestedVenueId)
+        ? `/organizer?venue=${encodeURIComponent(requestedVenueId)}&create=1`
+        : "/organizer?create=1",
+    );
+  }
+  const filters = parseFilters(rawSearchParams);
   let groupsQuery = supabase
     .from("groups")
     .select(
       "id, owner_id, venue_id, title, description, location_text, starts_at, duration_minutes, capacity, min_level, max_level, play_type, entry_fee, status, created_at",
     )
-    .in("status", filters.availability === "available" ? ["published"] : ["published", "full"]);
-  if (!shouldShowQaData()) groupsQuery = groupsQuery.not("title", "like", "[QA ONLY]%");
+    .in(
+      "status",
+      filters.availability === "available"
+        ? ["published"]
+        : ["published", "full"],
+    );
+  if (!shouldShowQaData())
+    groupsQuery = groupsQuery.not("title", "like", "[QA ONLY]%");
 
-  if (filters.playType !== "all") groupsQuery = groupsQuery.eq("play_type", filters.playType);
+  if (filters.playType !== "all")
+    groupsQuery = groupsQuery.eq("play_type", filters.playType);
   if (filters.fee === "free") groupsQuery = groupsQuery.eq("entry_fee", 0);
   if (filters.fee === "paid") groupsQuery = groupsQuery.gt("entry_fee", 0);
 
   const skill = skillWindow(filters.skill);
   if (skill) {
-    groupsQuery = groupsQuery.lte("min_level", skill.max).gte("max_level", skill.min);
+    groupsQuery = groupsQuery
+      .lte("min_level", skill.max)
+      .gte("max_level", skill.min);
   }
 
   const dates = dateWindow(filters.date);
-  if (dates) groupsQuery = groupsQuery.gte("starts_at", dates.from).lt("starts_at", dates.to);
+  if (dates)
+    groupsQuery = groupsQuery
+      .gte("starts_at", dates.from)
+      .lt("starts_at", dates.to);
 
-  groupsQuery = groupsQuery.order(filters.sort === "newest" ? "created_at" : "starts_at", { ascending: filters.sort !== "newest" });
+  groupsQuery = groupsQuery.order(
+    filters.sort === "newest" ? "created_at" : "starts_at",
+    { ascending: filters.sort !== "newest" },
+  );
   const { data, error } = await groupsQuery.limit(500);
 
   const rows = (data ?? []) as GroupRow[];
-  const venueIds = [...new Set(rows.map((row) => row.venue_id).filter((venueId): venueId is string => Boolean(venueId)))];
+  const venueIds = [
+    ...new Set(
+      rows
+        .map((row) => row.venue_id)
+        .filter((venueId): venueId is string => Boolean(venueId)),
+    ),
+  ];
   type GroupVenueRow = {
     id: string;
     name: string | null;
@@ -149,24 +218,40 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
     subdistrict: string | null;
     address: string | null;
   };
-  const { data: venueData } = venueIds.length > 0
-    ? await supabase.from("venues").select("id, name, province, district, subdistrict, address").in("id", venueIds)
-    : { data: [] };
+  const { data: venueData } =
+    venueIds.length > 0
+      ? await supabase
+          .from("venues")
+          .select("id, name, province, district, subdistrict, address")
+          .in("id", venueIds)
+      : { data: [] };
   const venueMap = new Map<string, GroupVenueRow>(
     ((venueData ?? []) as GroupVenueRow[]).map((venue) => [venue.id, venue]),
   );
   const terms = searchTerms(filters.q);
   const filteredRows = rows.filter((row) => {
     const venue = row.venue_id ? venueMap.get(row.venue_id) : undefined;
-    return matchesSearchTerms(
-      [row.title, row.description, row.location_text, venue?.name, venue?.province, venue?.district, venue?.subdistrict, venue?.address],
-      terms,
-    ) && matchesLocationFilters(filters, {
-      province: venue?.province,
-      district: venue?.district,
-      subdistrict: venue?.subdistrict,
-      searchable: [row.location_text, venue?.name, venue?.address],
-    });
+    return (
+      matchesSearchTerms(
+        [
+          row.title,
+          row.description,
+          row.location_text,
+          venue?.name,
+          venue?.province,
+          venue?.district,
+          venue?.subdistrict,
+          venue?.address,
+        ],
+        terms,
+      ) &&
+      matchesLocationFilters(filters, {
+        province: venue?.province,
+        district: venue?.district,
+        subdistrict: venue?.subdistrict,
+        searchable: [row.location_text, venue?.name, venue?.address],
+      })
+    );
   });
   const groupIds = filteredRows.map((row) => row.id);
 
@@ -183,7 +268,10 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
   const currentMemberships = new Map<string, string>();
   for (const membership of memberships) {
     if (membership.membership_status === "registered") {
-      registeredCounts.set(membership.group_id, (registeredCounts.get(membership.group_id) ?? 0) + 1);
+      registeredCounts.set(
+        membership.group_id,
+        (registeredCounts.get(membership.group_id) ?? 0) + 1,
+      );
     }
     if (membership.user_id === user.id) {
       currentMemberships.set(membership.group_id, membership.membership_status);
@@ -195,7 +283,12 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
     ownerId: row.owner_id,
     title: row.title,
     description: row.description,
-    locationText: [row.venue_id ? venueMap.get(row.venue_id)?.name : "", row.location_text].filter(Boolean).join(" · "),
+    locationText: [
+      row.venue_id ? venueMap.get(row.venue_id)?.name : "",
+      row.location_text,
+    ]
+      .filter(Boolean)
+      .join(" · "),
     startsAt: row.starts_at,
     durationMinutes: Number(row.duration_minutes),
     capacity: Number(row.capacity),
@@ -214,7 +307,9 @@ export default async function GroupsPage({ searchParams }: { searchParams: Promi
       filters={filters}
       totalCount={groups.length}
       currentUserId={user.id}
-      loadError={error ? "โหลดรายการก๊วนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" : undefined}
+      loadError={
+        error ? "โหลดรายการก๊วนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" : undefined
+      }
     />
   );
 }

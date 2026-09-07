@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowRight,
   Award,
@@ -10,106 +14,404 @@ import {
   Trophy,
   Users,
   Zap,
+  Swords,
+  MessageCircle,
 } from "lucide-react";
 import type { HeaderProfileSummary, ProfileTrophy } from "@/types/profile";
-import ProfileStatusFeed, { type ProfileStatus } from "@/components/profile-status-feed";
+import ProfileStatusFeed, {
+  type ProfileStatus,
+} from "@/components/profile-status-feed";
 import ProfileMediaInlineEditor from "@/components/profile-media-inline-editor";
 import { safeMediaUrl } from "@/lib/safe-media-url";
+
+type ProfileTab = "overview" | "trophies" | "lounge";
+
+const tabs: Array<{
+  id: ProfileTab;
+  label: string;
+  eyebrow: string;
+  icon: typeof Users;
+}> = [
+  {
+    id: "overview",
+    label: "ภาพรวม & สถิติ",
+    eyebrow: "Overview / Stats",
+    icon: Zap,
+  },
+  {
+    id: "trophies",
+    label: "ถ้วยรางวัล",
+    eyebrow: "Trophies & Badges",
+    icon: Trophy,
+  },
+  {
+    id: "lounge",
+    label: "กระดานสถานะ",
+    eyebrow: "Lounge & Feed",
+    icon: MessageCircle,
+  },
+];
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("th-TH").format(value);
 }
 
 function getProgressLabel(summary: HeaderProfileSummary) {
-  if (summary.nextLevelExp === null) return `${formatNumber(summary.expTotal)} EXP`;
+  if (summary.nextLevelExp === null)
+    return `${formatNumber(summary.expTotal)} EXP`;
   return `${formatNumber(summary.expTotal)} / ${formatNumber(summary.nextLevelExp)} EXP`;
 }
 
-export default function ProfileOverview({ summary, province, trophies, statuses = [] }: { summary: HeaderProfileSummary; province: string | null; trophies: ProfileTrophy[]; statuses?: ProfileStatus[] }) {
+function StatTile({
+  icon: Icon,
+  label,
+  value,
+  tone,
+  note,
+}: {
+  icon: typeof Users;
+  label: string;
+  value: string;
+  tone: string;
+  note?: string;
+}) {
+  return (
+    <article className={`profile-bento-stat profile-bento-stat--${tone}`}>
+      <span className="profile-bento-stat__icon">
+        <Icon size={19} />
+      </span>
+      <div>
+        <strong>{value}</strong>
+        <span>{label}</span>
+        {note ? <small>{note}</small> : null}
+      </div>
+    </article>
+  );
+}
+
+function TrophiesPanel({ trophies }: { trophies: ProfileTrophy[] }) {
+  return (
+    <section
+      className="profile-overview-card profile-trophies-panel"
+      aria-labelledby="profile-trophies-title"
+    >
+      <div className="profile-overview-card-heading">
+        <div>
+          <p lang="en">HALL OF FAME</p>
+          <h2 id="profile-trophies-title">
+            <Trophy size={19} /> ทำเนียบถ้วยรางวัล
+          </h2>
+        </div>
+        <span className="profile-panel-count">{trophies.length} Badge</span>
+      </div>
+      {trophies.length > 0 ? (
+        <div className="profile-trophy-showcase">
+          {trophies.map((trophy) => (
+            <motion.article
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22 }}
+              className={`profile-overview-trophy-item profile-overview-trophy-item--${trophy.rarityTier}`}
+              key={trophy.id}
+            >
+              <div
+                className="profile-overview-trophy-item__icon"
+                aria-hidden="true"
+              >
+                {trophy.icon}
+              </div>
+              <div>
+                <strong>{trophy.title}</strong>
+                <span>{trophy.description || "Achievement จาก Arena"}</span>
+                <small>
+                  {trophy.rarityTier} · {trophy.sourceType}
+                </small>
+              </div>
+            </motion.article>
+          ))}
+        </div>
+      ) : (
+        <div className="profile-trophy-empty">
+          <div className="profile-trophy-empty__chest" aria-hidden="true">
+            🎁
+          </div>
+          <strong>ตู้ถ้วยรางวัลยังรอคุณอยู่</strong>
+          <span>เข้าร่วมก๊วนและการแข่งขันเพื่อปลดล็อก Badge แรก</span>
+          <Link href="/groups" className="profile-overview-primary">
+            ค้นหาก๊วน <ArrowRight size={16} />
+          </Link>
+        </div>
+      )}
+    </section>
+  );
+}
+
+export default function ProfileOverview({
+  summary,
+  province,
+  trophies,
+  statuses = [],
+}: {
+  summary: HeaderProfileSummary;
+  province: string | null;
+  trophies: ProfileTrophy[];
+  statuses?: ProfileStatus[];
+}) {
+  const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const location = province?.trim() || "ยังไม่ได้ระบุจังหวัด";
   const backgroundUrl = safeMediaUrl(summary.profileBackgroundUrl);
+  const winRate =
+    summary.stats.matchesPlayed > 0
+      ? (summary.stats.wins / summary.stats.matchesPlayed) * 100
+      : 0;
 
   return (
     <main className="profile-overview-page">
       <div className="profile-overview-shell">
-        <div className="profile-overview-grid">
-          <section className="profile-overview-card profile-overview-card--hero" aria-labelledby="profile-overview-name">
-            <ProfileMediaInlineEditor kind="background" initialUrl={backgroundUrl} initialFocusX={summary.backgroundFocusX} initialFocusY={summary.backgroundFocusY} displayName={summary.displayName} />
-
-            <div className="profile-overview-identity">
-              <ProfileMediaInlineEditor kind="avatar" initialUrl={safeMediaUrl(summary.avatarUrl)} initialFocusX={summary.avatarFocusX} initialFocusY={summary.avatarFocusY} displayName={summary.displayName} />
-              <div className="profile-overview-identity__copy">
-                <div className="profile-overview-name-line">
+        <section
+          className="profile-overview-card profile-overview-card--hero profile-player-pass"
+          aria-labelledby="profile-overview-name"
+        >
+          <div className="profile-overview-cover profile-overview-cover--arcade">
+            <ProfileMediaInlineEditor
+              kind="background"
+              initialUrl={backgroundUrl}
+              initialFocusX={summary.backgroundFocusX}
+              initialFocusY={summary.backgroundFocusY}
+              displayName={summary.displayName}
+            />
+            <div className="profile-overview-cover__scrim" />
+          </div>
+          <div className="profile-overview-identity">
+            <ProfileMediaInlineEditor
+              kind="avatar"
+              initialUrl={safeMediaUrl(summary.avatarUrl)}
+              initialFocusX={summary.avatarFocusX}
+              initialFocusY={summary.avatarFocusY}
+              displayName={summary.displayName}
+            />
+            <div className="profile-overview-identity__copy">
+              <div className="profile-overview-name-line">
+                <div>
                   <h2 id="profile-overview-name">{summary.displayName}</h2>
-                  <Crown size={21} fill="#f7b74b" color="#f7a93b" aria-label="ผู้เล่นเด่น" />
+                  <p className="profile-overview-handle">
+                    @{summary.handle.replace(/^@/, "")}
+                  </p>
                 </div>
-                <p className="profile-overview-handle">@{summary.handle.replace(/^@/, "")}</p>
-                <p className="profile-overview-location"><MapPin size={13} /> {location}</p>
-                <span className="profile-overview-title-pill">{summary.levelLabel}</span>
-                <span className={`profile-overview-rank-pill profile-overview-rank-pill--${summary.skillRankColor}`}>Tier {summary.skillRankTier} · {summary.skillRankName}</span>
-                {summary.bio ? <p className="profile-overview-bio">{summary.bio}</p> : null}
+                <Crown
+                  size={21}
+                  fill="#f7b74b"
+                  color="#f7a93b"
+                  aria-label="ผู้เล่นเด่น"
+                />
               </div>
-              <div className="profile-overview-identity__links">
-                <Link href="/profile/edit" className="profile-overview-edit"><Pencil size={15} /> แก้ไข Profile</Link>
-                {summary.isAdmin ? <Link href="/admin" className="profile-overview-admin"><ShieldCheck size={15} /> Admin</Link> : null}
+              <p className="profile-overview-location">
+                <MapPin size={13} /> {location}
+              </p>
+              <div className="profile-overview-badge-row">
+                <span className="profile-overview-title-pill">
+                  {summary.levelLabel}
+                </span>
+                <span
+                  className={`profile-overview-rank-pill profile-overview-rank-pill--${summary.skillRankColor}`}
+                >
+                  Tier {summary.skillRankTier} · {summary.skillRankName}
+                </span>
               </div>
+              {summary.bio ? (
+                <p className="profile-overview-bio">{summary.bio}</p>
+              ) : null}
             </div>
-
-            <div className="profile-overview-level-block">
-              <div className="profile-overview-level-row">
-                <span>Level {summary.level}</span>
-                <strong>{getProgressLabel(summary)}</strong>
-              </div>
-              <div className="profile-overview-progress" role="progressbar" aria-label="ความคืบหน้า EXP" aria-valuemin={0} aria-valuemax={100} aria-valuenow={summary.levelProgress}>
-                <span style={{ width: `${summary.levelProgress}%` }} />
-              </div>
-              <div className="profile-overview-progress-note">
-                <span>{summary.nextLevelExp === null ? "Level สูงสุดแล้ว" : `อีก ${formatNumber(Math.max(0, summary.nextLevelExp - summary.expTotal))} EXP เพื่อขึ้น Level ถัดไป`}</span>
-                <span>{summary.levelProgress}%</span>
-              </div>
+            <div className="profile-overview-identity__links">
+              <Link href="/profile/edit" className="profile-overview-edit">
+                <Pencil size={15} /> แก้ไข Profile
+              </Link>
+              {summary.isAdmin ? (
+                <Link href="/admin" className="profile-overview-admin">
+                  <ShieldCheck size={15} /> Admin
+                </Link>
+              ) : null}
             </div>
-
-              <div className="profile-overview-metrics">
-                <div><Users size={20} /><strong>{formatNumber(summary.stats.createdGroups)}</strong><span>ก๊วนที่สร้าง</span></div>
-                <div><CalendarDays size={20} /><strong>{formatNumber(summary.stats.joinedGroups)}</strong><span>ก๊วนที่เข้าร่วม</span></div>
-                <div><Trophy size={20} /><strong>{formatNumber(summary.stats.matchesPlayed)}</strong><span>แมตช์ที่แข่ง</span></div>
-                <div><Users size={20} /><strong>{formatNumber(summary.friendCount)}</strong><span>เพื่อนที่ยืนยันแล้ว</span></div>
+          </div>
+          <div className="profile-overview-level-block">
+            <div className="profile-overview-level-row">
+              <span>Level {summary.level}</span>
+              <strong>{getProgressLabel(summary)}</strong>
             </div>
-
-            <div className="profile-overview-actions">
-              <Link href="/groups" className="profile-overview-primary">ค้นหาก๊วนถัดไป <ArrowRight size={18} /></Link>
-              <Link href="/profile/history" className="profile-overview-secondary"><Trophy size={15} /> ดูประวัติการเล่น <ArrowRight size={15} /></Link>
-              <span><ShieldCheck size={15} /> ข้อมูลนี้มาจากการแข่งขันที่ยืนยันแล้ว</span>
+            <div
+              className="profile-overview-progress"
+              role="progressbar"
+              aria-label="ความคืบหน้า EXP"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={summary.levelProgress}
+            >
+              <span style={{ width: `${summary.levelProgress}%` }} />
             </div>
-          </section>
+            <div className="profile-overview-progress-note">
+              <span>
+                {summary.nextLevelExp === null
+                  ? "Level สูงสุดแล้ว"
+                  : `อีก ${formatNumber(Math.max(0, summary.nextLevelExp - summary.expTotal))} EXP เพื่อขึ้น Level ถัดไป`}
+              </span>
+              <span>{summary.levelProgress}%</span>
+            </div>
+          </div>
+          <div className="profile-overview-actions">
+            <Link href="/groups" className="profile-overview-primary">
+              ค้นหาก๊วนถัดไป <ArrowRight size={18} />
+            </Link>
+            <Link
+              href="/profile/history"
+              className="profile-overview-secondary"
+            >
+              <Trophy size={15} /> ดูประวัติการเล่น <ArrowRight size={15} />
+            </Link>
+          </div>
+        </section>
 
-          <aside className="profile-overview-side">
-            <section className="profile-overview-card profile-overview-score-card">
-              <div className="profile-overview-card-heading"><div><p lang="en">Arena snapshot</p><h2>สถานะการเล่นของคุณ</h2></div><Zap size={21} /></div>
-              <div className="profile-overview-score-grid">
-                <div className="profile-overview-score profile-overview-score--bp"><span><Award size={17} /> Skill BP</span><strong>{formatNumber(summary.skillBp)}</strong><small>ค่าต่ำสุด 1,000 BP</small></div>
-                <div className="profile-overview-score profile-overview-score--wins"><span><Trophy size={17} /> ชนะแล้ว</span><strong>{formatNumber(summary.stats.wins)}</strong><small>จาก {formatNumber(summary.stats.matchesPlayed)} แมตช์</small></div>
+        <nav className="profile-tabs" aria-label="ส่วนต่างๆ ของ Profile">
+          {tabs.map(({ id, label, eyebrow, icon: Icon }) => (
+            <button
+              type="button"
+              role="tab"
+              key={id}
+              id={`profile-tab-${id}`}
+              className={
+                activeTab === id
+                  ? "profile-tab profile-tab--active"
+                  : "profile-tab"
+              }
+              aria-selected={activeTab === id}
+              aria-controls={`profile-tab-panel-${id}`}
+              onClick={() => setActiveTab(id)}
+            >
+              <Icon size={17} />
+              <span>
+                <small>{eyebrow}</small>
+                <strong>{label}</strong>
+              </span>
+            </button>
+          ))}
+        </nav>
+
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeTab}
+            id={`profile-tab-panel-${activeTab}`}
+            role="tabpanel"
+            aria-labelledby={`profile-tab-${activeTab}`}
+            className="profile-tab-panel"
+            initial={{ opacity: 0, x: 18 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -18 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            {activeTab === "overview" ? (
+              <div className="profile-overview-content-grid">
+                <section className="profile-overview-card profile-battle-card">
+                  <div className="profile-overview-card-heading">
+                    <div>
+                      <p lang="en">BATTLE STATS</p>
+                      <h2>
+                        <Swords size={19} /> ข้อมูลพลังและการเล่น
+                      </h2>
+                    </div>
+                    <span className="verified-badge">
+                      <ShieldCheck size={13} /> Verified Stats
+                    </span>
+                  </div>
+                  <div className="profile-bento-stat-grid">
+                    <StatTile
+                      icon={Award}
+                      label="Skill BP"
+                      value={formatNumber(summary.skillBp)}
+                      tone="lavender"
+                      note={`Tier ${summary.skillRankTier}`}
+                    />
+                    <StatTile
+                      icon={Users}
+                      label="เพื่อนร่วมก๊วน"
+                      value={formatNumber(summary.friendCount)}
+                      tone="mint"
+                      note={
+                        summary.pendingFriendRequestCount > 0
+                          ? `คำขอใหม่ ${summary.pendingFriendRequestCount}`
+                          : "ยืนยันแล้ว"
+                      }
+                    />
+                    <StatTile
+                      icon={Swords}
+                      label="แมตช์ที่แข่งขัน"
+                      value={formatNumber(summary.stats.matchesPlayed)}
+                      tone="peach"
+                      note={`${summary.stats.wins}W · ${summary.stats.losses}L`}
+                    />
+                    <StatTile
+                      icon={Trophy}
+                      label="ชนะแล้ว"
+                      value={formatNumber(summary.stats.wins)}
+                      tone="gold"
+                      note={`Win Rate ${winRate.toFixed(0)}%`}
+                    />
+                  </div>
+                  <div className="profile-overview-rank-line">
+                    <span>Rank ใน Arena</span>
+                    <strong>
+                      {summary.rank === null
+                        ? "กำลังคำนวณ"
+                        : `#${formatNumber(summary.rank)}`}
+                    </strong>
+                    <ArrowRight size={15} />
+                  </div>
+                </section>
+                <section className="profile-overview-card profile-circle-card">
+                  <div className="profile-overview-card-heading">
+                    <div>
+                      <p lang="en">MY CIRCLE</p>
+                      <h2>
+                        <Users size={19} /> เพื่อนร่วมก๊วน
+                      </h2>
+                    </div>
+                  </div>
+                  <Link
+                    href="/friends"
+                    className="profile-overview-friends-link"
+                  >
+                    <span className="profile-overview-friends-link__icon">
+                      <Users size={25} />
+                    </span>
+                    <span>
+                      <strong>{formatNumber(summary.friendCount)} คน</strong>
+                      <small>เพื่อนที่ยืนยันและคุยผ่าน Messenger ได้</small>
+                    </span>
+                    <ArrowRight size={17} />
+                  </Link>
+                  {summary.pendingFriendRequestCount > 0 ? (
+                    <p className="profile-overview-pending-friends">
+                      มีคำขอใหม่{" "}
+                      {formatNumber(summary.pendingFriendRequestCount)} รายการ
+                    </p>
+                  ) : null}
+                  <div className="profile-circle-note">
+                    <CalendarDays size={16} /> ก๊วนที่สร้าง{" "}
+                    {formatNumber(summary.stats.createdGroups)} · เข้าร่วม{" "}
+                    {formatNumber(summary.stats.joinedGroups)}
+                  </div>
+                </section>
               </div>
-              <div className={`profile-overview-rank-summary profile-overview-rank-summary--${summary.skillRankColor}`}><span>ยศจาก Skill BP</span><strong>Tier {summary.skillRankTier} · {summary.skillRankName}</strong><small>ระบบปรับให้อัตโนมัติจาก BP ที่ยืนยันแล้ว</small></div>
-              <Link href="/ranking" className="profile-overview-rank-line"><span>Ranking</span><strong>{summary.rank === null ? "กำลังคำนวณ" : `#${formatNumber(summary.rank)}`}</strong><ArrowRight size={15} /></Link>
-            </section>
+            ) : activeTab === "trophies" ? (
+              <TrophiesPanel trophies={trophies} />
+            ) : (
+              <ProfileStatusFeed statuses={statuses} />
+            )}
+          </motion.div>
+        </AnimatePresence>
 
-            <section className="profile-overview-card profile-overview-friends-card">
-              <div className="profile-overview-card-heading"><div><p lang="en">Your circle</p><h2>เพื่อนของฉัน</h2></div><Users size={21} /></div>
-              <Link href="/friends" className="profile-overview-friends-link"><span className="profile-overview-friends-link__icon"><Users size={25} /></span><span><strong>{formatNumber(summary.friendCount)} คน</strong><small>เพื่อนที่ยืนยันและคุยผ่าน Messenger ได้</small></span><ArrowRight size={17} /></Link>
-              {summary.pendingFriendRequestCount > 0 ? <p className="profile-overview-pending-friends">มีคำขอใหม่ {formatNumber(summary.pendingFriendRequestCount)} รายการ</p> : null}
-            </section>
-
-            <section className="profile-overview-card profile-overview-trophy-card">
-              <div className="profile-overview-card-heading"><div><h2>Trophy ของฉัน</h2></div><Trophy size={21} /></div>
-              {trophies.length > 0 ? <div className="profile-overview-trophy-list">{trophies.map((trophy) => <article className={`profile-overview-trophy-item profile-overview-trophy-item--${trophy.rarityTier}`} key={trophy.id}><div className="profile-overview-trophy-item__icon" aria-hidden="true">{trophy.icon}</div><div><strong>{trophy.title}</strong><span>{trophy.description || "Achievement จาก Arena"}</span><small>{trophy.rarityTier} · {trophy.sourceType}</small></div></article>)}</div> : <div className="profile-overview-empty-trophy"><div><Trophy size={27} /></div><strong>เริ่มสะสม Trophy ชิ้นแรก</strong><span>รับ Badge จากก๊วนและการแข่งขันที่คุณเข้าร่วม</span></div>}
-            </section>
-          </aside>
-        </div>
-
-        <ProfileStatusFeed statuses={statuses} />
-
-        <footer className="profile-overview-footer"><span>© Arena-Badminton</span><span>Level up together · Production Arena</span></footer>
+        <footer className="profile-overview-footer">
+          <span>© Arena-Badminton</span>
+          <span>Level up together · Rainbow Court</span>
+        </footer>
       </div>
     </main>
   );

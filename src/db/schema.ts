@@ -830,6 +830,7 @@ export const guilds = pgTable(
     slug: text("slug").notNull(),
     description: text("description").notNull().default(""),
     logoUrl: text("logo_url"),
+    coverUrl: text("cover_url"),
     province: text("province"),
     district: text("district"),
     subdistrict: text("subdistrict"),

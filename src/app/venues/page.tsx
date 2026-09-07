@@ -17,24 +17,64 @@ function toUrlSearchParams(input: SearchParams) {
   return params;
 }
 
-export default async function VenuesPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default async function VenuesPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const filters = directoryFilters(toUrlSearchParams(await searchParams));
   const context = await getAuthenticatedProfile();
   const profileArea = context.profile
-    ? [context.profile.subdistrict, context.profile.district, context.profile.province].filter(Boolean).join(" · ")
+    ? [
+        context.profile.subdistrict,
+        context.profile.district,
+        context.profile.province,
+      ]
+        .filter(Boolean)
+        .join(" · ")
     : "";
 
   if (!context.supabase || !context.user) {
-    return <VenueSearchBrowser venues={[]} filters={filters} totalCount={0} authRequired profileArea={profileArea} />;
+    return (
+      <VenueSearchBrowser
+        venues={[]}
+        filters={filters}
+        totalCount={0}
+        authRequired
+        profileArea={profileArea}
+      />
+    );
   }
 
-  let result: { items: Awaited<ReturnType<typeof searchVenues>>["items"]; total: number } | null = null;
+  let result: {
+    items: Awaited<ReturnType<typeof searchVenues>>["items"];
+    total: number;
+  } | null = null;
   try {
-    result = await searchVenues(context.supabase, filters);
+    result = await searchVenues(context.supabase, { ...filters, page: 1 }, 600);
   } catch {
     // Keep the directory shell visible and report the data failure in the UI.
   }
-  return result
-    ? <VenueSearchBrowser venues={result.items} filters={filters} totalCount={result.total} isLiveData profileArea={profileArea} />
-    : <VenueSearchBrowser venues={[]} filters={filters} totalCount={0} isLiveData profileArea={profileArea} loadError="ระบบค้นหาสนามขัดข้องชั่วคราว" />;
+  const pageStart = (filters.page - 1) * 24;
+  const pageItems = result?.items.slice(pageStart, pageStart + 24) ?? [];
+  return result ? (
+    <VenueSearchBrowser
+      venues={pageItems}
+      mapVenues={result.items}
+      filters={filters}
+      totalCount={result.total}
+      isLiveData
+      profileArea={profileArea}
+    />
+  ) : (
+    <VenueSearchBrowser
+      venues={[]}
+      mapVenues={[]}
+      filters={filters}
+      totalCount={0}
+      isLiveData
+      profileArea={profileArea}
+      loadError="ระบบค้นหาสนามขัดข้องชั่วคราว"
+    />
+  );
 }
