@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import type { HeaderProfileSummary } from "@/types/profile";
 import { FALLBACK_SKILL_RANKS, getSkillRank } from "@/lib/skill-ranks";
@@ -27,6 +28,28 @@ export async function getSupabaseServerClient() {
         }
       },
     },
+  });
+}
+
+/**
+ * Returns the server-only client used for the homepage's deliberately public
+ * aggregate data. The homepage never sends this client or its key to the
+ * browser; only the allow-listed, non-personal result is returned from the
+ * cached data function.
+ */
+export function getSupabasePublicServerClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  // Prefer the server-only key when it is configured, but keep the public
+  // cache functional on deployments that intentionally expose public rows
+  // through RLS and only provide the publishable/anon key.
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) return null;
+
+  return createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
   });
 }
 

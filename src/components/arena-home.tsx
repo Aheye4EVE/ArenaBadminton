@@ -207,6 +207,24 @@ function MarketplaceHomeRow({ listing, showViewCount }: { listing: HomepageMarke
   );
 }
 
+function HomeSkeletonCards({ count = 3 }: { count?: number }) {
+  return (
+    <div className="home-skeleton-list" aria-busy="true" aria-label="กำลังโหลดข้อมูล">
+      {Array.from({ length: count }, (_, index) => (
+        <div className="home-skeleton-card" key={index} aria-hidden="true">
+          <span className="home-skeleton-card__icon" />
+          <span className="home-skeleton-card__body">
+            <span className="home-skeleton-card__line home-skeleton-card__line--wide" />
+            <span className="home-skeleton-card__line home-skeleton-card__line--medium" />
+            <span className="home-skeleton-card__line home-skeleton-card__line--short" />
+          </span>
+          <span className="home-skeleton-card__badge" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function ArenaHome({
   account,
   isAuthenticated,
@@ -217,6 +235,7 @@ export default function ArenaHome({
   marketplaceSortMode,
   homeDataErrors,
   isLiveData = false,
+  publicDataPending = false,
 }: {
   account: HeaderProfileSummary | null;
   isAuthenticated: boolean;
@@ -231,6 +250,7 @@ export default function ArenaHome({
     marketplace: boolean;
   };
   isLiveData?: boolean;
+  publicDataPending?: boolean;
 }) {
   const router = useRouter();
   const [searchType, setSearchType] = useState("ก๊วน");
@@ -239,14 +259,48 @@ export default function ArenaHome({
   const [gpsGroups, setGpsGroups] = useState<Group[] | null>(null);
   const [groupGpsState, setGroupGpsState] = useState<GroupGpsState>("idle");
   const [groupGpsMessage, setGroupGpsMessage] = useState("");
+  const [fetchedProfileGroups, setFetchedProfileGroups] = useState<Group[] | null>(null);
+  const [profileGroupsFetched, setProfileGroupsFetched] = useState(Boolean(recommendedGroups));
+  const [sessionAuthenticated, setSessionAuthenticated] = useState(isAuthenticated);
   const groupRequestIdRef = useRef(0);
   const groupAbortRef = useRef<AbortController | null>(null);
   const selectedSkill = activeFilter === "มือใหม่" ? "beginner" : activeFilter === "มือกลาง" ? "intermediate" : activeFilter === "มือสูง" ? "advanced" : "all";
-  const homepageGroups = gpsGroups ?? recommendedGroups ?? groups;
-  const homepageEvents = isLiveData ? (featuredEvents ?? []) : demoEvents;
-  const homepageCourts = isLiveData ? (featuredCourts ?? []) : demoCourts;
-  const homepageMarketplaceListings = isLiveData ? (featuredMarketplaceListings ?? []) : [];
+  const profileGroups = recommendedGroups ?? (profileGroupsFetched ? fetchedProfileGroups : null);
+  const profileGroupsLoading = !recommendedGroups && sessionAuthenticated && !profileGroupsFetched;
+  const homepageGroups = gpsGroups ?? profileGroups ?? groups;
+  const homepageEvents = publicDataPending ? [] : isLiveData ? (featuredEvents ?? []) : demoEvents;
+  const homepageCourts = publicDataPending ? [] : isLiveData ? (featuredCourts ?? []) : demoCourts;
+  const homepageMarketplaceListings = publicDataPending ? [] : isLiveData ? (featuredMarketplaceListings ?? []) : [];
   const marketplaceUsesViews = marketplaceSortMode !== "latest";
+
+  useEffect(() => {
+    if (recommendedGroups || !sessionAuthenticated || profileGroupsFetched) return;
+
+    let cancelled = false;
+    fetch("/api/groups/recommended", { credentials: "same-origin", cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return await response.json() as { items?: Group[] };
+      })
+      .then((payload) => {
+        if (cancelled) return;
+        setFetchedProfileGroups(Array.isArray(payload?.items) ? payload.items : null);
+        setProfileGroupsFetched(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setFetchedProfileGroups(null);
+        setProfileGroupsFetched(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profileGroupsFetched, recommendedGroups, sessionAuthenticated]);
+
+  const handleSessionResolved = useCallback(({ isAuthenticated: nextIsAuthenticated }: { isAuthenticated: boolean }) => {
+    setSessionAuthenticated(nextIsAuthenticated);
+  }, []);
 
   const fetchGpsGroups = useCallback(async (coordinates: GeoCoordinates) => {
     const requestId = ++groupRequestIdRef.current;
@@ -282,7 +336,7 @@ export default function ArenaHome({
   }, []);
 
   const requestGroupGps = useCallback(() => {
-    if (!isAuthenticated) {
+    if (!sessionAuthenticated) {
       setGroupGpsState("unavailable");
       setGroupGpsMessage("เข้าสู่ระบบเพื่อจัดอันดับก๊วนตามตำแหน่ง");
       return;
@@ -311,19 +365,21 @@ export default function ArenaHome({
       },
       { enableHighAccuracy: false, maximumAge: 300_000, timeout: 10_000 },
     );
-  }, [fetchGpsGroups, isAuthenticated]);
+  }, [fetchGpsGroups, sessionAuthenticated]);
 
   useEffect(() => () => {
     groupRequestIdRef.current += 1;
     groupAbortRef.current?.abort();
   }, []);
 
-  const profileGpsIsActive = !gpsGroups && (recommendedGroups ?? []).some((group) => Number.isFinite(group.distanceKm));
+  const profileGpsIsActive = !gpsGroups && (profileGroups ?? []).some((group) => Number.isFinite(group.distanceKm));
   const groupLocationLabel = groupGpsState === "loading"
     ? groupGpsMessage
     : groupGpsState === "ready"
       ? groupGpsMessage
-      : profileGpsIsActive
+      : profileGroupsLoading
+        ? "กำลังโหลดก๊วนแนะนำจากพื้นที่ใน Profile..."
+        : profileGpsIsActive
         ? "ใช้พิกัดใน Profile เป็นค่าเริ่มต้น"
         : groupGpsMessage || "ใช้พื้นที่ใน Profile เป็นสำรอง · กดเพื่อใช้ GPS";
   const groupGpsButtonLabel = groupGpsState === "loading" ? "กำลังค้นหา..." : groupGpsState === "ready" ? "อัปเดตตำแหน่ง" : "ก๊วนใกล้ฉัน";
@@ -356,7 +412,7 @@ export default function ArenaHome({
   };
 
   return (
-    <div className={cx("arena-page", (account || isAuthenticated) && "arena-page--with-profile-card")}>
+      <div className="arena-page">
       <section className="hero-stage">
         <div className="hero-container relative z-10 mx-auto max-w-[1540px] px-4 pb-16 pt-5 sm:px-6 lg:px-8">
           <header className="arena-header flex items-center gap-3">
@@ -367,7 +423,7 @@ export default function ArenaHome({
             </Link>
 
             <div className="header-actions">
-              <AccountMenu account={account} isAuthenticated={isAuthenticated} />
+              <AccountMenu account={account} isAuthenticated={isAuthenticated} onSessionResolved={handleSessionResolved} />
             </div>
           </header>
 
@@ -378,7 +434,7 @@ export default function ArenaHome({
               transition={{ duration: 0.5 }}
               className="hero-kicker"
             >
-              <Image src="/assets/hero-find-your-game.png" alt="Find your game" width={2048} height={768} quality={100} priority />
+              <Image src="/assets/arena-title-mascot-new1.png" alt="" width={1916} height={821} quality={100} priority />
             </motion.p>
             <motion.h1
               initial={{ opacity: 0, y: 14 }}
@@ -534,27 +590,33 @@ export default function ArenaHome({
                   <SectionHeading title="ก๊วนแนะนำ" href="/groups" tone="pink" />
                   <div className="group-recommendation-toolbar" aria-live="polite">
                     <span className="group-recommendation-location"><MapPin size={13} /> {groupLocationLabel}</span>
-                    {isAuthenticated ? <button type="button" className="group-location-button" onClick={requestGroupGps} disabled={groupGpsState === "loading"}>
+                    {sessionAuthenticated ? <button type="button" className="group-location-button" onClick={requestGroupGps} disabled={groupGpsState === "loading"}>
                       <LocateFixed size={13} /> {groupGpsButtonLabel}
                     </button> : null}
                   </div>
                   <div className="space-y-2">
-                    {visibleGroups.slice(0, 5).map((group) => <GroupCard key={group.id} group={group} onJoin={(selectedGroup) => router.push(selectedGroup.detailHref ?? "/groups")} />)}
-                    {visibleGroups.length === 0 ? <div className="empty-card"><Sparkles size={21} /><p>ยังไม่พบก๊วนจากตัวกรองนี้</p></div> : null}
+                    {profileGroupsLoading || groupGpsState === "loading" ? <HomeSkeletonCards /> : <motion.div className="home-live-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.24 }}>
+                      {visibleGroups.slice(0, 5).map((group) => <GroupCard key={group.id} group={group} onJoin={(selectedGroup) => router.push(selectedGroup.detailHref ?? "/groups")} />)}
+                      {visibleGroups.length === 0 ? <div className="empty-card"><Sparkles size={21} /><p>ยังไม่พบก๊วนจากตัวกรองนี้</p></div> : null}
+                    </motion.div>}
                   </div>
                 </section>
 
                 <section className="dashboard-card dashboard-card--lavender dashboard-card--events">
                   <SectionHeading title="Event & Tournament" href="/events" tone="purple" />
                   <div className="space-y-2">
-                    {homeDataErrors?.events ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลกิจกรรมจริงไม่สำเร็จ ลองเปิดหน้ากิจกรรมอีกครั้ง</p><Link href="/events" className="section-link">เปิดกิจกรรม <ArrowRight size={14} /></Link></div> : homepageEvents.length > 0 ? homepageEvents.map((event) => <EventCard key={event.id} event={event} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีกิจกรรมที่เปิดรับสมัคร" : "ยังไม่พบกิจกรรม"}</p></div>}
+                    {publicDataPending ? <HomeSkeletonCards count={3} /> : <motion.div className="home-live-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.24 }}>
+                      {homeDataErrors?.events ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลกิจกรรมจริงไม่สำเร็จ ลองเปิดหน้ากิจกรรมอีกครั้ง</p><Link href="/events" className="section-link">เปิดกิจกรรม <ArrowRight size={14} /></Link></div> : homepageEvents.length > 0 ? homepageEvents.map((event) => <EventCard key={event.id} event={event} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีกิจกรรมที่เปิดรับสมัคร" : "ยังไม่พบกิจกรรม"}</p></div>}
+                    </motion.div>}
                   </div>
                 </section>
 
                 <section className="dashboard-card dashboard-card--mint dashboard-card--venues">
                   <SectionHeading title="สนามแบดแนะนำ" href="/venues" tone="mint" />
                   <div className="space-y-2">
-                    {homeDataErrors?.venues ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลสนามจริงไม่สำเร็จ ลองเปิดหน้าสนามอีกครั้ง</p><Link href="/venues" className="section-link">เปิดสนาม <ArrowRight size={14} /></Link></div> : homepageCourts.length > 0 ? homepageCourts.map((court, index) => <CourtCard key={court.id} court={court} index={index} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีสนามที่เปิดให้ค้นหา" : "ยังไม่พบสนาม"}</p></div>}
+                    {publicDataPending ? <HomeSkeletonCards count={3} /> : <motion.div className="home-live-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.24 }}>
+                      {homeDataErrors?.venues ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลสนามจริงไม่สำเร็จ ลองเปิดหน้าสนามอีกครั้ง</p><Link href="/venues" className="section-link">เปิดสนาม <ArrowRight size={14} /></Link></div> : homepageCourts.length > 0 ? homepageCourts.map((court, index) => <CourtCard key={court.id} court={court} index={index} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีสนามที่เปิดให้ค้นหา" : "ยังไม่พบสนาม"}</p></div>}
+                    </motion.div>}
                   </div>
                 </section>
 
@@ -562,7 +624,9 @@ export default function ArenaHome({
                   <SectionHeading title="สินค้ามือสอง" href="/marketplace" tone="purple" />
                   <p className="marketplace-home-sort-note"><Eye size={13} /> {marketplaceUsesViews ? "เรียงจากยอดเข้าชมสูงสุด · รายการที่ยังไม่ขาย" : "รายการที่ยังไม่ขาย · เรียงตามรายการล่าสุด"}</p>
                   <div className="marketplace-home-list">
-                    {homeDataErrors?.marketplace ? <div className="empty-card" role="alert"><PackageSearch size={21} /><p>โหลดข้อมูลตลาดมือสองไม่สำเร็จ</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div> : homepageMarketplaceListings.length > 0 ? homepageMarketplaceListings.map((listing) => <MarketplaceHomeRow key={listing.id} listing={listing} showViewCount={marketplaceUsesViews} />) : <div className="empty-card"><PackageSearch size={21} /><p>{isLiveData ? "ยังไม่มีสินค้าที่เปิดขาย" : "เข้าสู่ตลาดมือสองเพื่อดูสินค้าจาก Community"}</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div>}
+                    {publicDataPending ? <HomeSkeletonCards count={3} /> : <motion.div className="home-live-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.24 }}>
+                      {homeDataErrors?.marketplace ? <div className="empty-card" role="alert"><PackageSearch size={21} /><p>โหลดข้อมูลตลาดมือสองไม่สำเร็จ</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div> : homepageMarketplaceListings.length > 0 ? homepageMarketplaceListings.map((listing) => <MarketplaceHomeRow key={listing.id} listing={listing} showViewCount={marketplaceUsesViews} />) : <div className="empty-card"><PackageSearch size={21} /><p>{isLiveData ? "ยังไม่มีสินค้าที่เปิดขาย" : "เข้าสู่ตลาดมือสองเพื่อดูสินค้าจาก Community"}</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div>}
+                    </motion.div>}
                   </div>
                 </section>
               </div>

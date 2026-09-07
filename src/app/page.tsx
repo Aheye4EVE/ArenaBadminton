@@ -1,27 +1,21 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import ArenaHome from "@/components/arena-home";
-import { getRecommendedGroups } from "@/lib/group-recommendations";
-import { getHomepageLiveData } from "@/lib/home-data";
-import { getAuthenticatedProfile, getAuthenticatedProfileSummary } from "@/lib/supabase-server";
+import { getHomepagePublicData } from "@/lib/home-data";
 
 export const metadata: Metadata = {
   title: "Arena-Badminton | หาก๊วนง่าย นัดตีสะดวก",
   description: "พื้นที่รวมก๊วน สนาม กิจกรรม และ Community สำหรับคนรักแบดมินตัน",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
-export default async function HomePage() {
-  const authContext = await getAuthenticatedProfile();
-  const [summaryContext, recommendedGroups, homepageLiveData] = await Promise.all([
-    getAuthenticatedProfileSummary(authContext),
-    getRecommendedGroups(authContext),
-    getHomepageLiveData(authContext),
-  ]);
+async function CachedHome() {
+  const homepageLiveData = await getHomepagePublicData();
+
   return <ArenaHome
-    account={summaryContext.summary}
-    isAuthenticated={Boolean(authContext.user)}
-    recommendedGroups={recommendedGroups}
+    account={null}
+    isAuthenticated={false}
     featuredEvents={homepageLiveData?.featuredEvents}
     featuredCourts={homepageLiveData?.featuredCourts}
     featuredMarketplaceListings={homepageLiveData?.featuredMarketplaceListings}
@@ -29,4 +23,12 @@ export default async function HomePage() {
     homeDataErrors={homepageLiveData?.errors}
     isLiveData={Boolean(homepageLiveData)}
   />;
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<ArenaHome account={null} isAuthenticated={false} publicDataPending />}>
+      <CachedHome />
+    </Suspense>
+  );
 }

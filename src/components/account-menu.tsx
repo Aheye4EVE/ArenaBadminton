@@ -234,12 +234,12 @@ function CompactAuthCard({ onClose }: { onClose: () => void }) {
   );
 }
 
-function ProfileSetupPrompt({ onClose, desktop = false }: { onClose: () => void; desktop?: boolean }) {
+function ProfileSetupPrompt({ onClose }: { onClose: () => void }) {
   return (
-    <section className={cx("account-profile", "account-profile--setup", desktop && "account-profile--desktop")} aria-labelledby="account-setup-title">
+    <section className={cx("account-profile", "account-profile--setup")} aria-labelledby="account-setup-title">
       <div className="account-profile__topline">
         <div className="account-auth__eyebrow"><Sparkles size={15} /> Almost ready</div>
-        {!desktop ? <button type="button" className="account-card-close" onClick={onClose} aria-label="ปิด Profile Card"><X size={18} /></button> : null}
+        <button type="button" className="account-card-close" onClick={onClose} aria-label="ปิด Profile Card"><X size={18} /></button>
       </div>
       <div className="account-profile__setup-icon" aria-hidden="true"><UserRound size={27} /></div>
       <h2 id="account-setup-title">โปรไฟล์ของคุณยังไม่ครบ</h2>
@@ -249,17 +249,17 @@ function ProfileSetupPrompt({ onClose, desktop = false }: { onClose: () => void;
   );
 }
 
-function ProfileSummaryCard({ account, onClose, desktop = false }: { account: HeaderProfileSummary; onClose: () => void; desktop?: boolean }) {
+function ProfileSummaryCard({ account, onClose }: { account: HeaderProfileSummary; onClose: () => void }) {
   const rankText = account.rank === null ? "—" : `#${account.rank}`;
   const levelText = account.nextLevelExp === null
     ? `${formatNumber(account.expTotal)} EXP · MAX`
     : `${formatNumber(account.expTotal)} / ${formatNumber(account.nextLevelExp)} EXP`;
 
   return (
-    <section className={cx("account-profile", desktop && "account-profile--desktop")} aria-labelledby="account-profile-title">
+    <section className="account-profile" aria-labelledby="account-profile-title">
       <div className="account-profile__topline">
         <div className="account-auth__eyebrow"><Sparkles size={15} /> My Arena Profile</div>
-        {!desktop ? <button type="button" className="account-card-close" onClick={onClose} aria-label="ปิด Profile Card"><X size={18} /></button> : null}
+        <button type="button" className="account-card-close" onClick={onClose} aria-label="ปิด Profile Card"><X size={18} /></button>
       </div>
 
       <div className="account-profile__identity">
@@ -359,12 +359,24 @@ function ProfileSummaryCard({ account, onClose, desktop = false }: { account: He
   );
 }
 
-export default function AccountMenu({ account, isAuthenticated }: { account: HeaderProfileSummary | null; isAuthenticated: boolean }) {
+type AccountSession = {
+  account: HeaderProfileSummary | null;
+  isAuthenticated: boolean;
+};
+
+type AccountMenuProps = {
+  account?: HeaderProfileSummary | null;
+  isAuthenticated?: boolean;
+  onSessionResolved?: (session: AccountSession) => void;
+};
+
+export default function AccountMenu({ account = null, isAuthenticated = false, onSessionResolved }: AccountMenuProps) {
   const [open, setOpen] = useState(false);
-  const hasDesktopProfileCard = Boolean(account || isAuthenticated);
+  const [session, setSession] = useState<AccountSession>({ account, isAuthenticated });
   const menuRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverId = "account-profile-popover";
 
   const closeMenu = useCallback(() => {
     setOpen(false);
@@ -372,10 +384,44 @@ export default function AccountMenu({ account, isAuthenticated }: { account: Hea
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/profile/summary", {
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return await response.json() as { account?: HeaderProfileSummary | null; isAuthenticated?: boolean };
+      })
+      .then((payload) => {
+        if (cancelled || !payload) return;
+        const nextSession = {
+          account: payload.account ?? null,
+          isAuthenticated: Boolean(payload.isAuthenticated),
+        };
+        setSession(nextSession);
+        onSessionResolved?.(nextSession);
+      })
+      .catch(() => {
+        // The trigger remains usable as a login/profile button when the
+        // optional session read is unavailable.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [onSessionResolved]);
+
+  useEffect(() => {
     if (!open) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeMenu();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeMenu();
+      }
     };
     const handlePointerDown = (event: PointerEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) closeMenu();
@@ -391,36 +437,52 @@ export default function AccountMenu({ account, isAuthenticated }: { account: Hea
     };
   }, [closeMenu, open]);
 
+  const currentAccount = session.account;
+  const currentIsAuthenticated = session.isAuthenticated;
+
   return (
-    <div className={cx("account-menu", hasDesktopProfileCard && "account-menu--has-desktop-card")} ref={menuRef}>
-      {hasDesktopProfileCard ? (
-        <div className="account-desktop-card" aria-label="Arena Profile">
-          {account ? <ProfileSummaryCard account={account} onClose={() => undefined} desktop /> : <ProfileSetupPrompt onClose={() => undefined} desktop />}
-        </div>
-      ) : null}
-      <button
+    <div className="account-menu" ref={menuRef}>
+      <motion.button
         ref={triggerRef}
         type="button"
         className={cx("profile-chip", "account-trigger", open && "account-trigger--open")}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={account ? `เปิดโปรไฟล์ของ ${account.displayName}` : isAuthenticated ? "ตั้งค่า Profile" : "เข้าสู่ระบบ"}
+        aria-controls={popoverId}
+        aria-label={currentAccount ? `เปิดโปรไฟล์ของ ${currentAccount.displayName}` : currentIsAuthenticated ? "ตั้งค่า Profile" : "เข้าสู่ระบบ"}
         onClick={() => setOpen((current) => !current)}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
       >
-        <AccountAvatar account={account} />
-        <span className="hidden text-left sm:block">
-          <strong>{account?.displayName ?? (isAuthenticated ? "ตั้งค่าโปรไฟล์" : "เข้าสู่ระบบ")}</strong>
-          <small lang="en">{account ? `Lv.${account.level}` : isAuthenticated ? "Complete profile" : "Join Arena"}</small>
+        <AccountAvatar account={currentAccount} />
+        <span className="account-trigger__text">
+          <strong>{currentAccount?.displayName ?? (currentIsAuthenticated ? "ตั้งค่าโปรไฟล์" : "เข้าสู่ระบบ")}</strong>
+          <small lang="en">{currentAccount ? `Lv.${currentAccount.level}` : currentIsAuthenticated ? "Complete profile" : "Join Arena"}</small>
         </span>
-        <ChevronDown className={cx("account-trigger__chevron", "hidden sm:block", open && "account-trigger__chevron--open")} size={15} />
-      </button>
+        <ChevronDown className={cx("account-trigger__chevron", open && "account-trigger__chevron--open")} size={16} aria-hidden="true" />
+      </motion.button>
 
       <AnimatePresence>
         {open ? (
           <>
-            <motion.button type="button" className="account-backdrop" aria-label="ปิด Account Card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeMenu} />
-            <motion.div ref={panelRef} className={cx("account-popover", account && "account-popover--profile")} initial={{ opacity: 0, y: -8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.98 }} transition={{ duration: 0.18, ease: "easeOut" }} role="dialog" aria-modal="true">
-              {isAuthenticated && account ? <ProfileSummaryCard account={account} onClose={closeMenu} /> : isAuthenticated ? <ProfileSetupPrompt onClose={closeMenu} /> : <CompactAuthCard onClose={closeMenu} />}
+            <motion.button type="button" className="account-backdrop" aria-label="ปิด Account Card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} onClick={closeMenu} />
+            <motion.div
+              ref={panelRef}
+              id={popoverId}
+              className={cx("account-popover", currentAccount && "account-popover--profile")}
+              initial={{ opacity: 0, scale: 0.95, y: -12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -12, transition: { duration: 0.18, ease: "easeIn" } }}
+              transition={{ type: "spring", stiffness: 380, damping: 26, mass: 0.8 }}
+              role="dialog"
+              aria-modal="true"
+              style={{ transformOrigin: "top right" }}
+            >
+              {currentIsAuthenticated && currentAccount ? (
+                <div className="account-popover--rgb-frame">
+                  <ProfileSummaryCard account={currentAccount} onClose={closeMenu} />
+                </div>
+              ) : currentIsAuthenticated ? <ProfileSetupPrompt onClose={closeMenu} /> : <CompactAuthCard onClose={closeMenu} />}
             </motion.div>
           </>
         ) : null}

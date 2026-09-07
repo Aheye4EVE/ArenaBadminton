@@ -991,351 +991,6 @@
   min-width: 0;
 }
 
-/* A signed-in member gets the complete Arena Profile beside the desktop
-   header. The compact trigger/popover remains the mobile interaction. */
-.frontend-shell .account-desktop-card {
-  display: none;
-}
-
-@media (min-width: 1181px) {
-  /* Keep the main composition centered in the full desktop canvas. The
-     profile card remains a fixed right-side dock, so its position is not
-     affected by the hero/dashboard alignment. */
-  .frontend-shell .dashboard-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .frontend-shell .arena-page--with-profile-card {
-    --arena-profile-dock-space: clamp(230px, 20vw, 292px);
-    --arena-home-content-max: clamp(780px, 66vw, 880px);
-    --arena-profile-center-shift: calc((var(--arena-profile-dock-space) + 20px) / 2);
-    --arena-profile-card-width: min(clamp(295px, 22.176vw, 362px), calc(100% - 16px));
-    --arena-profile-card-right: clamp(10px, 1.25vw, 22px);
-    --arena-profile-safe-gap: 16px;
-    --arena-search-content-max: min(var(--arena-home-content-max), calc(100vw - var(--arena-profile-card-right) - var(--arena-profile-card-right) - var(--arena-profile-card-width) - var(--arena-profile-card-width) - var(--arena-profile-safe-gap) - var(--arena-profile-safe-gap)));
-  }
-  .frontend-shell .account-menu--has-desktop-card {
-    position: relative;
-    align-self: stretch;
-    flex: 0 0 0;
-    width: 0;
-  }
-  .frontend-shell .account-menu--has-desktop-card > .account-trigger {
-    display: none;
-  }
-  .frontend-shell .account-menu--has-desktop-card > .account-desktop-card {
-    position: fixed;
-    top: clamp(78px, 10.8vh, 106px);
-    right: clamp(10px, 1.25vw, 22px);
-    z-index: 85;
-    display: block;
-    width: min(clamp(295px, 22.176vw, 362px), calc(100vw - 16px));
-    height: min(526px, calc(100svh - 96px));
-    max-height: calc(100svh - 96px);
-    overflow: auto;
-    border: 0;
-    border-radius: 23px;
-    background: transparent;
-    box-shadow: 0 24px 66px #633c9040;
-    scrollbar-width: thin;
-  }
-  .frontend-shell .account-menu--has-desktop-card > .account-desktop-card::-webkit-scrollbar {
-    width: 5px;
-  }
-  .frontend-shell .account-menu--has-desktop-card > .account-desktop-card .account-profile {
-    border-radius: 23px;
-  }
-  .frontend-shell .account-menu--has-desktop-card > .account-popover,
-  .frontend-shell .account-menu--has-desktop-card > .account-backdrop {
-    display: none;
-  }
-
-  .frontend-shell .arena-page--with-profile-card .hero-container {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--arena-profile-dock-space);
-    column-gap: 20px;
-    align-items: start;
-  }
-  .frontend-shell .arena-page--with-profile-card .arena-header,
-  .frontend-shell .arena-page--with-profile-card .mobile-menu {
-    grid-column: 1 / -1;
-  }
-  .frontend-shell .arena-page--with-profile-card .hero-copy {
-    grid-column: 1;
-    width: 100%;
-    max-width: min(920px, var(--arena-home-content-max));
-    justify-self: center;
-    margin-right: 0;
-    margin-left: 0;
-    transform: translateX(var(--arena-profile-center-shift));
-  }
-  .frontend-shell .arena-page--with-profile-card .hero-copy .search-shell {
-    width: min(100%, var(--arena-search-content-max));
-  }
-  .frontend-shell .arena-page--with-profile-card .dashboard-area > div {
-    width: min(calc(100% - var(--arena-profile-dock-space) - 20px), var(--arena-home-content-max));
-    max-width: none;
-    margin-left: max(0px, calc((100% - var(--arena-profile-dock-space) - 20px - var(--arena-home-content-max)) / 2));
-    margin-right: 0;
-    padding-left: 0;
-    padding-right: 0;
-    transform: translateX(var(--arena-profile-center-shift));
-  }
-}
-
-@media (min-width: 1181px) {
-  /* The desktop dock is intentionally denser than the mobile popover so it
-     can keep the complete profile readable at desktop widths. */
-  .frontend-shell .account-desktop-card .account-profile--desktop:not(.account-profile--setup) {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 4px;
-    row-gap: 0;
-    align-content: space-between;
-    min-height: 100%;
-    padding: 17px;
-    border-radius: 24px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop:not(.account-profile--setup) > :is(.account-profile__topline, .account-profile__identity, .account-profile__record, .account-profile__level, .account-profile__stats, .account-profile__quick-actions, .account-profile__footer) {
-    grid-column: 1 / -1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-auth__eyebrow {
-    gap: 4px;
-    font-size: .85rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-auth__eyebrow svg {
-    width: 13px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__topline {
-    gap: 4px;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity {
-    align-items: flex-start;
-    gap: 10px;
-    margin-top: 12px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-avatar--large {
-    width: 100px;
-    height: 100px;
-    border-width: 3px;
-    box-shadow: 0 0 0 3px rgba(246, 92, 168, .18), 0 9px 20px rgba(111, 86, 190, .14);
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-avatar--large .account-avatar__status {
-    width: 14px;
-    height: 14px;
-    border-width: 2px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity-copy {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding-top: 1px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-row {
-    gap: 4px;
-    margin-top: 5px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-card {
-    gap: 4px;
-    min-height: 30px;
-    padding: 4px 5px;
-    border-radius: 9px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-card > svg {
-    width: 13px;
-    height: 13px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-card small {
-    font-size: .65rem;
-    line-height: 1.05;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__score-card strong {
-    font-size: .9rem;
-    line-height: 1.05;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-row {
-    gap: 4px;
-    margin-top: 4px;
-    padding: 4px 5px;
-    border-radius: 9px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-balance {
-    gap: 4px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-balance > svg {
-    width: 13px;
-    height: 13px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-balance small {
-    font-size: .64rem;
-    line-height: 1.05;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-balance strong {
-    font-size: .85rem;
-    line-height: 1.05;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__points-topup {
-    gap: 2px;
-    padding: 3px 5px;
-    border-radius: 7px;
-    font-size: .68rem;
-    line-height: 1.05;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record {
-    gap: 4px;
-    margin-top: 9px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record-item {
-    gap: 3px;
-    min-height: 35px;
-    padding: 5px 2px;
-    border-radius: 9px;
-    line-height: 1.05;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record-item > svg {
-    width: 13px;
-    height: 13px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record-item small {
-    font-size: .64rem;
-    line-height: 1.05;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__record-item strong {
-    font-size: .9rem;
-    line-height: 1.05;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row {
-    gap: 3px;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row h2 {
-    font-size: 1.3rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__name-row svg {
-    width: 14px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__identity-copy > p {
-    margin: 2px 0 6px;
-    font-size: .8rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__title-pill,
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__rank-pill {
-    max-width: 100%;
-    padding: 2px 6px;
-    font-size: .72rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__rank-pill {
-    margin-top: 2px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level {
-    margin-top: 12px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-row {
-    gap: 6px;
-    font-size: .92rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-row strong {
-    font-size: .8rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__level-track {
-    height: 6px;
-    margin-top: 5px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats {
-    gap: 0;
-    margin: 12px 0 8px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats > div {
-    gap: 1px;
-    padding: 7px 2px;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats svg {
-    width: 16px;
-    height: 16px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats strong {
-    margin-top: 2px;
-    font-size: 1.15rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__stats span {
-    font-size: .8rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions {
-    gap: 4px;
-    margin-top: 8px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link {
-    gap: 2px;
-    min-height: 42px;
-    padding: 5px 2px;
-    border-radius: 9px;
-    line-height: 1.05;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link > svg:first-child {
-    width: 13px;
-    height: 13px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link strong {
-    font-size: .76rem;
-    line-height: 1.05;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link small {
-    font-size: .62rem;
-    line-height: 1.05;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link > svg:last-child {
-    right: 3px;
-    bottom: 3px;
-    width: 9px;
-    height: 9px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__quick-actions .account-profile__social-link > b {
-    top: 2px;
-    right: 2px;
-    min-width: 14px;
-    height: 14px;
-    padding: 0 3px;
-    font-size: .47rem;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer {
-    gap: 5px;
-    margin-top: 7px;
-    padding-top: 7px;
-    font-size: .68rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer > span,
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer button {
-    gap: 4px;
-    font-size: .68rem;
-    line-height: 1.1;
-  }
-  .frontend-shell .account-desktop-card .account-profile--desktop .account-profile__footer svg {
-    width: 12px;
-    height: 12px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--setup.account-profile--desktop {
-    padding: 14px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--setup.account-profile--desktop .account-profile__setup-icon {
-    width: 42px;
-    height: 42px;
-    margin-top: 10px;
-  }
-  .frontend-shell .account-desktop-card .account-profile--setup.account-profile--desktop h2 {
-    font-size: .8rem;
-  }
-  .frontend-shell .account-desktop-card .account-profile--setup.account-profile--desktop p {
-    font-size: .5rem;
-  }
-}
-
 @container arena-header (max-width: 1260px) {
   .frontend-shell .brand-lockup {
     width: 175px;
@@ -1685,5 +1340,605 @@
 @media (max-width: 420px) {
   .frontend-shell .account-profile__footer {
     align-items: flex-end;
+  }
+}
+
+/* Final interaction layer: the account control and arena menu share one
+   anchored popover pattern on every viewport. These rules intentionally sit
+   after the legacy page-specific theme rules so the old desktop dock cannot
+   reintroduce a second, permanently visible profile card. */
+.frontend-shell .header-actions,
+.frontend-shell .frontend-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.frontend-shell .account-menu {
+  position: relative;
+  z-index: 120;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.frontend-shell .account-trigger {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 68px;
+  min-width: 68px;
+  height: 54px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, .95);
+  border-radius: 19px;
+  color: #7650be;
+  background: rgba(255, 250, 255, .82);
+  box-shadow: 0 10px 24px rgba(107, 66, 165, .18), inset 0 1px 0 rgba(255, 255, 255, .95);
+  cursor: pointer;
+  font: inherit;
+}
+
+.frontend-shell .account-trigger__text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.frontend-shell .account-trigger .account-avatar {
+  width: 40px;
+  height: 40px;
+  border: 2px solid transparent;
+  background: linear-gradient(145deg, #fff5ff, #eaf5ff) padding-box,
+    linear-gradient(135deg, #ff62ae, #a55fe7 55%, #5aa8f5) border-box;
+  box-shadow: 0 4px 13px rgba(104, 74, 175, .2), 0 0 0 2px rgba(255, 255, 255, .56);
+}
+
+.frontend-shell .account-trigger .account-avatar img {
+  display: block;
+}
+
+.frontend-shell .account-trigger .account-avatar__status {
+  width: 10px;
+  height: 10px;
+  border-width: 2px;
+  background: #53d19e;
+}
+
+.frontend-shell .account-trigger__chevron {
+  display: block;
+  flex: 0 0 auto;
+  color: #8b5ed1;
+  transition: transform 250ms ease;
+}
+
+.frontend-shell .account-trigger__chevron--open {
+  transform: rotate(180deg);
+}
+
+.frontend-shell .account-backdrop {
+  z-index: 0;
+}
+
+.frontend-shell .account-popover {
+  position: absolute !important;
+  top: calc(100% + 12px) !important;
+  right: 0 !important;
+  bottom: auto !important;
+  left: auto !important;
+  z-index: 2;
+  box-sizing: border-box;
+  width: min(420px, 80vw, calc(100vw - 24px)) !important;
+  max-height: calc(100svh - 104px);
+  overflow: auto;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 27px;
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+
+.frontend-shell .account-popover--profile {
+  width: min(420px, 80vw, calc(100vw - 24px)) !important;
+  height: auto !important;
+  min-height: 0;
+}
+
+.frontend-shell .account-popover > .account-auth,
+.frontend-shell .account-popover > .account-profile--setup {
+  border: 2px solid rgba(255, 255, 255, .94);
+  border-radius: 25px;
+  background: linear-gradient(135deg, rgba(255, 249, 255, .95), rgba(247, 242, 255, .93) 60%, rgba(237, 251, 255, .92));
+  box-shadow: 0 20px 48px rgba(99, 60, 144, .25);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.frontend-shell .account-popover--profile .account-profile {
+  display: block !important;
+  box-sizing: border-box;
+  min-height: 0;
+  margin: 0;
+  padding: clamp(17px, 2.2vw, 23px);
+  border: 0 !important;
+  border-radius: 23.5px;
+  background: rgba(255, 250, 255, .91) !important;
+  box-shadow: 0 20px 48px rgba(99, 60, 144, .25);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.frontend-shell .account-popover--profile .account-profile__topline {
+  gap: 10px;
+}
+
+.frontend-shell .account-popover--profile .account-profile__identity {
+  align-items: flex-start;
+  gap: 13px;
+  margin-top: 17px;
+}
+
+.frontend-shell .account-popover--profile .account-avatar--large {
+  width: clamp(74px, 17vw, 92px);
+  height: clamp(74px, 17vw, 92px);
+  border: 3px solid transparent;
+  background: linear-gradient(145deg, #fff5ff, #eaf5ff) padding-box,
+    linear-gradient(135deg, #ff62ae, #a55fe7 55%, #5aa8f5) border-box;
+  box-shadow: 0 0 0 3px rgba(246, 92, 168, .18), 0 10px 22px rgba(111, 86, 190, .16);
+}
+
+.frontend-shell .account-popover--profile .account-avatar--large .account-avatar__status {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+.frontend-shell .account-popover--profile .account-profile__name-row h2 {
+  font-size: clamp(1.08rem, 3.1vw, 1.34rem);
+}
+
+.frontend-shell .account-popover--profile .account-profile__score-row,
+.frontend-shell .account-popover--profile .account-profile__record {
+  gap: 7px;
+}
+
+.frontend-shell .account-popover--profile .account-profile__stats {
+  gap: 6px;
+  margin-top: 17px;
+}
+
+.frontend-shell .account-popover--profile .account-profile__quick-actions {
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.frontend-shell .account-popover--profile .account-profile__social-link {
+  border-radius: 13px;
+}
+
+.frontend-shell .account-popover--profile .account-profile__footer {
+  margin-top: 13px;
+  padding-top: 11px;
+}
+
+/* Cyber-neon RGB frame around the authenticated profile card. The frame is
+   separate from the card surface so the moving conic light remains crisp
+   while the content keeps the readable frosted-glass treatment. */
+@keyframes rainbow-border-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.frontend-shell .account-popover--rgb-frame {
+  --arena-rainbow: conic-gradient(from 0deg, #ff2a8d, #ff8c00, #ffe600, #00ff85, #00e5ff, #3b82f6, #9d4edd, #ff2a8d);
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 2.5px;
+  border-radius: 26px;
+}
+
+.frontend-shell .account-popover--rgb-frame::before,
+.frontend-shell .account-popover--rgb-frame::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  content: "";
+}
+
+.frontend-shell .account-popover--rgb-frame::before {
+  inset: -12px;
+  z-index: 0;
+  background: var(--arena-rainbow);
+  filter: blur(16px);
+  opacity: .65;
+  animation: rainbow-border-spin 4s linear infinite;
+}
+
+.frontend-shell .account-popover--rgb-frame::after {
+  z-index: 0;
+  background: var(--arena-rainbow);
+  animation: rainbow-border-spin 4s linear infinite;
+}
+
+.frontend-shell .account-popover--rgb-frame > .account-profile {
+  position: relative;
+  z-index: 1;
+}
+
+/* Compact anime-bento menu anchored to the shuttle button. */
+.frontend-shell .arena-menu {
+  position: relative;
+  z-index: 120;
+  flex: 0 0 auto;
+}
+
+.frontend-shell .arena-menu__trigger {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 66px;
+  min-height: 72px;
+  padding: 7px 8px 6px;
+  border: 2px solid rgba(255, 255, 255, .96);
+  border-radius: 20px;
+  color: #8051df;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 10px 24px rgba(107, 66, 165, .18), inset 0 1px 0 rgba(255, 255, 255, .95);
+  cursor: pointer;
+  font: inherit;
+}
+
+.frontend-shell .arena-menu__trigger-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+}
+
+.frontend-shell .arena-menu__trigger img {
+  display: block;
+  width: 40px !important;
+  height: 40px !important;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 3px rgba(112, 74, 171, .2));
+}
+
+.frontend-shell .arena-menu__label {
+  color: #8051df;
+  font-family: var(--font-fredoka), sans-serif;
+  font-size: .68rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.frontend-shell .arena-menu__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: rgba(64, 35, 107, .08);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  cursor: default;
+}
+
+.frontend-shell .arena-menu__panel {
+  position: absolute !important;
+  top: calc(100% + 12px) !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 0 !important;
+  z-index: 2;
+  display: block !important;
+  box-sizing: border-box;
+  width: min(320px, calc(100vw - 24px)) !important;
+  max-height: min(76svh, 650px);
+  overflow: auto;
+  padding: 12px;
+  border: 1.5px solid rgba(255, 255, 255, .92);
+  border-radius: 22px;
+  background: rgba(255, 251, 255, .85);
+  box-shadow: 0 18px 45px rgba(89, 52, 119, .22);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  scrollbar-width: thin;
+  scrollbar-color: #c9a5e9 transparent;
+}
+
+.frontend-shell .arena-menu__items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.frontend-shell .arena-menu__items > div {
+  min-width: 0;
+}
+
+.frontend-shell .arena-menu__panel a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: #4e2d7b;
+  font-size: .82rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
+  transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+
+.frontend-shell .arena-menu__panel a:hover,
+.frontend-shell .arena-menu__panel a[aria-current="page"] {
+  border-color: rgba(239, 216, 242, .95);
+  color: #d3348e;
+  background: linear-gradient(135deg, #fff1f9, #f5f0ff);
+  box-shadow: 0 5px 13px rgba(157, 85, 209, .1);
+  transform: translateY(-1px);
+}
+
+.frontend-shell .arena-menu__panel a svg {
+  flex: 0 0 auto;
+  color: #a65bd2;
+}
+
+.frontend-shell .arena-menu__panel a span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The desktop dock variables are no longer needed: the profile is a
+   popover, so the homepage composition always gets its full canvas back. */
+@media (min-width: 1181px) {
+  .frontend-shell .dashboard-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .frontend-shell .arena-page--with-profile-card .hero-container,
+  .frontend-shell .arena-page--with-profile-card .hero-copy,
+  .frontend-shell .arena-page--with-profile-card .dashboard-area > div {
+    display: block;
+    width: auto;
+    max-width: none;
+    margin: initial;
+    padding-left: initial;
+    padding-right: initial;
+    transform: none;
+  }
+
+  .frontend-shell .arena-page--with-profile-card .hero-container {
+    display: block;
+  }
+
+  .frontend-shell .hero-kicker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: min(100%, 760px);
+    margin: 0 auto 8px;
+  }
+
+  .frontend-shell .hero-kicker > img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 5px rgba(113, 76, 176, .2));
+  }
+
+  .frontend-shell .hero-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 1180px) {
+  /* Find-your-game artwork is intentionally desktop-only. The title artwork
+     remains the mobile/tablet hero heading already present in the DOM. */
+  .frontend-shell .hero-kicker {
+    display: none !important;
+  }
+
+  .frontend-shell .hero-title {
+    position: relative;
+    width: min(100%, 640px);
+    height: auto;
+    margin: 4px auto 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+  }
+
+  .frontend-shell .hero-title > img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+@media (max-width: 680px) {
+  .frontend-shell .account-trigger {
+    width: 58px;
+    min-width: 58px;
+    height: 48px;
+    padding: 4px;
+    border-radius: 17px;
+  }
+
+  .frontend-shell .account-trigger .account-avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .frontend-shell .account-trigger .account-avatar__status {
+    width: 9px;
+    height: 9px;
+  }
+
+  .frontend-shell .account-trigger__chevron {
+    width: 13px;
+    height: 13px;
+  }
+
+  .frontend-shell .frontend-header__actions {
+    gap: 5px;
+  }
+
+  .frontend-shell .arena-menu__trigger {
+    width: 58px;
+    min-height: 64px;
+    padding: 5px 6px;
+    border-radius: 17px;
+  }
+
+  .frontend-shell .arena-menu__trigger-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .frontend-shell .arena-menu__trigger img {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .frontend-shell .arena-menu__label {
+    font-size: .6rem;
+  }
+
+  .frontend-shell .arena-menu__panel {
+    width: min(320px, calc(100vw - 24px)) !important;
+    max-height: min(78svh, 600px);
+    padding: 10px;
+    border-radius: 20px;
+  }
+
+  .frontend-shell .arena-menu__panel a {
+    min-height: 43px;
+    padding: 9px 10px;
+    font-size: .76rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frontend-shell .account-popover--rgb-frame::before,
+  .frontend-shell .account-popover--rgb-frame::after {
+    animation: none;
+  }
+}
+
+/* Local skeletons keep the homepage structure visible while public data or
+   the optional profile/GPS recommendation request is still resolving. */
+.frontend-shell .home-live-list {
+  display: grid;
+  gap: 9px;
+}
+
+.frontend-shell .home-skeleton-list {
+  display: grid;
+  gap: 9px;
+}
+
+.frontend-shell .home-skeleton-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 62px;
+  overflow: hidden;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, .9);
+  border-radius: 17px;
+  background: linear-gradient(135deg, rgba(239, 232, 249, .82), rgba(255, 247, 253, .92));
+  box-shadow: 0 4px 13px rgba(148, 91, 177, .08);
+}
+
+.frontend-shell .home-skeleton-card::after {
+  position: absolute;
+  inset: 0 auto 0 -45%;
+  width: 38%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .76), transparent);
+  content: "";
+  animation: skeleton-shimmer 1.45s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes skeleton-shimmer {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(420%); }
+}
+
+.frontend-shell .home-skeleton-card__icon {
+  width: 43px;
+  height: 43px;
+  flex: 0 0 auto;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #e0d7f1, #f2ddec);
+}
+
+.frontend-shell .home-skeleton-card__body {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 5px;
+}
+
+.frontend-shell .home-skeleton-card__line,
+.frontend-shell .home-skeleton-card__badge {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e1d9ef, #f0e7f2);
+}
+
+.frontend-shell .home-skeleton-card__line {
+  height: 7px;
+}
+
+.frontend-shell .home-skeleton-card__line--wide { width: min(72%, 260px); }
+.frontend-shell .home-skeleton-card__line--medium { width: min(53%, 190px); }
+.frontend-shell .home-skeleton-card__line--short { width: min(34%, 118px); }
+
+.frontend-shell .home-skeleton-card__badge {
+  width: 48px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frontend-shell .home-skeleton-card::after {
+    animation: none;
   }
 }

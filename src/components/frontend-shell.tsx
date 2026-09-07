@@ -4,8 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { Bell, UserRound } from "lucide-react";
+import { Bell } from "lucide-react";
 import ArenaMenu from "@/components/arena-menu";
+import AccountMenu from "@/components/account-menu";
 import MessengerWidget from "@/components/messenger-widget";
 
 export default function FrontendShell({ children }: { children: ReactNode }) {
@@ -20,7 +21,7 @@ export default function FrontendShell({ children }: { children: ReactNode }) {
       {!home ? <header className="frontend-header">
         <ArenaMenu key={pathname} />
         <Link className="frontend-brand" href="/" aria-label="Arena-Badminton หน้าหลัก"><Image src="/assets/Logo-N.png" alt="Arena-Badminton" width={1698} height={926} quality={100} priority /></Link>
-        <div className="frontend-header__actions"><Link href="/notifications" aria-label="การแจ้งเตือน"><Bell size={19} /></Link><Link href="/profile" aria-label="โปรไฟล์ของฉัน"><UserRound size={20} /></Link></div>
+        <div className="frontend-header__actions"><Link href="/notifications" aria-label="การแจ้งเตือน"><Bell size={19} /></Link><AccountMenu /></div>
       </header> : null}
       <div id="arena-content" className="frontend-content" tabIndex={-1}>{children}</div>
       <MessengerWidget />

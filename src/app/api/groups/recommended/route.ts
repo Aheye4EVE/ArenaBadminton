@@ -2,6 +2,20 @@ import { getRecommendedGroups } from "@/lib/group-recommendations";
 import { normalizeCoordinates } from "@/lib/geolocation";
 import { getAuthenticatedProfile } from "@/lib/supabase-server";
 
+export async function GET() {
+  const context = await getAuthenticatedProfile();
+  if (!context.supabase || !context.user) {
+    return Response.json({ error: "กรุณาเข้าสู่ระบบเพื่อดูคำแนะนำเฉพาะคุณ" }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
+  }
+
+  try {
+    const items = await getRecommendedGroups(context);
+    return Response.json({ items, locationMode: "profile" }, { headers: { "Cache-Control": "private, no-store" } });
+  } catch {
+    return Response.json({ error: "โหลดก๊วนแนะนำไม่สำเร็จ กรุณาลองใหม่" }, { status: 503, headers: { "Cache-Control": "private, no-store" } });
+  }
+}
+
 export async function POST(request: Request) {
   const context = await getAuthenticatedProfile();
   if (!context.supabase || !context.user) {

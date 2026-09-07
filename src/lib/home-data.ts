@@ -1,7 +1,9 @@
-import type { AuthenticatedProfileContext } from "@/lib/supabase-server";
+import { unstable_cache } from "next/cache";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { shouldShowQaData } from "@/lib/config";
 import type { Court, Event } from "@/lib/demo-data";
 import { safeMediaUrl } from "@/lib/safe-media-url";
+import { getSupabasePublicServerClient } from "@/lib/supabase-server";
 import { searchVenues, type DirectoryFilters, type DirectoryVenue } from "@/lib/venue-directory";
 import { formatDistanceKm } from "@/lib/geolocation";
 
@@ -136,10 +138,10 @@ function mapMarketplaceListing(row: Record<string, unknown>): HomepageMarketplac
   };
 }
 
-export async function getHomepageLiveData(context: AuthenticatedProfileContext): Promise<HomepageLiveData | null> {
-  const { supabase, user, profile } = context;
-  if (!supabase || !user) return null;
-
+export async function getHomepageLiveData(
+  supabase: SupabaseClient,
+  profile: { province?: unknown; district?: unknown; subdistrict?: unknown } | null = null,
+): Promise<HomepageLiveData> {
   let tournamentsQuery = supabase
     .from("tournaments")
     .select("id, title, description, starts_at, format, max_entries, venue_id")
@@ -154,7 +156,7 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
     province: typeof profile?.province === "string" ? profile.province : "",
     district: typeof profile?.district === "string" ? profile.district : "",
     subdistrict: typeof profile?.subdistrict === "string" ? profile.subdistrict : "",
-    sort: "area",
+    sort: profile ? "area" : "popular",
     activity: "open",
     page: 1,
   };
@@ -235,4 +237,28 @@ export async function getHomepageLiveData(context: AuthenticatedProfileContext):
       marketplace: marketplaceError,
     },
   };
+}
+
+async function getHomepagePublicDataUncached(): Promise<HomepageLiveData | null> {
+  const supabase = getSupabasePublicServerClient();
+  if (!supabase) return null;
+
+  try {
+    // This function only selects public aggregate rows. The server helper
+    // prefers a service-role client when configured and otherwise uses the
+    // publishable/anon key without cookies or a user session.
+    return await getHomepageLiveData(supabase);
+  } catch {
+    return null;
+  }
+}
+
+const getHomepagePublicDataCached = unstable_cache(
+  getHomepagePublicDataUncached,
+  ["arena-home-public-v1"],
+  { revalidate: 60, tags: ["arena-home-public"] },
+);
+
+export async function getHomepagePublicData() {
+  return getHomepagePublicDataCached();
 }
