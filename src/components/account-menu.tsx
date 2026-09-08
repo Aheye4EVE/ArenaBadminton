@@ -35,6 +35,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { safeMediaUrl } from "@/lib/safe-media-url";
 import type { HeaderProfileSummary } from "@/types/profile";
 import PasswordResetForm from "@/components/password-reset-form";
+import GoogleLogo from "@/components/google-logo";
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(" ");
@@ -307,7 +308,8 @@ function CompactAuthCard({ onClose }: { onClose: () => void }) {
           disabled={isBusy}
           onClick={() => signInWithProvider("google")}
         >
-          <span className="account-social__mark">G</span> ต่อด้วย Google
+          <span className="account-social__mark"><GoogleLogo size={18} /></span>
+          <span>เข้าระบบด้วย Google</span>
         </button>
       </div>
 

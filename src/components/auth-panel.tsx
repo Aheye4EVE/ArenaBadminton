@@ -8,6 +8,7 @@ import { ArrowRight, AtSign, CheckCircle2, LockKeyhole, MessageCircle, Sparkles 
 import PasswordResetForm from "@/components/password-reset-form";
 import { friendlyAuthError, getAuthCallbackUrl } from "@/lib/auth-client";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import GoogleLogo from "@/components/google-logo";
 
 type AuthMode = "login" | "signup";
 
@@ -157,8 +158,8 @@ export default function AuthPanel({ initialError, initialMessage, nextPath = "/p
 
               <div className="auth-social-grid">
                 <button type="button" className="auth-social auth-social--google" disabled={isBusy} onClick={() => signInWithProvider("google")}>
-                  <span className="auth-social__mark">G</span>
-                  <span>ต่อด้วย Google</span>
+                  <span className="auth-social__mark"><GoogleLogo size={19} /></span>
+                  <span>เข้าระบบด้วย Google</span>
                 </button>
               </div>
 
