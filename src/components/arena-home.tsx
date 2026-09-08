@@ -627,7 +627,13 @@ export default function ArenaHome({
                     ) : (
                       <motion.div className="home-live-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.24 }}>
                         {visibleGroups.slice(0, 5).map((group) => <GroupCard key={group.id} group={group} onJoin={(selectedGroup) => router.push(selectedGroup.detailHref ?? "/groups")} />)}
-                        {visibleGroups.length === 0 ? <div className="empty-card"><Sparkles size={21} /><p>ยังไม่พบก๊วนจากตัวกรองนี้</p></div> : null}
+                        {visibleGroups.length === 0 ? (
+                          <div className="empty-card">
+                            <Sparkles size={21} />
+                            <p>{query || activeFilter !== "ทั้งหมด" ? "ยังไม่พบก๊วนจากตัวกรองนี้" : isLiveData ? "ยังไม่มีก๊วนที่เปิดรับสมัครในขณะนี้" : "ยังไม่พบก๊วน"}</p>
+                            <Link href="/groups?create=1" className="section-link">สร้างก๊วนใหม่ <ArrowRight size={14} /></Link>
+                          </div>
+                        ) : null}
                       </motion.div>
                     )}
                   </div>
@@ -637,7 +643,7 @@ export default function ArenaHome({
                   <SectionHeading title="Event & Tournament" href="/events" tone="purple" />
                   <div className="space-y-2">
                     {publicDataPending ? <HomeSkeletonCards count={3} /> : <motion.div className="home-live-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.24 }}>
-                      {homeDataErrors?.events ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลกิจกรรมจริงไม่สำเร็จ ลองเปิดหน้ากิจกรรมอีกครั้ง</p><Link href="/events" className="section-link">เปิดกิจกรรม <ArrowRight size={14} /></Link></div> : homepageEvents.length > 0 ? homepageEvents.map((event) => <EventCard key={event.id} event={event} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีกิจกรรมที่เปิดรับสมัคร" : "ยังไม่พบกิจกรรม"}</p></div>}
+                      {homeDataErrors?.events ? <div className="empty-card" role="alert"><Sparkles size={21} /><p>โหลดข้อมูลกิจกรรมจริงไม่สำเร็จ ลองเปิดหน้ากิจกรรมอีกครั้ง</p><Link href="/events" className="section-link">เปิดกิจกรรม <ArrowRight size={14} /></Link></div> : homepageEvents.length > 0 ? homepageEvents.map((event) => <EventCard key={event.id} event={event} />) : <div className="empty-card"><Sparkles size={21} /><p>{isLiveData ? "ยังไม่มีกิจกรรมที่เปิดรับสมัครในขณะนี้" : "ยังไม่พบกิจกรรม"}</p></div>}
                     </motion.div>}
                   </div>
                 </section>
@@ -656,7 +662,7 @@ export default function ArenaHome({
                   <p className="marketplace-home-sort-note"><Eye size={13} /> {marketplaceUsesViews ? "เรียงจากยอดเข้าชมสูงสุด · รายการที่ยังไม่ขาย" : "รายการที่ยังไม่ขาย · เรียงตามรายการล่าสุด"}</p>
                   <div className="marketplace-home-list">
                     {publicDataPending ? <HomeSkeletonCards count={3} /> : <motion.div className="home-live-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.24 }}>
-                      {homeDataErrors?.marketplace ? <div className="empty-card" role="alert"><PackageSearch size={21} /><p>โหลดข้อมูลตลาดมือสองไม่สำเร็จ</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div> : homepageMarketplaceListings.length > 0 ? homepageMarketplaceListings.map((listing) => <MarketplaceHomeRow key={listing.id} listing={listing} showViewCount={marketplaceUsesViews} />) : <div className="empty-card"><PackageSearch size={21} /><p>{isLiveData ? "ยังไม่มีสินค้าที่เปิดขาย" : "เข้าสู่ตลาดมือสองเพื่อดูสินค้าจาก Community"}</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div>}
+                      {homeDataErrors?.marketplace ? <div className="empty-card" role="alert"><PackageSearch size={21} /><p>โหลดข้อมูลตลาดมือสองไม่สำเร็จ</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div> : homepageMarketplaceListings.length > 0 ? homepageMarketplaceListings.map((listing) => <MarketplaceHomeRow key={listing.id} listing={listing} showViewCount={marketplaceUsesViews} />) : <div className="empty-card"><PackageSearch size={21} /><p>{isLiveData ? "ยังไม่มีสินค้าในตลาดมือสองในขณะนี้" : "เข้าสู่ตลาดมือสองเพื่อดูสินค้าจาก Community"}</p><Link href="/marketplace" className="section-link">เปิดตลาดมือสอง <ArrowRight size={14} /></Link></div>}
                     </motion.div>}
                   </div>
                 </section>
