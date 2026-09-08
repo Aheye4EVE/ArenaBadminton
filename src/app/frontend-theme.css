@@ -6658,8 +6658,8 @@
 
 .avatar-preview-dialog__image-wrap img {
   display: block;
-  max-width: 100%;
-  max-height: 100%;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
   width: auto;
   height: auto;
   object-fit: contain;
@@ -6679,6 +6679,11 @@
 
   .avatar-preview-dialog__image-wrap {
     border-radius: 8px;
+  }
+
+  .avatar-preview-dialog__image-wrap img {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
   }
 
   .avatar-preview-dialog__close {
