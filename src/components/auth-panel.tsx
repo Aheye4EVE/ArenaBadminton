@@ -139,7 +139,7 @@ export default function AuthPanel({ initialError, initialMessage, nextPath = "/p
 
           <div className="auth-heading">
             <span className="auth-heading__sparkle" aria-hidden="true">✦</span>
-            <p lang="en">Welcome to the Arena</p>
+            <p lang="en">Welcome to the Arena Badminton</p>
             <h1 id="auth-title">{showReset ? "กู้คืนการเข้าสู่ระบบ" : mode === "login" ? "กลับเข้าสู่สนามกันเถอะ" : "มาสร้างโปรไฟล์นักแบดกัน"}</h1>
             <span>{showReset ? "กรอกอีเมล แล้วเราจะส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ให้คุณ" : mode === "login" ? "เข้าสู่ระบบเพื่อค้นหาก๊วนและเก็บแต้มของคุณ" : "สมัครครั้งเดียว แล้วออกไปเจอก๊วนใหม่ ๆ ด้วยกัน"}</span>
           </div>

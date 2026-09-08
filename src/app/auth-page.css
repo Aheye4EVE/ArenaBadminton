@@ -4,10 +4,23 @@
 
 .auth-aside {
   position: relative;
+  align-self: start;
   overflow: hidden;
-  padding: clamp(28px, 4vw, 42px) clamp(22px, 3.4vw, 38px);
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 1122 / 1402;
+  padding: 0;
   background: #7553b8;
   isolation: isolate;
+}
+
+.auth-shell {
+  align-items: start;
+  min-height: 0;
+}
+
+.frontend-shell:has(.auth-page) .auth-page {
+  min-height: 100svh;
 }
 
 .auth-aside::before,
@@ -19,11 +32,13 @@
   position: absolute;
   z-index: 0;
   inset: 0;
+  width: 100%;
+  aspect-ratio: 1122 / 1402;
 }
 
 .auth-aside__art img {
-  object-fit: cover;
-  object-position: center 52%;
+  object-fit: contain;
+  object-position: center;
 }
 
 .auth-aside__scrim {
@@ -37,9 +52,13 @@
 }
 
 .auth-aside__copy {
+  position: absolute;
+  right: clamp(22px, 3.4vw, 38px);
+  bottom: clamp(24px, 4vw, 42px);
+  left: clamp(22px, 3.4vw, 38px);
   z-index: 2;
   max-width: 360px;
-  margin-top: auto;
+  margin: 0;
   color: #fff;
   text-shadow: 0 2px 18px rgba(45, 23, 94, 0.32);
 }
@@ -111,14 +130,25 @@
 
 @media (max-width: 900px) {
   .auth-aside {
-    min-height: 390px;
+    min-height: 0;
+  }
+
+  .auth-aside__copy {
+    right: 28px;
+    bottom: 28px;
+    left: 28px;
   }
 }
 
 @media (max-width: 620px) {
   .auth-aside {
-    min-height: 350px;
-    padding: 28px 22px;
+    min-height: 0;
+  }
+
+  .auth-aside__copy {
+    right: 22px;
+    bottom: 22px;
+    left: 22px;
   }
 
   .auth-aside__copy h2 {
