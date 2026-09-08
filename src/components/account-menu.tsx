@@ -460,6 +460,46 @@ function ProfileSetupPrompt({ onClose }: { onClose: () => void }) {
   );
 }
 
+function AccountSummaryLoading() {
+  return (
+    <section
+      className={cx("account-profile", "account-profile--setup")}
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="account-auth__eyebrow">
+        <Sparkles size={15} /> Arena Member
+      </div>
+      <div className="account-profile__setup-icon" aria-hidden="true">
+        <Sparkles className="community-spin" size={27} />
+      </div>
+      <h2>กำลังเปิด Arena Pass...</h2>
+      <p>กำลังตรวจสอบสถานะบัญชีของคุณ</p>
+    </section>
+  );
+}
+
+function AccountSummaryError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <section
+      className={cx("account-profile", "account-profile--setup")}
+      aria-labelledby="account-summary-error-title"
+    >
+      <div className="account-auth__eyebrow">
+        <Sparkles size={15} /> Arena Member
+      </div>
+      <div className="account-profile__setup-icon" aria-hidden="true">
+        <ShieldCheck size={27} />
+      </div>
+      <h2 id="account-summary-error-title">เชื่อมต่อ Arena Pass ไม่สำเร็จ</h2>
+      <p>สถานะ Login ยังอยู่ แต่โหลดรายละเอียด Profile ไม่ทัน กรุณาลองใหม่</p>
+      <button type="button" className="account-profile__cta" onClick={onRetry}>
+        ลองเปิด Arena Pass ใหม่ <ArrowRight size={16} />
+      </button>
+    </section>
+  );
+}
+
 function ArcadeProfileSummaryCard({
   account,
   onClose,
@@ -710,6 +750,10 @@ export default function AccountMenu({
     account,
     isAuthenticated,
   });
+  const [summaryState, setSummaryState] = useState<
+    "loading" | "ready" | "error"
+  >(account ? "ready" : "loading");
+  const [summaryRetry, setSummaryRetry] = useState(0);
   const sessionRef = useRef<AccountSession>({ account, isAuthenticated });
   const authStateRef = useRef<boolean | null>(
     account || isAuthenticated ? true : null,
@@ -737,6 +781,12 @@ export default function AccountMenu({
     let cancelled = false;
     let unsubscribe = () => {};
 
+    if (!sessionRef.current.account) setSummaryState("loading");
+
+    const markSummaryError = () => {
+      if (!cancelled && !sessionRef.current.account) setSummaryState("error");
+    };
+
     const refreshSummary = async (attempt = 0): Promise<void> => {
       try {
         const response = await fetch("/api/profile/summary", {
@@ -745,12 +795,13 @@ export default function AccountMenu({
           headers: { Accept: "application/json" },
         });
         if (!response.ok) {
-          if (!cancelled && attempt < 2 && response.status >= 500) {
+          if (!cancelled && attempt < 2) {
             await new Promise((resolve) =>
               window.setTimeout(resolve, 250 * (attempt + 1)),
             );
             return refreshSummary(attempt + 1);
           }
+          markSummaryError();
           return;
         }
 
@@ -763,9 +814,13 @@ export default function AccountMenu({
         const nextIsAuthenticated = Boolean(payload.isAuthenticated);
         // A transient/failed server summary must never downgrade a browser
         // session that Supabase has already confirmed as signed in.
-        if (authStateRef.current === true && !nextIsAuthenticated) return;
+        if (authStateRef.current === true && !nextIsAuthenticated) {
+          markSummaryError();
+          return;
+        }
 
         authStateRef.current = nextIsAuthenticated;
+        setSummaryState("ready");
         applySession({
           account: payload.account ?? null,
           isAuthenticated: nextIsAuthenticated,
@@ -777,6 +832,7 @@ export default function AccountMenu({
           );
           return refreshSummary(attempt + 1);
         }
+        markSummaryError();
         // The browser auth listener below still provides the authoritative
         // signed-in/signed-out state when the optional summary endpoint is
         // temporarily unavailable.
@@ -794,6 +850,7 @@ export default function AccountMenu({
       const { data } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, authSession: Session | null) => {
         if (authSession?.user) {
           authStateRef.current = true;
+          if (!sessionRef.current.account) setSummaryState("loading");
           applySession({
             ...sessionRef.current,
             isAuthenticated: true,
@@ -801,6 +858,7 @@ export default function AccountMenu({
           window.setTimeout(() => void refreshSummary(), 0);
         } else if (event === "SIGNED_OUT") {
           authStateRef.current = false;
+          setSummaryState("ready");
           applySession({ account: null, isAuthenticated: false });
         }
       });
@@ -811,12 +869,14 @@ export default function AccountMenu({
           const { data: userData, error } = await supabase.auth.getUser();
           if (!cancelled && !error && userData.user) {
             authStateRef.current = true;
+            if (!sessionRef.current.account) setSummaryState("loading");
             applySession({
               ...sessionRef.current,
               isAuthenticated: true,
             });
           } else if (!cancelled && !error && authStateRef.current !== true) {
             authStateRef.current = false;
+            setSummaryState("ready");
             applySession({ account: null, isAuthenticated: false });
           }
         } catch {
@@ -832,7 +892,7 @@ export default function AccountMenu({
       cancelled = true;
       unsubscribe();
     };
-  }, [applySession]);
+  }, [applySession, summaryRetry]);
 
   useEffect(() => {
     if (!open) return;
@@ -947,7 +1007,13 @@ export default function AccountMenu({
               role="dialog"
               aria-modal="true"
             >
-              {currentIsAuthenticated && currentAccount ? (
+              {summaryState === "loading" ? (
+                <AccountSummaryLoading />
+              ) : summaryState === "error" ? (
+                <AccountSummaryError
+                  onRetry={() => setSummaryRetry((current) => current + 1)}
+                />
+              ) : currentIsAuthenticated && currentAccount ? (
                 <div className="account-popover--rgb-frame">
                   <ProfileSummaryCard
                     account={currentAccount}
