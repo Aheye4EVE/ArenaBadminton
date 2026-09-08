@@ -6379,6 +6379,28 @@
   }
 }
 
+.player-inspect-card .account-profile__name-line h2 {
+  color: #ffffff !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.player-inspect-card .account-profile__handle {
+  color: #cbd5e1 !important;
+}
+
+.player-inspect-card .account-profile__guild-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: rgba(139, 92, 246, 0.22) !important;
+  color: #c4b5fd !important;
+  border: 1px solid rgba(139, 92, 246, 0.4) !important;
+}
+
 .player-inspect-bio {
   padding: 0 18px 10px;
   font-size: 0.82rem;
