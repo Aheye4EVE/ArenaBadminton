@@ -102,9 +102,8 @@ export function PlayerInspectModal({
   return (
     <AnimatePresence>
       <div
-        className="account-modal-backdrop"
+        className="player-inspect-backdrop"
         onClick={onClose}
-        style={{ zIndex: 1200 }}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.92, y: 16 }}

@@ -6342,13 +6342,41 @@
   font-weight: 700;
 }
 
-/* Inspect Modal Additions */
+/* Player Inspect Backdrop & Modal */
+.player-inspect-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(10, 6, 24, 0.75) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+}
+
 .player-inspect-card {
+  position: relative !important;
+  margin: auto !important;
   max-width: 440px !important;
-  width: 90vw !important;
+  width: min(90vw, 440px) !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   background: linear-gradient(180deg, #1c1335 0%, #150d28 100%) !important;
-  border: 2px solid rgba(168, 85, 247, 0.4) !important;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 32px rgba(168, 85, 247, 0.25) !important;
+  border: 2px solid rgba(168, 85, 247, 0.45) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(168, 85, 247, 0.25) !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1024px) {
+  .player-inspect-card {
+    width: 80vw !important;
+    max-width: 440px !important;
+  }
 }
 
 .player-inspect-bio {
