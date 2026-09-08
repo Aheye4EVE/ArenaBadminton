@@ -514,7 +514,7 @@ function ArcadeProfileSummaryCard({
       ? `${formatNumber(account.expTotal)} EXP (MAX)`
       : `${formatNumber(account.expTotal)} / ${formatNumber(account.nextLevelExp)} EXP`;
   const bgUrl =
-    safeMediaUrl(account.profileBackgroundUrl) || "/assets/hero-scene.png";
+    safeMediaUrl(account.profileBackgroundUrl) || "/assets/hero-scene.webp";
 
   return (
     <section

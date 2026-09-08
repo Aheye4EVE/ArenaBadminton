@@ -113,7 +113,7 @@ export default function ArenaMenu() {
             </motion.span>
           ) : (
             <motion.span key="shuttle" className="arena-menu__trigger-icon" initial={{ opacity: 0, rotate: -180, scale: 0.65 }} animate={{ opacity: 1, rotate: 0, scale: 1 }} exit={{ opacity: 0, rotate: 180, scale: 0.65 }} transition={{ duration: 0.24 }}>
-              <Image src="/assets/arena-shuttle-menu.png" alt="" width={40} height={40} aria-hidden="true" priority />
+              <Image src="/assets/arena-shuttle-menu.webp" alt="" width={40} height={40} aria-hidden="true" priority />
             </motion.span>
           )}
         </AnimatePresence>

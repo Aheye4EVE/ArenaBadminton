@@ -447,7 +447,7 @@ export default function ArenaHome({
             <ArenaMenu />
 
             <Link href="/" className="brand-lockup" aria-label="Arena Badminton หน้าหลัก">
-              <Image src="/assets/Logo-N.png" alt="Arena-Badminton" width={1698} height={926} quality={100} priority />
+              <Image src="/assets/Logo-N.webp" alt="Arena-Badminton" width={1200} height={654} quality={85} priority />
             </Link>
 
             <div className="header-actions">
@@ -462,7 +462,7 @@ export default function ArenaHome({
               transition={{ duration: 0.5 }}
               className="hero-kicker"
             >
-              <Image src="/assets/arena-title-mascot-new1.png" alt="" width={1916} height={821} quality={100} priority />
+              <Image src="/assets/arena-title-mascot-new1.webp" alt="" width={1600} height={686} quality={85} priority />
             </motion.p>
             <motion.h1
               initial={{ opacity: 0, y: 14 }}
@@ -471,7 +471,7 @@ export default function ArenaHome({
               className="hero-title"
               aria-label="Arena-Badminton"
             >
-              <Image src="/assets/arena-title-mascot-new1.png" alt="Arena-Badminton" width={1916} height={821} quality={100} priority />
+              <Image src="/assets/arena-title-mascot-new1.webp" alt="Arena-Badminton" width={1600} height={686} quality={85} priority />
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 12 }}

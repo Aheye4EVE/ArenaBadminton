@@ -1,8 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  compress: true,
   images: {
-    qualities: [75, 100],
+    formats: ["image/avif", "image/webp"],
+    qualities: [75, 85, 100],
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "motion"],
   },
 };
 

@@ -53,7 +53,7 @@ export default function GuildsBrowser({ guilds, currentGuildId, canCreate, creat
       <div className="guilds-shell">
         <section className="subpage-discovery-hero guilds-discovery-hero">
           <Image
-            src="/assets/hero-scene.png"
+            src="/assets/hero-scene.webp"
             alt=""
             fill
             priority

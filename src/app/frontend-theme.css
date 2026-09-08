@@ -31,7 +31,7 @@
   height: 100vh;
   height: 100lvh;
   pointer-events: none;
-  background: #b5dbff url("/assets/ANIMEBG.jpe") center center / cover no-repeat;
+  background: #b5dbff url("/assets/ANIMEBG.webp") center center / cover no-repeat;
 }
 .frontend-background::after {
   content: "";
@@ -597,22 +597,22 @@
 .frontend-shell .dashboard-card--groups {
   background-image:
     linear-gradient(90deg, #ffe6f5f7 0%, #ffe9f5e6 42%, #ffe8f566 100%),
-    url("/assets/home-card-groups-v1.png");
+    url("/assets/home-card-groups-v1.webp");
 }
 .frontend-shell .dashboard-card--events {
   background-image:
     linear-gradient(90deg, #f3ecfff7 0%, #f0eaffeb 42%, #e3ddff62 100%),
-    url("/assets/home-card-events-v1.png");
+    url("/assets/home-card-events-v1.webp");
 }
 .frontend-shell .dashboard-card--venues {
   background-image:
     linear-gradient(90deg, #ddfbfbf7 0%, #e1faf5eb 42%, #c9f3ee62 100%),
-    url("/assets/home-card-venues-v1.png");
+    url("/assets/home-card-venues-v1.webp");
 }
 .frontend-shell .dashboard-card--marketplace {
   background-image:
     linear-gradient(90deg, #fff0e8f7 0%, #fce9f1eb 42%, #e9e2ff62 100%),
-    url("/assets/home-card-marketplace-v1.png");
+    url("/assets/home-card-marketplace-v1.webp");
 }
 .frontend-shell .dashboard-card .mb-4 > div {
   min-width: 0;
@@ -4568,7 +4568,7 @@
   border: 0 !important;
   border-radius: 0 !important;
   color: transparent !important;
-  background: url("/assets/Logo-N.png") center / contain no-repeat !important;
+  background: url("/assets/Logo-N.webp") center / contain no-repeat !important;
   overflow: hidden;
   text-indent: -9999px;
   white-space: nowrap;

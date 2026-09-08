@@ -107,7 +107,7 @@ export function PlayerInspectModal({
 
   if (!playerId) return null;
 
-  const bgUrl = player?.profileBackgroundUrl || "/assets/hero-scene.png";
+  const bgUrl = player?.profileBackgroundUrl || "/assets/hero-scene.webp";
 
   return (
     <AnimatePresence>
