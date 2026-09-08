@@ -245,6 +245,7 @@ export default function ArenaHome({
   featuredMarketplaceListings?: HomepageMarketplaceListing[];
   marketplaceSortMode?: "views" | "latest";
   homeDataErrors?: {
+    groups?: boolean;
     events: boolean;
     venues: boolean;
     marketplace: boolean;
@@ -265,38 +266,63 @@ export default function ArenaHome({
   const groupRequestIdRef = useRef(0);
   const groupAbortRef = useRef<AbortController | null>(null);
   const selectedSkill = activeFilter === "มือใหม่" ? "beginner" : activeFilter === "มือกลาง" ? "intermediate" : activeFilter === "มือสูง" ? "advanced" : "all";
-  const profileGroups = recommendedGroups ?? (profileGroupsFetched ? fetchedProfileGroups : null);
-  const profileGroupsLoading = !recommendedGroups && sessionAuthenticated && !profileGroupsFetched;
-  const homepageGroups = gpsGroups ?? profileGroups ?? groups;
+  const profileGroups = fetchedProfileGroups ?? recommendedGroups ?? null;
+  const profileGroupsLoading = !recommendedGroups && !profileGroupsFetched;
+  const homepageGroups = gpsGroups ?? profileGroups ?? (isLiveData ? [] : groups);
   const homepageEvents = publicDataPending ? [] : isLiveData ? (featuredEvents ?? []) : demoEvents;
   const homepageCourts = publicDataPending ? [] : isLiveData ? (featuredCourts ?? []) : demoCourts;
   const homepageMarketplaceListings = publicDataPending ? [] : isLiveData ? (featuredMarketplaceListings ?? []) : [];
   const marketplaceUsesViews = marketplaceSortMode !== "latest";
 
   useEffect(() => {
-    if (recommendedGroups || !sessionAuthenticated || profileGroupsFetched) return;
-
     let cancelled = false;
-    fetch("/api/groups/recommended", { credentials: "same-origin", cache: "no-store" })
-      .then(async (response) => {
-        if (!response.ok) return null;
-        return await response.json() as { items?: Group[] };
-      })
-      .then((payload) => {
+
+    const refreshGroups = async () => {
+      try {
+        const response = await fetch("/api/groups/recommended", {
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        if (!response.ok) return;
+        const payload = await response.json() as { items?: Group[] };
         if (cancelled) return;
-        setFetchedProfileGroups(Array.isArray(payload?.items) ? payload.items : null);
-        setProfileGroupsFetched(true);
-      })
-      .catch(() => {
+        if (Array.isArray(payload?.items)) {
+          setFetchedProfileGroups(payload.items);
+          setProfileGroupsFetched(true);
+        }
+      } catch {
         if (cancelled) return;
-        setFetchedProfileGroups(null);
         setProfileGroupsFetched(true);
-      });
+      }
+    };
+
+    if (!recommendedGroups && !profileGroupsFetched) {
+      void refreshGroups();
+    }
+
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        void refreshGroups();
+      }
+    }, 30_000);
+
+    const onVisibilityChange = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        void refreshGroups();
+      }
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisibilityChange);
+    }
 
     return () => {
       cancelled = true;
+      clearInterval(interval);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+      }
     };
-  }, [profileGroupsFetched, recommendedGroups, sessionAuthenticated]);
+  }, [profileGroupsFetched, recommendedGroups]);
 
   const handleSessionResolved = useCallback(({ isAuthenticated: nextIsAuthenticated }: { isAuthenticated: boolean }) => {
     setSessionAuthenticated(nextIsAuthenticated);
@@ -329,21 +355,16 @@ export default function ArenaHome({
       if (error instanceof DOMException && error.name === "AbortError") return;
       if (requestId !== groupRequestIdRef.current) return;
       setGroupGpsState("error");
-      setGroupGpsMessage("โหลดก๊วนตาม GPS ไม่สำเร็จ · ใช้พื้นที่ใน Profile เป็นสำรอง");
+      setGroupGpsMessage("โหลดก๊วนตาม GPS ไม่สำเร็จ · แสดงตามลำดับเวลาล่าสุด");
     } finally {
       if (requestId === groupRequestIdRef.current) groupAbortRef.current = null;
     }
   }, []);
 
   const requestGroupGps = useCallback(() => {
-    if (!sessionAuthenticated) {
-      setGroupGpsState("unavailable");
-      setGroupGpsMessage("เข้าสู่ระบบเพื่อจัดอันดับก๊วนตามตำแหน่ง");
-      return;
-    }
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setGroupGpsState("unavailable");
-      setGroupGpsMessage("เบราว์เซอร์นี้ไม่รองรับ GPS · ใช้พื้นที่ใน Profile เป็นสำรอง");
+      setGroupGpsMessage("เบราว์เซอร์นี้ไม่รองรับ GPS");
       return;
     }
 
@@ -354,7 +375,7 @@ export default function ArenaHome({
         const coordinates = normalizeCoordinates(position.coords.latitude, position.coords.longitude);
         if (!coordinates) {
           setGroupGpsState("error");
-          setGroupGpsMessage("ข้อมูลตำแหน่งไม่สมบูรณ์ · ใช้พื้นที่ใน Profile เป็นสำรอง");
+          setGroupGpsMessage("ข้อมูลตำแหน่งไม่สมบูรณ์");
           return;
         }
         void fetchGpsGroups(coordinates);
@@ -365,7 +386,7 @@ export default function ArenaHome({
       },
       { enableHighAccuracy: false, maximumAge: 300_000, timeout: 10_000 },
     );
-  }, [fetchGpsGroups, sessionAuthenticated]);
+  }, [fetchGpsGroups]);
 
   useEffect(() => () => {
     groupRequestIdRef.current += 1;
@@ -378,10 +399,10 @@ export default function ArenaHome({
     : groupGpsState === "ready"
       ? groupGpsMessage
       : profileGroupsLoading
-        ? "กำลังโหลดก๊วนแนะนำจากพื้นที่ใน Profile..."
+        ? "กำลังโหลดก๊วนแนะนำ..."
         : profileGpsIsActive
         ? "ใช้พิกัดใน Profile เป็นค่าเริ่มต้น"
-        : groupGpsMessage || "ใช้พื้นที่ใน Profile เป็นสำรอง · กดเพื่อใช้ GPS";
+        : groupGpsMessage || (sessionAuthenticated ? "ใช้พื้นที่ใน Profile เป็นสำรอง · กดเพื่อใช้ GPS" : "ก๊วนแนะนำล่าสุด · กดเพื่อใช้ GPS ค้นหาก๊วนใกล้คุณ");
   const groupGpsButtonLabel = groupGpsState === "loading" ? "กำลังค้นหา..." : groupGpsState === "ready" ? "อัปเดตตำแหน่ง" : "ก๊วนใกล้ฉัน";
 
   const visibleGroups = useMemo(() => {
@@ -590,15 +611,25 @@ export default function ArenaHome({
                   <SectionHeading title="ก๊วนแนะนำ" href="/groups" tone="pink" />
                   <div className="group-recommendation-toolbar" aria-live="polite">
                     <span className="group-recommendation-location"><MapPin size={13} /> {groupLocationLabel}</span>
-                    {sessionAuthenticated ? <button type="button" className="group-location-button" onClick={requestGroupGps} disabled={groupGpsState === "loading"}>
+                    <button type="button" className="group-location-button" onClick={requestGroupGps} disabled={groupGpsState === "loading"}>
                       <LocateFixed size={13} /> {groupGpsButtonLabel}
-                    </button> : null}
+                    </button>
                   </div>
                   <div className="space-y-2">
-                    {profileGroupsLoading || groupGpsState === "loading" ? <HomeSkeletonCards /> : <motion.div className="home-live-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.24 }}>
-                      {visibleGroups.slice(0, 5).map((group) => <GroupCard key={group.id} group={group} onJoin={(selectedGroup) => router.push(selectedGroup.detailHref ?? "/groups")} />)}
-                      {visibleGroups.length === 0 ? <div className="empty-card"><Sparkles size={21} /><p>ยังไม่พบก๊วนจากตัวกรองนี้</p></div> : null}
-                    </motion.div>}
+                    {homeDataErrors?.groups ? (
+                      <div className="empty-card" role="alert">
+                        <Sparkles size={21} />
+                        <p>โหลดข้อมูลก๊วนแนะนำจริงไม่สำเร็จ ลองเปิดหน้าก๊วนอีกครั้ง</p>
+                        <Link href="/groups" className="section-link">เปิดหน้าก๊วน <ArrowRight size={14} /></Link>
+                      </div>
+                    ) : profileGroupsLoading || groupGpsState === "loading" ? (
+                      <HomeSkeletonCards />
+                    ) : (
+                      <motion.div className="home-live-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.24 }}>
+                        {visibleGroups.slice(0, 5).map((group) => <GroupCard key={group.id} group={group} onJoin={(selectedGroup) => router.push(selectedGroup.detailHref ?? "/groups")} />)}
+                        {visibleGroups.length === 0 ? <div className="empty-card"><Sparkles size={21} /><p>ยังไม่พบก๊วนจากตัวกรองนี้</p></div> : null}
+                      </motion.div>
+                    )}
                   </div>
                 </section>
 

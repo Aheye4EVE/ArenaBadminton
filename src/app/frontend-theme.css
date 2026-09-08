@@ -216,7 +216,7 @@
   gap: 7px;
   margin-left: auto;
 }
-.frontend-header__actions a {
+.frontend-header__actions > a {
   display: grid;
   place-items: center;
   width: 44px;
@@ -3548,26 +3548,10 @@
    desktop dock, while the panel itself is centered inside an 80% viewport
    frame so every edge keeps a deliberate breathing space. */
 @media (max-width: 1180px) {
-  .frontend-shell .account-popover--profile {
-    top: 76px;
-    right: 14px;
-    bottom: auto;
-    left: auto;
-    width: min(340px, calc(100vw - 28px));
-    height: auto;
-    max-height: calc(100svh - 85px);
-    overflow: visible !important;
-    border-radius: 27px;
-  }
   .frontend-shell .account-popover--profile .account-profile {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: clamp(8px, 1.5vw, 12px);
-    row-gap: 0;
-    align-content: space-between;
-    min-height: 100%;
-    padding: clamp(18px, 2.6vw, 24px);
-    border-radius: 25px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
   .frontend-shell
     .account-popover--profile
@@ -4463,7 +4447,7 @@
   .frontend-shell .frontend-header__actions {
     gap: 5px;
   }
-  .frontend-shell .frontend-header__actions a {
+  .frontend-shell .frontend-header__actions > a {
     width: 42px;
     height: 42px;
   }
@@ -4754,31 +4738,33 @@
 }
 
 .frontend-shell .account-popover {
-  position: absolute !important;
-  top: calc(100% + 12px) !important;
-  right: 0 !important;
-  bottom: auto !important;
-  left: auto !important;
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  bottom: auto;
+  left: auto;
   z-index: 2;
   box-sizing: border-box;
-  width: min(420px, 80vw, calc(100vw - 24px)) !important;
+  width: min(420px, calc(100vw - 24px));
   max-height: calc(100svh - 104px);
   overflow: auto;
   padding: 0;
-  border: 0 !important;
+  border: 0;
   border-radius: 27px;
-  background: transparent !important;
-  box-shadow: none !important;
+  background: transparent;
+  box-shadow: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   scrollbar-width: thin;
   overscroll-behavior: contain;
+  transform-origin: top right;
 }
 
 .frontend-shell .account-popover--profile {
-  width: min(420px, 80vw, calc(100vw - 24px)) !important;
-  height: auto !important;
+  width: min(420px, calc(100vw - 24px));
+  height: auto;
   min-height: 0;
+  overflow: visible;
 }
 
 .frontend-shell .account-popover > .account-auth,
@@ -4887,8 +4873,7 @@
   width: 100%;
   padding: 3px;
   border-radius: 26px;
-  overflow: visible;
-  isolation: isolate;
+  overflow: hidden;
   box-shadow:
     0 16px 42px rgba(107, 50, 175, 0.28),
     0 0 24px rgba(255, 42, 141, 0.22);
@@ -4896,32 +4881,11 @@
 
 .frontend-shell .account-popover--rgb-frame::before {
   position: absolute;
-  inset: -15px;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   content: "";
-  background: conic-gradient(
-    from 0deg,
-    #ff2a8d,
-    #ff8c00,
-    #ffe600,
-    #00ff85,
-    #00e5ff,
-    #3b82f6,
-    #9d4edd,
-    #ff2a8d
-  );
-  animation: rainbow-border-spin 4s linear infinite;
-  border-radius: 30px;
-  filter: blur(16px);
-  opacity: 0.65;
-  z-index: -1;
-  pointer-events: none;
-}
-
-.frontend-shell .account-popover--rgb-frame::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  border-radius: 26px;
   background: conic-gradient(
     from 0deg,
     #ff2a8d,
@@ -4936,6 +4900,10 @@
   animation: rainbow-border-spin 4s linear infinite;
   z-index: 0;
   pointer-events: none;
+}
+
+.frontend-shell .account-popover--rgb-frame::after {
+  display: none;
 }
 
 .frontend-shell .account-popover--rgb-frame > .account-profile {
@@ -5355,216 +5323,381 @@
   ) !important;
 }
 
-.frontend-shell .account-profile--arcade .account-profile__topline {
-  display: flex;
-  align-items: center;
-  min-height: 24px;
-}
-.frontend-shell .account-profile__pass-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  color: #8b5cf6;
-  background: linear-gradient(90deg, #fce7f3, #ede9fe);
-  font-family: var(--font-fredoka), sans-serif;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-.frontend-shell .account-profile__wallet-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
-  margin-right: 8px;
-  padding: 3px 8px;
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  border-radius: 999px;
-  color: #92400e;
-  background: rgba(254, 243, 199, 0.65);
-  font-size: 0.68rem;
-  text-decoration: none;
-  transition:
-    transform 0.15s ease,
-    background 0.15s ease;
-}
-.frontend-shell .account-profile__wallet-pill:hover {
-  transform: scale(1.04);
-  background: #fef3c7;
-}
-.frontend-shell .account-profile__wallet-pill strong {
-  font-family: var(--font-fredoka), sans-serif;
-  font-weight: 700;
-}
-.frontend-shell .account-profile__wallet-plus {
-  display: inline-grid;
-  width: 13px;
-  height: 13px;
-  place-items: center;
-  border-radius: 50%;
-  color: #fff;
-  background: #f59e0b;
-  font-size: 0.6rem;
-  font-weight: 900;
-  line-height: 1;
-}
-.frontend-shell .account-profile--arcade .account-profile__mini-cover {
+.frontend-shell .account-profile--arcade .account-profile__cover-container {
   position: relative;
-  height: 68px;
-  margin: 8px -14px 0;
+  height: 120px;
+  margin: -12px -14px 0 -14px;
   overflow: hidden;
-  background: linear-gradient(120deg, #fbcfe8, #ddd6fe 50%, #bae6fd);
+  border-radius: 20px 20px 0 0;
+  background: #191333;
 }
+
+.frontend-shell .account-profile--arcade .account-profile__mini-cover {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
 .frontend-shell .account-profile--arcade .account-profile__mini-cover img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 30%;
+  transform: scale(1.03);
+  transition: transform 0.4s ease;
 }
-.frontend-shell .account-profile__mini-cover-fallback {
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.15),
-    rgba(255, 255, 255, 0.15) 10px,
-    transparent 10px,
-    transparent 20px
-  );
+
+.frontend-shell .account-profile--arcade:hover .account-profile__mini-cover img {
+  transform: scale(1.07);
 }
+
 .frontend-shell .account-profile__mini-cover-gradient {
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    to bottom,
-    transparent 40%,
-    rgba(255, 255, 255, 0.75) 100%
+    180deg,
+    rgba(14, 9, 32, 0.55) 0%,
+    rgba(14, 9, 32, 0.08) 40%,
+    rgba(20, 13, 40, 0.82) 100%
   );
   pointer-events: none;
 }
+
+.frontend-shell .account-profile--arcade .account-profile__topline {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+.frontend-shell .account-profile__pass-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(18, 12, 38, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  font-family: var(--font-fredoka), sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.frontend-shell .account-profile__pass-badge svg {
+  color: #fbbf24;
+  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.7));
+}
+
+.frontend-shell .account-profile__wallet-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  margin-right: 6px;
+  padding: 3px 9px;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: 999px;
+  color: #fef3c7;
+  background: rgba(18, 12, 38, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-size: 0.68rem;
+  text-decoration: none;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.frontend-shell .account-profile__wallet-pill:hover {
+  transform: scale(1.05);
+  background: rgba(30, 20, 60, 0.85);
+  border-color: rgba(245, 158, 11, 0.75);
+}
+
+.frontend-shell .account-profile__wallet-pill strong {
+  font-family: var(--font-fredoka), sans-serif;
+  font-weight: 700;
+}
+
+.frontend-shell .account-profile__wallet-plus {
+  display: inline-grid;
+  width: 14px;
+  height: 14px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  font-size: 0.62rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.frontend-shell .account-card-close--cover {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  color: #f1f5f9;
+  background: rgba(18, 12, 38, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.frontend-shell .account-card-close--cover:hover {
+  transform: rotate(90deg) scale(1.08);
+  border-color: rgba(239, 68, 68, 0.85);
+  color: #fff;
+  background: rgba(239, 68, 68, 0.85);
+}
+
 .frontend-shell .account-profile__identity-wrap {
   position: relative;
-  z-index: 2;
+  z-index: 6;
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  margin-top: -24px;
-  padding-bottom: 8px;
+  gap: 12px;
+  margin-top: -34px;
+  padding-bottom: 2px;
 }
+
 .frontend-shell .account-profile__avatar-box {
   flex: 0 0 auto;
-  padding: 2px;
+  padding: 3px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.22);
+  background: linear-gradient(135deg, #ec4899, #8b5cf6 50%, #06b6d4);
+  box-shadow:
+    0 6px 18px rgba(139, 92, 246, 0.38),
+    0 0 0 2.5px #fff;
+  transition: transform 0.2s ease;
 }
+
+.frontend-shell .account-profile__avatar-box:hover {
+  transform: scale(1.05) rotate(-3deg);
+}
+
 .frontend-shell .account-profile__user-info {
   flex: 1;
   min-width: 0;
-  padding-top: 18px;
+  padding-top: 42px;
 }
+
 .frontend-shell .account-profile__name-line {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
+
 .frontend-shell .account-profile__name-line h2 {
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  color: #3b2c64;
-  font-size: 0.95rem;
+  color: #241747;
+  font-size: 1.05rem;
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .frontend-shell .account-profile__handle {
-  margin: 1px 0 4px;
+  margin: 1px 0 5px;
   color: #8b80aa;
-  font-size: 0.64rem;
+  font-size: 0.68rem;
   font-weight: 600;
 }
+
 .frontend-shell .account-profile__badges-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
 }
+
+.frontend-shell .account-profile__rank-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.frontend-shell .account-profile__rank-pill--bronze {
+  background: linear-gradient(90deg, #fed7aa, #ffedd5);
+  color: #9a3412;
+  border: 1px solid rgba(234, 88, 12, 0.3);
+}
+
+.frontend-shell .account-profile__rank-pill--silver {
+  background: linear-gradient(90deg, #e2e8f0, #f8fafc);
+  color: #334155;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.frontend-shell .account-profile__rank-pill--gold {
+  background: linear-gradient(90deg, #fef08a, #fef9c3);
+  color: #854d0e;
+  border: 1px solid rgba(202, 138, 4, 0.4);
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.25);
+}
+
+.frontend-shell .account-profile__rank-pill--platinum {
+  background: linear-gradient(90deg, #cffafe, #e0f2fe);
+  color: #0e7490;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.25);
+}
+
+.frontend-shell .account-profile__rank-pill--diamond {
+  background: linear-gradient(90deg, #e0e7ff, #ede9fe);
+  color: #4338ca;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+.frontend-shell .account-profile__rank-pill--master {
+  background: linear-gradient(90deg, #fce7f3, #fae8ff);
+  color: #9d174d;
+  border: 1px solid rgba(236, 72, 153, 0.4);
+  box-shadow: 0 0 12px rgba(236, 72, 153, 0.35);
+}
+
 .frontend-shell .account-profile__rank-tag {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 2px 6px;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid rgba(139, 92, 246, 0.25);
   border-radius: 999px;
   color: #6d28d9;
   background: #ede9fe;
-  font-size: 0.58rem;
+  font-size: 0.6rem;
   font-weight: 700;
   text-decoration: none;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
+
+.frontend-shell .account-profile__rank-tag:hover {
+  transform: translateY(-1px);
+  background: #ddd6fe;
+}
+
 .frontend-shell .account-profile--arcade .account-profile__exp-section {
-  margin-top: 6px;
-  padding: 6px 8px;
-  border: 1px solid rgba(221, 214, 254, 0.6);
-  border-radius: 12px;
-  background: rgba(245, 243, 255, 0.7);
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(221, 214, 254, 0.75);
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(245, 243, 255, 0.9),
+    rgba(253, 242, 248, 0.7)
+  );
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.04);
 }
+
 .frontend-shell .account-profile__exp-labels {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 6px;
-  color: #6d5b97;
-  font-size: 0.62rem;
+  color: #5d4880;
+  font-size: 0.64rem;
   font-weight: 700;
 }
+
 .frontend-shell .account-profile__exp-labels strong {
-  color: #8b5cf6;
+  color: #7c3aed;
   font-family: var(--font-fredoka), sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
 }
+
 .frontend-shell .account-profile__exp-track {
-  height: 7px;
-  margin-top: 4px;
+  height: 8px;
+  margin-top: 5px;
   overflow: hidden;
   border-radius: 999px;
   background: #e2daf8;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
 }
+
 .frontend-shell .account-profile__exp-track span {
   display: block;
   height: 100%;
   min-width: 2%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #ec4899, #8b5cf6);
-  box-shadow: 0 0 8px rgba(236, 72, 153, 0.4);
+  background: linear-gradient(90deg, #ec4899, #8b5cf6 50%, #3b82f6);
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .frontend-shell .account-profile__bento-matrix {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 7px;
+  margin-top: 9px;
 }
+
 .frontend-shell .account-profile__bento-box {
   min-width: 0;
-  padding: 8px;
-  border: 1px solid rgba(216, 207, 243, 0.5);
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.84);
-  box-shadow: 0 2px 8px rgba(100, 70, 160, 0.04);
+  padding: 9px 10px;
+  border: 1px solid rgba(216, 207, 243, 0.65);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 10px rgba(100, 70, 160, 0.04);
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
 }
+
+.frontend-shell .account-profile__bento-box:hover {
+  transform: translateY(-1px);
+  border-color: rgba(167, 139, 250, 0.8);
+}
+
 .frontend-shell .account-profile__bento-header {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 5px;
-  color: #7c6f9b;
-  font-size: 0.6rem;
+  gap: 5px;
+  margin-bottom: 6px;
+  color: #6b5a8e;
+  font-size: 0.62rem;
   font-weight: 700;
 }
+
+.frontend-shell .account-profile__bento-header svg {
+  color: #8b5cf6;
+}
+
 .frontend-shell .account-profile__bento-header small {
   margin-left: auto;
   color: #db2777;
-  font-weight: 700;
+  font-weight: 800;
+  font-family: var(--font-fredoka), sans-serif;
 }
 .frontend-shell .account-profile__bento-body {
   display: grid;
@@ -5593,45 +5726,94 @@
   white-space: nowrap;
 }
 .frontend-shell .account-profile__capsules-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-  margin-top: 9px;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  margin-top: 10px !important;
+  width: 100% !important;
 }
+
 .frontend-shell .account-profile__capsules-grid--admin {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 5px !important;
 }
+
 .frontend-shell .account-profile__capsule-btn {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  min-width: 0;
-  padding: 7px 4px;
-  border: 1px solid rgba(209, 196, 233, 0.6);
-  border-radius: 12px;
-  color: #5d4a82;
-  background: rgba(255, 255, 255, 0.85);
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-decoration: none;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+  padding: 6px 3px !important;
+  border: 1px solid rgba(209, 196, 233, 0.6) !important;
+  border-radius: 12px !important;
+  color: #5d4a82 !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  box-shadow: 0 2px 6px rgba(100, 70, 160, 0.04) !important;
+  box-sizing: border-box !important;
+  text-decoration: none !important;
   transition:
     transform 0.15s ease,
     border-color 0.15s ease,
-    background 0.15s ease;
+    background 0.15s ease,
+    box-shadow 0.15s ease !important;
 }
+
 .frontend-shell .account-profile__capsule-btn:hover {
-  transform: translateY(-2px);
-  border-color: #c4b5fd;
-  color: #7c3aed;
-  background: #fff;
+  transform: translateY(-2px) !important;
+  border-color: #a78bfa !important;
+  color: #7c3aed !important;
+  background: #fff !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.16) !important;
 }
+
 .frontend-shell .account-profile__capsule-btn--primary {
-  border-color: #fbcfe8;
-  color: #db2777;
-  background: linear-gradient(135deg, #fdf2f8, #f5f3ff);
+  border-color: #fbcfe8 !important;
+  color: #db2777 !important;
+  background: linear-gradient(135deg, #fdf2f8, #f5f3ff) !important;
+}
+
+.frontend-shell .account-profile__capsule-btn--primary:hover {
+  border-color: #f472b6 !important;
+  color: #be185d !important;
+  background: linear-gradient(135deg, #fce7f3, #ede9fe) !important;
+}
+
+.frontend-shell .account-profile__capsule-btn--admin {
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9) !important;
+}
+
+.frontend-shell .account-profile__capsule-btn--admin:hover {
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+  background: #fff !important;
+}
+
+.frontend-shell .account-profile__capsule-btn svg {
+  flex: 0 0 auto !important;
+  width: 15px !important;
+  height: 15px !important;
+}
+
+.frontend-shell .account-profile__capsule-btn span {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 0.58rem !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  line-height: 1.2 !important;
 }
 .frontend-shell .account-profile__capsule-badge {
   position: absolute;
@@ -5671,6 +5853,59 @@
   color: #f43f5e;
 }
 
+.frontend-shell .account-profile--arcade {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Mobile & Tablet Responsive: Arena Pass Card
+   1. Dead-center positioning on active viewport (fixed inset:0 margin:auto)
+   2. Card width = exactly 80% of active viewport width (80vw)
+   3. Max-width capped at 440px on tablet for optimal arcade card proportions
+   4. High-contrast dark frosted backdrop with blur
+   5. Center-originated spring pop animation */
+@media (max-width: 1024px) {
+  .frontend-shell .account-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99 !important;
+    background: rgba(10, 6, 24, 0.65) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  .frontend-shell .account-popover,
+  .frontend-shell .account-popover--profile {
+    position: fixed !important;
+    inset: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    margin: auto !important;
+    z-index: 100 !important;
+    box-sizing: border-box !important;
+    width: 80vw !important;
+    max-width: 440px !important;
+    height: fit-content !important;
+    max-height: min(90svh, 680px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    border-radius: 26px !important;
+    transform-origin: center center !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 @media (max-width: 420px) {
   .frontend-shell .account-popover--profile .account-profile--arcade {
     padding-right: 11px;
@@ -5682,6 +5917,13 @@
   .frontend-shell .account-profile__capsule-btn {
     font-size: 0.56rem;
   }
+  .frontend-shell .account-profile__capsules-grid--admin .account-profile__capsule-btn {
+    padding: 5px 1px !important;
+  }
+  .frontend-shell .account-profile__capsules-grid--admin .account-profile__capsule-btn span {
+    font-size: 0.52rem !important;
+    letter-spacing: -0.02em !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -5691,46 +5933,3 @@
   }
 }
 
-/* The profile control stays visible on every viewport and keeps the popover
-   anchored to a compact avatar-plus-chevron trigger. */
-.frontend-shell .account-trigger {
-  width: 72px;
-  min-width: 72px;
-  gap: 4px;
-  padding: 5px 7px 5px 5px;
-}
-
-.frontend-shell .account-trigger .account-avatar {
-  width: 38px;
-  height: 38px;
-}
-
-.frontend-shell .account-trigger__chevron {
-  display: block;
-  flex: 0 0 auto;
-  transition: transform 250ms ease;
-}
-
-.frontend-shell .account-trigger__chevron--open {
-  transform: rotate(180deg);
-}
-
-@media (max-width: 680px) {
-  .frontend-shell .account-trigger {
-    width: 64px;
-    min-width: 64px;
-    height: 48px;
-    gap: 2px;
-    padding: 4px 5px 4px 4px;
-  }
-
-  .frontend-shell .account-trigger .account-avatar {
-    width: 32px;
-    height: 32px;
-  }
-
-  .frontend-shell .account-trigger__chevron {
-    width: 14px;
-    height: 14px;
-  }
-}

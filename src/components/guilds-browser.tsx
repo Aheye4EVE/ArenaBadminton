@@ -2,6 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
+import Image from "next/image";
 import { useActionState } from "react";
 import { ArrowRight, ChevronDown, Crown, Filter, MapPin, RotateCcw, Search, Shield, SlidersHorizontal, Sparkles, Trophy, Users } from "lucide-react";
 import { joinGuildAction, type GuildActionState } from "@/app/guilds/actions";
@@ -50,6 +51,37 @@ export default function GuildsBrowser({ guilds, currentGuildId, canCreate, creat
   return (
     <main className="guilds-page">
       <div className="guilds-shell">
+        <section className="subpage-discovery-hero guilds-discovery-hero">
+          <Image
+            src="/assets/hero-scene.png"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 1200px"
+          />
+          <div className="subpage-discovery-hero__scrim" />
+          <div className="subpage-discovery-hero__copy">
+            <p>Rally with your Guild</p>
+            <h1>สมาคมและกิลด์นักแบด</h1>
+            <span>
+              รวมทีม สร้างชื่อเสียง ไต่แรงก์ และรับรางวัลพิเศษร่วมกับเพื่อนร่วมกิลด์
+            </span>
+          </div>
+          <div className="subpage-discovery-hero__actions">
+            {canCreate ? (
+              <Link href="/guilds/create" className="subpage-discovery-hero__cta">
+                <Shield size={18} /> สร้าง Guild ใหม่
+              </Link>
+            ) : null}
+            <Link
+              href="/guilds/ranking"
+              className="subpage-discovery-hero__secondary-cta"
+            >
+              <Trophy size={16} /> Guild Ranking
+            </Link>
+          </div>
+        </section>
+
         <form className="guilds-search-form" method="get">
           <div className="guilds-searchbar">
             <div className="guilds-searchbar__input"><Search size={17} /><input name="q" defaultValue={filters.q} placeholder="ค้นหาชื่อ Guild หรือคำอธิบาย" aria-label="ค้นหาชื่อ Guild หรือคำอธิบาย" /></div>

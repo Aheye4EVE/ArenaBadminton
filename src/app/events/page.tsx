@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import EventSearchBrowser, { type EventSearchFilters } from "@/components/event-search-browser";
 import { events, type Event } from "@/lib/demo-data";
-import { getAuthenticatedProfile } from "@/lib/supabase-server";
+import { getAuthenticatedProfile, getSupabasePublicServerClient } from "@/lib/supabase-server";
 import { shouldShowQaData } from "@/lib/config";
 import { matchesLocationFilters, matchesSearchTerms, searchTerms } from "@/lib/search-utils";
 
@@ -118,11 +118,12 @@ function mapLiveTournaments(
 
 export default async function EventsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const filters = parseFilters(await searchParams);
-  const { supabase, user } = await getAuthenticatedProfile();
+  const { supabase: authSupabase, user } = await getAuthenticatedProfile();
+  const supabase = user ? authSupabase : (getSupabasePublicServerClient() ?? authSupabase);
   let eventSource = events;
   let loadError: string | undefined;
 
-  if (supabase && user) {
+  if (supabase) {
     let tournamentQuery = supabase
       .from("tournaments")
       .select("id, title, description, starts_at, format, max_entries, venue_id")
@@ -174,5 +175,5 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
       ? right.startsAt.localeCompare(left.startsAt)
       : left.startsAt.localeCompare(right.startsAt));
 
-  return <EventSearchBrowser events={filteredEvents} filters={filters} totalCount={filteredEvents.length} isLiveData={Boolean(supabase && user)} loadError={loadError} />;
+  return <EventSearchBrowser events={filteredEvents} filters={filters} totalCount={filteredEvents.length} isLiveData={Boolean(supabase)} loadError={loadError} />;
 }

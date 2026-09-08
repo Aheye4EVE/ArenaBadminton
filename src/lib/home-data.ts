@@ -1,18 +1,21 @@
 import { unstable_cache } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { shouldShowQaData } from "@/lib/config";
-import type { Court, Event } from "@/lib/demo-data";
+import type { Court, Event, Group } from "@/lib/demo-data";
 import { safeMediaUrl } from "@/lib/safe-media-url";
 import { getSupabasePublicServerClient } from "@/lib/supabase-server";
 import { searchVenues, type DirectoryFilters, type DirectoryVenue } from "@/lib/venue-directory";
 import { formatDistanceKm } from "@/lib/geolocation";
+import { getRecommendedGroups } from "@/lib/group-recommendations";
 
 export type HomepageLiveData = {
+  featuredGroups: Group[];
   featuredEvents: Event[];
   featuredCourts: Court[];
   featuredMarketplaceListings: HomepageMarketplaceListing[];
   marketplaceSortMode: "views" | "latest";
   errors: {
+    groups: boolean;
     events: boolean;
     venues: boolean;
     marketplace: boolean;
@@ -157,7 +160,7 @@ export async function getHomepageLiveData(
     district: typeof profile?.district === "string" ? profile.district : "",
     subdistrict: typeof profile?.subdistrict === "string" ? profile.subdistrict : "",
     sort: profile ? "area" : "popular",
-    activity: "open",
+    activity: "all",
     page: 1,
   };
 
@@ -170,11 +173,20 @@ export async function getHomepageLiveData(
     .order("id", { ascending: false })
     .limit(4);
 
-  const [tournamentsResult, venuesResult, marketplaceResult] = await Promise.all([
+  let featuredGroups: Group[] = [];
+  let groupsError = false;
+
+  const [groupsResult, tournamentsResult, venuesResult, marketplaceResult] = await Promise.all([
+    getRecommendedGroups({ supabase, profile }).catch(() => {
+      groupsError = true;
+      return [] as Group[];
+    }),
     tournamentsQuery,
     searchVenues(supabase, venueFilters, 3).catch(() => null),
     marketplaceQuery,
   ]);
+
+  featuredGroups = groupsResult;
 
   const tournamentRows = (tournamentsResult.data ?? []) as Array<Record<string, unknown>>;
   const tournamentVenueIds = [...new Set(tournamentRows.map((row) => typeof row.venue_id === "string" ? row.venue_id : "").filter(Boolean))];
@@ -227,11 +239,13 @@ export async function getHomepageLiveData(
   const featuredMarketplaceListings = marketplaceRows.map(mapMarketplaceListing).filter((listing) => listing.id);
 
   return {
+    featuredGroups,
     featuredEvents,
     featuredCourts: mappedVenues.slice(0, 3),
     featuredMarketplaceListings,
     marketplaceSortMode,
     errors: {
+      groups: groupsError,
       events: eventsError,
       venues: venuesResult === null,
       marketplace: marketplaceError,

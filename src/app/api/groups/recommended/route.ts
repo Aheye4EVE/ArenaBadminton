@@ -1,16 +1,27 @@
 import { getRecommendedGroups } from "@/lib/group-recommendations";
 import { normalizeCoordinates } from "@/lib/geolocation";
-import { getAuthenticatedProfile } from "@/lib/supabase-server";
+import { getAuthenticatedProfile, getSupabasePublicServerClient } from "@/lib/supabase-server";
 
 export async function GET() {
   const context = await getAuthenticatedProfile();
-  if (!context.supabase || !context.user) {
-    return Response.json({ error: "กรุณาเข้าสู่ระบบเพื่อดูคำแนะนำเฉพาะคุณ" }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
+  const supabase = context.user ? context.supabase : (getSupabasePublicServerClient() ?? context.supabase);
+
+  if (!supabase) {
+    return Response.json({ items: [], locationMode: "public" }, { headers: { "Cache-Control": "public, s-maxage=30" } });
   }
 
   try {
-    const items = await getRecommendedGroups(context);
-    return Response.json({ items, locationMode: "profile" }, { headers: { "Cache-Control": "private, no-store" } });
+    const items = await getRecommendedGroups({
+      supabase,
+      user: context.user,
+      profile: context.profile,
+    });
+    return Response.json({
+      items,
+      locationMode: context.user ? "profile" : "public",
+    }, {
+      headers: { "Cache-Control": context.user ? "private, no-store" : "public, s-maxage=30" },
+    });
   } catch {
     return Response.json({ error: "โหลดก๊วนแนะนำไม่สำเร็จ กรุณาลองใหม่" }, { status: 503, headers: { "Cache-Control": "private, no-store" } });
   }
@@ -18,8 +29,10 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const context = await getAuthenticatedProfile();
-  if (!context.supabase || !context.user) {
-    return Response.json({ error: "กรุณาเข้าสู่ระบบเพื่อใช้การค้นหาตามตำแหน่ง" }, { status: 401 });
+  const supabase = context.user ? context.supabase : (getSupabasePublicServerClient() ?? context.supabase);
+
+  if (!supabase) {
+    return Response.json({ error: "ระบบไม่พร้อมใช้งานชั่วคราว" }, { status: 503 });
   }
 
   let coordinates: ReturnType<typeof normalizeCoordinates> = null;
@@ -40,7 +53,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const items = await getRecommendedGroups(context, { coordinates });
+    const items = await getRecommendedGroups({
+      supabase,
+      user: context.user,
+      profile: context.profile,
+    }, { coordinates });
     return Response.json({ items, locationMode: "gps" }, {
       headers: { "Cache-Control": "private, no-store" },
     });

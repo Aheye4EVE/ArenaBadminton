@@ -16,6 +16,7 @@ async function CachedHome() {
   return <ArenaHome
     account={null}
     isAuthenticated={false}
+    recommendedGroups={homepageLiveData?.featuredGroups}
     featuredEvents={homepageLiveData?.featuredEvents}
     featuredCourts={homepageLiveData?.featuredCourts}
     featuredMarketplaceListings={homepageLiveData?.featuredMarketplaceListings}

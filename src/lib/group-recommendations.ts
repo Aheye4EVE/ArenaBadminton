@@ -1,9 +1,13 @@
-import type { getAuthenticatedProfile } from "@/lib/supabase-server";
-import { groups as demoGroups, type Group } from "@/lib/demo-data";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { type Group } from "@/lib/demo-data";
 import { shouldShowQaData } from "@/lib/config";
 import { haversineDistanceKm, normalizeCoordinates, type GeoCoordinates } from "@/lib/geolocation";
 
-type RecommendationContext = Awaited<ReturnType<typeof getAuthenticatedProfile>>;
+export type RecommendationContext = {
+  supabase: SupabaseClient | null;
+  user?: unknown | null;
+  profile?: unknown | null;
+};
 
 type GroupRow = {
   id: string;
@@ -66,10 +70,6 @@ const avatarSets = [
   ["👩🏽", "🧑🏻", "👩🏻‍🦱", "🧑🏽‍🦰"],
   ["🧑🏼", "👩🏽‍🦱", "🧑🏻‍🦰", "👩🏻"],
 ];
-
-function fallbackGroups() {
-  return demoGroups.filter((group) => group.status !== "เต็มแล้ว").slice(0, recommendationLimit);
-}
 
 function asString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -149,8 +149,8 @@ function stableAvatarSet(id: string) {
 }
 
 export async function getRecommendedGroups(context: RecommendationContext, options: RecommendationOptions = {}): Promise<Group[]> {
-  const { supabase, user, profile } = context;
-  if (!supabase || !user) return fallbackGroups();
+  const { supabase, profile } = context;
+  if (!supabase) return [];
 
   let groupQuery = supabase
     .from("groups")
@@ -162,7 +162,7 @@ export async function getRecommendedGroups(context: RecommendationContext, optio
   if (!shouldShowQaData()) groupQuery = groupQuery.not("title", "like", "[QA ONLY]%");
   const { data: groupData, error: groupError } = await groupQuery;
 
-  if (groupError) return fallbackGroups();
+  if (groupError) return [];
 
   const rows = (groupData ?? []) as GroupRow[];
   if (rows.length === 0) return [];
@@ -184,16 +184,18 @@ export async function getRecommendedGroups(context: RecommendationContext, optio
       .in("status", organizerStatuses),
   ]);
 
-  if (membersResult.error || organizersResult.error) return fallbackGroups();
-
   const memberCounts = new Map<string, number>();
-  for (const member of (membersResult.data ?? []) as MemberRow[]) {
-    memberCounts.set(member.group_id, (memberCounts.get(member.group_id) ?? 0) + 1);
+  if (!membersResult.error) {
+    for (const member of (membersResult.data ?? []) as MemberRow[]) {
+      memberCounts.set(member.group_id, (memberCounts.get(member.group_id) ?? 0) + 1);
+    }
   }
 
   const organizerCounts = new Map<string, number>();
-  for (const organizerGroup of (organizersResult.data ?? []) as Array<{ owner_id: string }>) {
-    organizerCounts.set(organizerGroup.owner_id, (organizerCounts.get(organizerGroup.owner_id) ?? 0) + 1);
+  if (!organizersResult.error) {
+    for (const organizerGroup of (organizersResult.data ?? []) as Array<{ owner_id: string }>) {
+      organizerCounts.set(organizerGroup.owner_id, (organizerCounts.get(organizerGroup.owner_id) ?? 0) + 1);
+    }
   }
 
   const venueIds = [...new Set(rows.map((row) => row.venue_id).filter((venueId): venueId is string => Boolean(venueId)))];

@@ -12,8 +12,8 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
+import Image from "next/image";
 import ThaiAreaSelect from "@/components/thai-area-select";
-import { PreviewHeader } from "@/components/preview-page";
 import type { Event } from "@/lib/demo-data";
 
 export type EventSearchFilters = {
@@ -87,7 +87,30 @@ export default function EventSearchBrowser({
 
   return (
     <main className="preview-page discovery-page">
-      <PreviewHeader kind="events" live={isLiveData} />
+      <div className="subpage-discovery-hero-wrap">
+        <section className="subpage-discovery-hero events-discovery-hero">
+          <Image
+            src="/assets/home-card-events-v1.png"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 1200px"
+          />
+          <div className="subpage-discovery-hero__scrim" />
+          <div className="subpage-discovery-hero__copy">
+            <p>Compete &amp; Level Up</p>
+            <h1>ทัวร์นาเมนต์ &amp; กิจกรรม</h1>
+            <span>
+              ค้นหาการแข่งขัน ทัวร์นาเมนต์ และอีเวนต์แบดมินตันทั่วไทย
+              ชิงเหรียญรางวัลและสะสม EXP
+            </span>
+          </div>
+          <div className="subpage-discovery-hero__badge">
+            {totalCount > 0 ? `${totalCount}+` : "16+"}
+            <small>events in Arena</small>
+          </div>
+        </section>
+      </div>
       <div className="preview-content">
         <div className="preview-section-grid discovery-section-grid">
           <section className="preview-panel preview-panel--wide discovery-main-panel">

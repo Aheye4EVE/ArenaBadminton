@@ -16420,9 +16420,21 @@ img.profile-overview-avatar {
   font-weight: 850;
   white-space: nowrap;
 }
+@keyframes live-status-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(69, 166, 133, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 4px rgba(69, 166, 133, 0);
+  }
+}
+
 .directory-status--open {
-  color: #45a685;
-  background: #e6faf0;
+  color: #15803d;
+  background: #dcfce7;
+  animation: live-status-pulse 2.2s infinite ease-in-out;
 }
 .directory-card__links {
   display: flex;
@@ -22301,6 +22313,8 @@ img.profile-overview-avatar {
 }
 
 .venue-discovery-hero,
+.subpage-discovery-hero,
+.subpage-discovery-hero-wrap,
 .venue-discovery-content,
 .venue-discovery-footer {
   width: min(100% - 40px, 1240px);
@@ -22308,7 +22322,8 @@ img.profile-overview-avatar {
   margin-left: auto;
 }
 
-.venue-discovery-hero {
+.venue-discovery-hero,
+.subpage-discovery-hero {
   position: relative;
   display: flex;
   min-height: clamp(220px, 26vw, 320px);
@@ -22323,7 +22338,12 @@ img.profile-overview-avatar {
   isolation: isolate;
 }
 
-.venue-discovery-hero > img {
+.subpage-discovery-hero {
+  margin-bottom: 22px;
+}
+
+.venue-discovery-hero > img,
+.subpage-discovery-hero > img {
   position: absolute !important;
   z-index: -3;
   inset: 0 !important;
@@ -22333,30 +22353,65 @@ img.profile-overview-avatar {
   object-position: center;
 }
 
-.venue-discovery-hero__scrim {
+.venue-discovery-hero__scrim,
+.subpage-discovery-hero__scrim {
   position: absolute;
   z-index: -2;
   inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(39, 22, 77, 0.73),
-    rgba(70, 28, 107, 0.3) 56%,
-    rgba(18, 35, 76, 0.18)
+    rgba(39, 22, 77, 0.76),
+    rgba(70, 28, 107, 0.35) 56%,
+    rgba(18, 35, 76, 0.2)
+  );
+}
+
+.groups-discovery-hero .subpage-discovery-hero__scrim {
+  background: linear-gradient(
+    90deg,
+    rgba(32, 18, 65, 0.8),
+    rgba(88, 28, 135, 0.38) 55%,
+    rgba(15, 23, 42, 0.22)
+  );
+}
+
+.guilds-discovery-hero .subpage-discovery-hero__scrim {
+  background: linear-gradient(
+    90deg,
+    rgba(22, 14, 48, 0.8),
+    rgba(67, 26, 128, 0.35) 55%,
+    rgba(15, 23, 42, 0.2)
+  );
+}
+
+.events-discovery-hero .subpage-discovery-hero__scrim {
+  background: linear-gradient(
+    90deg,
+    rgba(35, 14, 60, 0.8),
+    rgba(190, 24, 93, 0.35) 55%,
+    rgba(15, 23, 42, 0.2)
   );
 }
 
 .venue-discovery-hero__copy,
-.venue-discovery-hero__badge {
+.venue-discovery-hero__badge,
+.subpage-discovery-hero__copy,
+.subpage-discovery-hero__badge,
+.subpage-discovery-hero__actions {
   position: relative;
   z-index: 1;
 }
-.venue-discovery-hero__copy {
+
+.venue-discovery-hero__copy,
+.subpage-discovery-hero__copy {
   display: grid;
   gap: 7px;
   max-width: 650px;
   color: #fff;
 }
-.venue-discovery-hero__copy p {
+
+.venue-discovery-hero__copy p,
+.subpage-discovery-hero__copy p {
   margin: 0;
   color: #ffd7f2;
   font-family: var(--font-fredoka), sans-serif;
@@ -22364,7 +22419,9 @@ img.profile-overview-avatar {
   font-weight: 800;
   letter-spacing: 0.04em;
 }
-.venue-discovery-hero__copy h1 {
+
+.venue-discovery-hero__copy h1,
+.subpage-discovery-hero__copy h1 {
   margin: 0;
   color: #fff;
   font-family: var(--font-mitr), sans-serif;
@@ -22372,14 +22429,18 @@ img.profile-overview-avatar {
   font-weight: 900;
   text-shadow: 0 4px 16px rgba(38, 18, 72, 0.35);
 }
-.venue-discovery-hero__copy span {
+
+.venue-discovery-hero__copy span,
+.subpage-discovery-hero__copy span {
   max-width: 600px;
-  color: rgba(255, 255, 255, 0.84);
-  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.88rem;
   font-weight: 650;
   line-height: 1.65;
 }
-.venue-discovery-hero__badge {
+
+.venue-discovery-hero__badge,
+.subpage-discovery-hero__badge {
   display: grid;
   min-width: 105px;
   justify-items: center;
@@ -22390,15 +22451,78 @@ img.profile-overview-avatar {
   background: rgba(255, 255, 255, 0.16);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   font-family: var(--font-fredoka), sans-serif;
   font-size: 1.65rem;
   font-weight: 900;
 }
-.venue-discovery-hero__badge small {
-  color: rgba(255, 255, 255, 0.83);
+
+.venue-discovery-hero__badge small,
+.subpage-discovery-hero__badge small {
+  color: rgba(255, 255, 255, 0.85);
   font-family: var(--font-mitr), sans-serif;
   font-size: 0.58rem;
   font-weight: 650;
+}
+
+.subpage-discovery-hero__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.subpage-discovery-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f43f5e, #ec4899);
+  color: #fff;
+  font-family: var(--font-mitr), sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow:
+    0 8px 24px rgba(244, 63, 94, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-decoration: none;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.subpage-discovery-hero__cta:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 12px 28px rgba(244, 63, 94, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.subpage-discovery-hero__secondary-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  font-family: var(--font-mitr), sans-serif;
+  font-size: 0.84rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.subpage-discovery-hero__secondary-cta:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.28);
 }
 .venue-discovery-content {
   margin-top: 16px;
@@ -22913,29 +23037,48 @@ img.profile-overview-avatar {
     padding-top: 10px;
   }
   .venue-discovery-hero,
+  .subpage-discovery-hero,
+  .subpage-discovery-hero-wrap,
   .venue-discovery-content,
   .venue-discovery-footer {
     width: min(100% - 20px, 560px);
   }
-  .venue-discovery-hero {
+  .venue-discovery-hero,
+  .subpage-discovery-hero {
     min-height: 235px;
     align-items: end;
     padding: 21px;
     border-radius: 22px;
   }
-  .venue-discovery-hero__copy h1 {
+  .venue-discovery-hero__copy h1,
+  .subpage-discovery-hero__copy h1 {
     font-size: 2rem;
   }
-  .venue-discovery-hero__copy span {
+  .venue-discovery-hero__copy span,
+  .subpage-discovery-hero__copy span {
     font-size: 0.68rem;
   }
-  .venue-discovery-hero__badge {
+  .venue-discovery-hero__badge,
+  .subpage-discovery-hero__badge {
     position: absolute;
     top: 16px;
     right: 16px;
     min-width: 80px;
     padding: 9px;
     font-size: 1.1rem;
+  }
+  .subpage-discovery-hero__actions {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    align-items: flex-end;
+  }
+  .subpage-discovery-hero__cta {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+  }
+  .subpage-discovery-hero__secondary-cta {
+    display: none;
   }
   .venue-discovery-content .discovery-main-panel {
     padding: 0.8rem;
@@ -22996,9 +23139,36 @@ img.profile-overview-avatar {
     height: 64vh;
     min-height: 64vh;
   }
-  .venue-discovery-footer {
-    align-items: flex-start;
-    flex-direction: column;
+  .venue-discovery-content .groups-advanced-filter[open]::before {
+    position: fixed;
+    inset: 0;
+    z-index: 140;
+    content: "";
+    background: rgba(28, 18, 54, 0.45);
+    backdrop-filter: blur(4px);
+  }
+  .venue-discovery-content .groups-advanced-filter[open] .groups-advanced-filter__body {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 150;
+    max-height: 82vh;
+    padding: 20px 16px 28px;
+    overflow-y: auto;
+    border-radius: 26px 26px 0 0;
+    background: #ffffff;
+    box-shadow: 0 -12px 38px rgba(78, 44, 128, 0.28);
+    animation: drawer-slide-up 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@keyframes drawer-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
   }
 }
 

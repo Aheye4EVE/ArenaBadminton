@@ -14,7 +14,6 @@ import type { Provider } from "@supabase/supabase-js";
 import {
   ArrowRight,
   AtSign,
-  ChevronDown,
   CheckCircle2,
   Crown,
   Eye,
@@ -471,40 +470,16 @@ function ArcadeProfileSummaryCard({
     account.nextLevelExp === null
       ? `${formatNumber(account.expTotal)} EXP (MAX)`
       : `${formatNumber(account.expTotal)} / ${formatNumber(account.nextLevelExp)} EXP`;
-  const bgUrl = safeMediaUrl(account.profileBackgroundUrl);
+  const bgUrl =
+    safeMediaUrl(account.profileBackgroundUrl) || "/assets/hero-scene.png";
 
   return (
     <section
       className="account-profile account-profile--arcade"
       aria-labelledby="account-profile-title"
     >
-      <div className="account-profile__topline">
-        <div className="account-profile__pass-badge">
-          <Sparkles size={13} />
-          <span>ARENA PASS</span>
-        </div>
-        <Link
-          href="/shop"
-          className="account-profile__wallet-pill"
-          onClick={onClose}
-          title="เติม Arena Points"
-        >
-          <Gem size={13} className="text-amber-500" />
-          <strong>{formatNumber(account.gemsBalance)}</strong>
-          <span className="account-profile__wallet-plus">+</span>
-        </Link>
-        <button
-          type="button"
-          className="account-card-close"
-          onClick={onClose}
-          aria-label="ปิด Profile Card"
-        >
-          <X size={16} />
-        </button>
-      </div>
-
-      <div className="account-profile__mini-cover">
-        {bgUrl ? (
+      <div className="account-profile__cover-container">
+        <div className="account-profile__mini-cover">
           <img
             src={bgUrl}
             alt=""
@@ -512,10 +487,33 @@ function ArcadeProfileSummaryCard({
               objectPosition: `${account.backgroundFocusX}% ${account.backgroundFocusY}%`,
             }}
           />
-        ) : (
-          <div className="account-profile__mini-cover-fallback" />
-        )}
-        <div className="account-profile__mini-cover-gradient" />
+          <div className="account-profile__mini-cover-gradient" />
+        </div>
+
+        <div className="account-profile__topline">
+          <div className="account-profile__pass-badge">
+            <Sparkles size={12} />
+            <span>ARENA PASS</span>
+          </div>
+          <Link
+            href="/shop"
+            className="account-profile__wallet-pill"
+            onClick={onClose}
+            title="เติม Arena Points"
+          >
+            <Gem size={13} className="text-amber-400" />
+            <strong>{formatNumber(account.gemsBalance)}</strong>
+            <span className="account-profile__wallet-plus">+</span>
+          </Link>
+          <button
+            type="button"
+            className="account-card-close account-card-close--cover"
+            onClick={onClose}
+            aria-label="ปิด Profile Card"
+          >
+            <X size={15} />
+          </button>
+        </div>
       </div>
 
       <div className="account-profile__identity-wrap">
@@ -616,7 +614,7 @@ function ArcadeProfileSummaryCard({
       <div
         className={cx(
           "account-profile__capsules-grid",
-          account.isAdmin && "account-profile__capsules-grid--admin",
+          Boolean(account.isAdmin) && "account-profile__capsules-grid--admin",
         )}
       >
         <Link
@@ -649,9 +647,8 @@ function ArcadeProfileSummaryCard({
         >
           <UserRound size={15} />
           <span>โปรไฟล์เต็ม</span>
-          <ArrowRight size={12} />
         </Link>
-        {account.isAdmin ? (
+        {Boolean(account.isAdmin) ? (
           <Link
             href="/admin"
             className="account-profile__capsule-btn account-profile__capsule-btn--admin"
@@ -799,8 +796,14 @@ export default function AccountMenu({
               : "เข้าสู่ระบบ"
         }
         onClick={() => setOpen((current) => !current)}
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.96 }}
+        whileHover={{ scale: 1.12, y: -2 }}
+        whileTap={{ scale: 0.84, rotate: -5 }}
+        animate={
+          open
+            ? { scale: 1.1, rotate: [0, -7, 5, -2, 0] }
+            : { scale: 1, rotate: 0 }
+        }
+        transition={{ type: "spring", stiffness: 350, damping: 15 }}
       >
         <AccountAvatar account={currentAccount} />
         <span className="account-trigger__text">
@@ -816,15 +819,6 @@ export default function AccountMenu({
                 : "Join Arena"}
           </small>
         </span>
-        <ChevronDown
-          className={cx(
-            "account-trigger__chevron",
-            open && "account-trigger__chevron--open",
-          )}
-          size={15}
-          strokeWidth={2.4}
-          aria-hidden="true"
-        />
       </motion.button>
 
       <AnimatePresence>
@@ -847,23 +841,23 @@ export default function AccountMenu({
                 "account-popover",
                 currentAccount && "account-popover--profile",
               )}
-              initial={{ opacity: 0, scale: 0.95, y: -12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.68, y: -36, rotate: 2, filter: "blur(10px)" }}
+              animate={{ opacity: 1, scale: 1, y: 0, rotate: 0, filter: "blur(0px)" }}
               exit={{
                 opacity: 0,
-                scale: 0.95,
-                y: -12,
-                transition: { duration: 0.18, ease: "easeIn" },
+                scale: 0.76,
+                y: -20,
+                filter: "blur(6px)",
+                transition: { duration: 0.18, ease: "easeOut" },
               }}
               transition={{
                 type: "spring",
-                stiffness: 380,
-                damping: 26,
-                mass: 0.8,
+                stiffness: 280,
+                damping: 16,
+                mass: 0.55,
               }}
               role="dialog"
               aria-modal="true"
-              style={{ transformOrigin: "top right" }}
             >
               {currentIsAuthenticated && currentAccount ? (
                 <div className="account-popover--rgb-frame">

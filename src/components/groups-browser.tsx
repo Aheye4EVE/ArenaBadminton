@@ -143,12 +143,31 @@ export default function GroupsBrowser({
   return (
     <main className="groups-page">
       <div className="groups-shell">
-        <div className="groups-page__actions">
-          <Link href="/organizer" className="group-primary-action"><Plus size={17} /> สร้างก๊วน</Link>
-        </div>
-
-        <section className="groups-hero">
-          <div><p lang="en">Discover your people</p><h1>ก๊วนที่ใช่ กำลังรอคุณอยู่</h1><span>เลือกสนาม เลือกระดับ แล้วออกไปตีด้วยกันในแบบของคุณ</span></div><div className="groups-hero__art" aria-hidden="true"><Image src="/assets/groups-racket-v1.png" alt="" width={260} height={270} priority sizes="(max-width: 620px) 170px, 260px" /></div>
+        <section className="subpage-discovery-hero groups-discovery-hero">
+          <Image
+            src="/assets/home-card-groups-v1.png"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 1200px"
+          />
+          <div className="subpage-discovery-hero__scrim" />
+          <div className="subpage-discovery-hero__copy">
+            <p>Discover your people</p>
+            <h1>ก๊วนที่ใช่ กำลังรอคุณอยู่</h1>
+            <span>
+              เลือกสนาม เลือกระดับ แล้วออกไปตีด้วยกันในแบบของคุณ พร้อมระบบจัดคิวแบดมินตัน
+            </span>
+          </div>
+          <div className="subpage-discovery-hero__actions">
+            <Link href="/organizer" className="subpage-discovery-hero__cta">
+              <Plus size={18} /> สร้างก๊วน
+            </Link>
+            <div className="subpage-discovery-hero__badge">
+              {totalCount > 0 ? `${totalCount}+` : "24+"}
+              <small>active groups</small>
+            </div>
+          </div>
         </section>
 
         <div className="groups-layout">

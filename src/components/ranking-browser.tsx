@@ -44,7 +44,7 @@ export default function RankingBrowser({ entries, totalPlayers, currentUserId, f
   const currentEntry = currentUserId ? entries.find((entry) => entry.id === currentUserId) : null;
 
   return <main className="preview-page ranking-live-page">
-    <PreviewHeader kind="ranking" live />
+    <PreviewHeader kind="ranking" live hideTopline />
     <div className="preview-content">
       <div className="preview-section-grid">
         <section className="preview-panel preview-panel--wide">
