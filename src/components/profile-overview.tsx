@@ -16,7 +16,6 @@ import {
   UserRound,
   Zap,
   Swords,
-  MessageCircle,
 } from "lucide-react";
 import type {
   HeaderProfileSummary,
@@ -31,7 +30,7 @@ import ProfileMediaInlineEditor from "@/components/profile-media-inline-editor";
 import { PlayerInspectModal } from "@/components/player-inspect-modal";
 import { safeMediaUrl } from "@/lib/safe-media-url";
 
-type ProfileTab = "overview" | "trophies" | "lounge";
+type ProfileTab = "overview" | "trophies";
 
 const tabs: Array<{
   id: ProfileTab;
@@ -50,12 +49,6 @@ const tabs: Array<{
     label: "ถ้วยรางวัล",
     eyebrow: "Trophies & Badges",
     icon: Trophy,
-  },
-  {
-    id: "lounge",
-    label: "กระดานสถานะ",
-    eyebrow: "Lounge & Feed",
-    icon: MessageCircle,
   },
 ];
 
@@ -304,6 +297,17 @@ export default function ProfileOverview({
               <p className="profile-overview-location">
                 <MapPin size={13} /> {location}
               </p>
+              {summary.guild ? (
+                <Link
+                  href={`/guilds/${summary.guild.id}`}
+                  className="profile-overview-guild"
+                  title={`เปิด Guild ${summary.guild.name}`}
+                >
+                  <ShieldCheck size={13} />
+                  <span>{summary.guild.name}</span>
+                  <small>Lv.{summary.guild.level}</small>
+                </Link>
+              ) : null}
               <div className="profile-overview-badge-row">
                 <span className="profile-overview-title-pill">
                   {summary.levelLabel}
@@ -398,7 +402,7 @@ export default function ProfileOverview({
                 <section className="profile-overview-card profile-battle-card">
                   <div className="profile-overview-card-heading">
                     <div>
-                      <p lang="en">BATTLE STATS</p>
+                      <p lang="en">Performance Stats</p>
                       <h2>
                         <Swords size={19} /> ข้อมูลพลังและการเล่น
                       </h2>
@@ -454,7 +458,7 @@ export default function ProfileOverview({
                 <section className="profile-overview-card profile-circle-card">
                   <div className="profile-overview-card-heading">
                     <div>
-                      <p lang="en">MY CIRCLE</p>
+                      <p lang="en">FRIEND</p>
                       <h2>
                         <Users size={19} /> เพื่อนร่วมก๊วน
                       </h2>
@@ -522,12 +526,11 @@ export default function ProfileOverview({
                 </section>
                 </div>
                 <RecentMatchesCard matches={recentMatches.slice(0, 5)} />
+                <ProfileStatusFeed statuses={statuses} />
               </>
             ) : activeTab === "trophies" ? (
               <TrophiesPanel trophies={trophies} />
-            ) : (
-              <ProfileStatusFeed statuses={statuses} />
-            )}
+            ) : null}
           </motion.div>
         </AnimatePresence>
 

@@ -10,7 +10,7 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import type { Provider } from "@supabase/supabase-js";
+import type { AuthChangeEvent, Provider, Session } from "@supabase/supabase-js";
 import {
   ArrowRight,
   AtSign,
@@ -710,10 +710,23 @@ export default function AccountMenu({
     account,
     isAuthenticated,
   });
+  const sessionRef = useRef<AccountSession>({ account, isAuthenticated });
+  const authStateRef = useRef<boolean | null>(
+    account || isAuthenticated ? true : null,
+  );
   const menuRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverId = "account-profile-popover";
+
+  const applySession = useCallback(
+    (nextSession: AccountSession) => {
+      sessionRef.current = nextSession;
+      setSession(nextSession);
+      onSessionResolved?.(nextSession);
+    },
+    [onSessionResolved],
+  );
 
   const closeMenu = useCallback(() => {
     setOpen(false);
@@ -722,37 +735,104 @@ export default function AccountMenu({
 
   useEffect(() => {
     let cancelled = false;
+    let unsubscribe = () => {};
 
-    fetch("/api/profile/summary", {
-      credentials: "same-origin",
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-    })
-      .then(async (response) => {
-        if (!response.ok) return null;
-        return (await response.json()) as {
+    const refreshSummary = async (attempt = 0): Promise<void> => {
+      try {
+        const response = await fetch("/api/profile/summary", {
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+        if (!response.ok) {
+          if (!cancelled && attempt < 2 && response.status >= 500) {
+            await new Promise((resolve) =>
+              window.setTimeout(resolve, 250 * (attempt + 1)),
+            );
+            return refreshSummary(attempt + 1);
+          }
+          return;
+        }
+
+        const payload = (await response.json()) as {
           account?: HeaderProfileSummary | null;
           isAuthenticated?: boolean;
         };
-      })
-      .then((payload) => {
-        if (cancelled || !payload) return;
-        const nextSession = {
+        if (cancelled) return;
+
+        const nextIsAuthenticated = Boolean(payload.isAuthenticated);
+        // A transient/failed server summary must never downgrade a browser
+        // session that Supabase has already confirmed as signed in.
+        if (authStateRef.current === true && !nextIsAuthenticated) return;
+
+        authStateRef.current = nextIsAuthenticated;
+        applySession({
           account: payload.account ?? null,
-          isAuthenticated: Boolean(payload.isAuthenticated),
-        };
-        setSession(nextSession);
-        onSessionResolved?.(nextSession);
-      })
-      .catch(() => {
-        // The trigger remains usable as a login/profile button when the
-        // optional session read is unavailable.
+          isAuthenticated: nextIsAuthenticated,
+        });
+      } catch {
+        if (!cancelled && attempt < 2) {
+          await new Promise((resolve) =>
+            window.setTimeout(resolve, 250 * (attempt + 1)),
+          );
+          return refreshSummary(attempt + 1);
+        }
+        // The browser auth listener below still provides the authoritative
+        // signed-in/signed-out state when the optional summary endpoint is
+        // temporarily unavailable.
+      }
+    };
+
+    let supabase: ReturnType<typeof getSupabaseBrowserClient> | null = null;
+    try {
+      supabase = getSupabaseBrowserClient();
+    } catch {
+      // Keep the summary request usable on deployments without browser env.
+    }
+
+    if (supabase) {
+      const { data } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, authSession: Session | null) => {
+        if (authSession?.user) {
+          authStateRef.current = true;
+          applySession({
+            ...sessionRef.current,
+            isAuthenticated: true,
+          });
+          window.setTimeout(() => void refreshSummary(), 0);
+        } else if (event === "SIGNED_OUT") {
+          authStateRef.current = false;
+          applySession({ account: null, isAuthenticated: false });
+        }
       });
+      unsubscribe = () => data.subscription.unsubscribe();
+
+      void (async () => {
+        try {
+          const { data: userData, error } = await supabase.auth.getUser();
+          if (!cancelled && !error && userData.user) {
+            authStateRef.current = true;
+            applySession({
+              ...sessionRef.current,
+              isAuthenticated: true,
+            });
+          } else if (!cancelled && !error && authStateRef.current !== true) {
+            authStateRef.current = false;
+            applySession({ account: null, isAuthenticated: false });
+          }
+        } catch {
+          // Let the server summary resolve the state if the Auth request fails.
+        }
+        await refreshSummary();
+      })();
+    } else {
+      void refreshSummary();
+    }
 
     return () => {
       cancelled = true;
+      unsubscribe();
     };
-  }, [onSessionResolved]);
+  }, [applySession]);
 
   useEffect(() => {
     if (!open) return;

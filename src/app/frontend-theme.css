@@ -4151,6 +4151,39 @@
   color: #9389aa;
   font-size: 0.66rem;
 }
+.frontend-shell .profile-overview-guild {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  margin-top: 3px;
+  color: #8065bb;
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+.frontend-shell .profile-overview-guild svg {
+  flex: 0 0 auto;
+  color: #9e6ed1;
+}
+.frontend-shell .profile-overview-guild span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.frontend-shell .profile-overview-guild small {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #a46c35;
+  background: #fff2d7;
+  font-family: var(--font-fredoka), var(--font-mitr), sans-serif;
+  font-size: 0.57rem;
+  font-weight: 800;
+}
+.frontend-shell .profile-overview-guild:hover {
+  color: #d6539d;
+}
 .frontend-shell .profile-overview-location svg {
   flex: 0 0 auto;
   color: #c274c9;
@@ -7426,6 +7459,14 @@
   display: none;
 }
 
+/* The outer Cover owns the responsive height. The inline editor must fill it;
+   a fixed child height leaves a visible blank strip below the saved artwork. */
+.frontend-shell
+  .profile-overview-cover--arcade
+  .profile-inline-media-editor--background {
+  height: 100%;
+}
+
 .frontend-shell
   .profile-overview-cover--arcade
   .profile-inline-media-editor--background::after {
@@ -7837,4 +7878,3 @@
     transition: none;
   }
 }
-

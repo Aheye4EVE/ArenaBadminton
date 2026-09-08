@@ -115,7 +115,7 @@ export default function ProfileStatusFeed({
     >
       <div className="profile-status-section__heading">
         <div>
-          <p lang="en">PLAYER LOUNGE</p>
+          <p lang="en">COMMUNITY STATUS</p>
           <h2 id="profile-status-title">
             <MessageCircle size={19} /> กระดานสเตตัส
           </h2>

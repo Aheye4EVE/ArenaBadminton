@@ -13,6 +13,7 @@ export default function FrontendShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   if (pathname?.startsWith("/admin")) return children;
   const isAuthPage = pathname?.startsWith("/auth/") ?? false;
+  const isProfilePage = pathname === "/profile";
 
   return (
     <div className="frontend-shell" data-arena-theme="rainbow-court" data-page="site">
@@ -25,7 +26,7 @@ export default function FrontendShell({ children }: { children: ReactNode }) {
       </header>
       <div id="arena-content" className="frontend-content" tabIndex={-1}>{children}</div>
       <MessengerWidget />
-      {!isAuthPage ? <footer className="frontend-footer"><span lang="en">✦ Arena-Badminton</span><span>เจอก๊วนที่ใช่ แล้วไปตีด้วยกัน</span><Link href="/organizer">สร้างก๊วนของคุณ ↗</Link></footer> : null}
+      {!isAuthPage && !isProfilePage ? <footer className="frontend-footer"><span lang="en">✦ Arena-Badminton</span><span>เจอก๊วนที่ใช่ แล้วไปตีด้วยกัน</span><Link href="/organizer">สร้างก๊วนของคุณ ↗</Link></footer> : null}
     </div>
   );
 }
