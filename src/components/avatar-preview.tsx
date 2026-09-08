@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Eye, X } from "lucide-react";
 
@@ -55,7 +56,7 @@ export function AvatarPreview({
       </button>
 
       <AnimatePresence>
-        {open ? (
+        {open && typeof document !== "undefined" ? createPortal(
           <motion.div
             className="avatar-preview-backdrop"
             role="presentation"
@@ -100,7 +101,8 @@ export function AvatarPreview({
                 <X size={20} />
               </button>
             </motion.section>
-          </motion.div>
+          </motion.div>,
+          document.body,
         ) : null}
       </AnimatePresence>
     </>
