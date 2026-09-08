@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { Eye, X } from "lucide-react";
 
 /**
@@ -55,14 +55,12 @@ export function AvatarPreview({
         </span>
       </button>
 
-      <AnimatePresence>
-        {open && typeof document !== "undefined" ? createPortal(
+      {open && typeof document !== "undefined" ? createPortal(
           <motion.div
             className="avatar-preview-backdrop"
             role="presentation"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             onClick={() => setOpen(false)}
             onContextMenu={(event) => event.preventDefault()}
@@ -74,7 +72,6 @@ export function AvatarPreview({
               aria-label={`ภาพ Avatar ต้นฉบับของ ${displayName}`}
               initial={{ opacity: 0, scale: 0.9, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 10 }}
               transition={{ type: "spring", stiffness: 360, damping: 26, mass: 0.75 }}
               onClick={(event) => event.stopPropagation()}
               onContextMenu={(event) => event.preventDefault()}
@@ -104,7 +101,6 @@ export function AvatarPreview({
           </motion.div>,
           document.body,
         ) : null}
-      </AnimatePresence>
     </>
   );
 }
