@@ -6658,7 +6658,7 @@
 
 .avatar-preview-dialog__image-wrap img {
   display: block;
-  max-width: calc(100vw - 32px);
+  max-width: 100%;
   max-height: calc(100dvh - 32px);
   width: auto;
   height: auto;
@@ -6682,7 +6682,7 @@
   }
 
   .avatar-preview-dialog__image-wrap img {
-    max-width: calc(100vw - 20px);
+    max-width: 100%;
     max-height: calc(100dvh - 20px);
   }
 
