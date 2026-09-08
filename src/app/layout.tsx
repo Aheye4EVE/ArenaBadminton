@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import FrontendShell from "@/components/frontend-shell";
 import "./globals.css";
 import "./frontend-theme.css";
+import "./admin-console.css";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
