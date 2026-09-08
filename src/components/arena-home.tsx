@@ -608,9 +608,9 @@ export default function ArenaHome({
       </section>
 
       <main className="dashboard-area">
-        <div className="mx-auto max-w-[1540px] px-4 sm:px-6 lg:px-8">
+        <div className="dashboard-wrapper mx-auto max-w-[880px] px-4 sm:px-6 lg:px-0 relative">
           {/* Mobile & Tablet: Horizontal Story / Lobby Rail */}
-          <div className="dashboard-mobile-rail lg:hidden mb-4">
+          <div className="dashboard-mobile-rail mb-4">
             <OnlinePlayersRail
               players={presence.players}
               liveOnlineIds={presence.liveOnlineIds}
@@ -685,18 +685,18 @@ export default function ArenaHome({
               </div>
 
             </div>
-
-            {/* Desktop: Right Rail Sidebar */}
-            <div className="dashboard-desktop-rail hidden lg:block">
-              <OnlinePlayersRail
-                players={presence.players}
-                liveOnlineIds={presence.liveOnlineIds}
-                isLoading={presence.isLoading}
-                onSelectPlayer={setSelectedPlayerId}
-                variant="sidebar"
-              />
-            </div>
           </section>
+
+          {/* Desktop: Right Rail Sidebar */}
+          <aside className="dashboard-desktop-rail" aria-label="ห้องล็อบบี้ผู้เล่นออนไลน์">
+            <OnlinePlayersRail
+              players={presence.players}
+              liveOnlineIds={presence.liveOnlineIds}
+              isLoading={presence.isLoading}
+              onSelectPlayer={setSelectedPlayerId}
+              variant="sidebar"
+            />
+          </aside>
         </div>
       </main>
 

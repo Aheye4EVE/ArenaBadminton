@@ -553,6 +553,7 @@
   max-width: 880px;
   margin-inline: auto;
   padding-inline: 0;
+  position: relative;
 }
 .frontend-shell .partner-strip {
   min-height: 62px;
@@ -6452,14 +6453,36 @@
   box-shadow: 0 6px 20px rgba(236, 72, 153, 0.5) !important;
 }
 
-/* Dashboard Layout Overrides for Desktop Rail */
-@media (min-width: 1081px) {
-  .frontend-shell .dashboard-layout {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) 310px !important;
-    gap: 20px !important;
-    align-items: start !important;
+/* Online Lobby Rail Display & Desktop Repositioning */
+.frontend-shell .dashboard-mobile-rail {
+  display: block;
+}
+
+.frontend-shell .dashboard-desktop-rail {
+  display: none;
+}
+
+@media (min-width: 1400px) {
+  .frontend-shell .dashboard-mobile-rail {
+    display: none !important;
+  }
+
+  .frontend-shell .dashboard-desktop-rail {
+    display: block !important;
+    position: absolute;
+    top: 14px;
+    left: calc(100% + 24px);
+    width: clamp(260px, calc(50vw - 464px), 310px);
+    z-index: 20;
+  }
+
+  .frontend-shell .dashboard-desktop-rail .online-players-sidebar {
+    position: relative;
+    top: auto;
+    min-height: 460px;
+    max-height: calc(100vh - 100px);
   }
 }
+
 
 
