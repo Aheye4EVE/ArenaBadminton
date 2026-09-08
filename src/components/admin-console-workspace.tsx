@@ -184,7 +184,7 @@ export default function AdminConsoleWorkspace({ sections }: { sections: AdminCon
           aria-label={activeItem.title}
           tabIndex={0}
         >
-          <AnimatePresence mode="wait" initial={false}>
+          <AnimatePresence mode="sync" initial={false}>
             <motion.div
               key={activeSection.id}
               className="admin-console-workspace__panel-transition"
