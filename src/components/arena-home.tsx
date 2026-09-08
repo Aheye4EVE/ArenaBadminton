@@ -30,6 +30,9 @@ import ThaiAreaSelect from "@/components/thai-area-select";
 import { formatDistanceKm, normalizeCoordinates, type GeoCoordinates } from "@/lib/geolocation";
 import type { HomepageMarketplaceListing } from "@/lib/home-data";
 import type { HeaderProfileSummary } from "@/types/profile";
+import { OnlinePlayersRail } from "@/components/online-players-rail";
+import { PlayerInspectModal } from "@/components/player-inspect-modal";
+import { usePlayerPresence } from "@/hooks/use-player-presence";
 
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(" ");
 
@@ -273,6 +276,8 @@ export default function ArenaHome({
   const homepageCourts = publicDataPending ? [] : isLiveData ? (featuredCourts ?? []) : demoCourts;
   const homepageMarketplaceListings = publicDataPending ? [] : isLiveData ? (featuredMarketplaceListings ?? []) : [];
   const marketplaceUsesViews = marketplaceSortMode !== "latest";
+  const presence = usePlayerPresence(account?.id, sessionAuthenticated);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -604,6 +609,17 @@ export default function ArenaHome({
 
       <main className="dashboard-area">
         <div className="mx-auto max-w-[1540px] px-4 sm:px-6 lg:px-8">
+          {/* Mobile & Tablet: Horizontal Story / Lobby Rail */}
+          <div className="dashboard-mobile-rail lg:hidden mb-4">
+            <OnlinePlayersRail
+              players={presence.players}
+              liveOnlineIds={presence.liveOnlineIds}
+              isLoading={presence.isLoading}
+              onSelectPlayer={setSelectedPlayerId}
+              variant="horizontal"
+            />
+          </div>
+
           <section className="dashboard-layout">
             <div className="dashboard-main">
               <div className="dashboard-columns">
@@ -669,9 +685,27 @@ export default function ArenaHome({
               </div>
 
             </div>
+
+            {/* Desktop: Right Rail Sidebar */}
+            <div className="dashboard-desktop-rail hidden lg:block">
+              <OnlinePlayersRail
+                players={presence.players}
+                liveOnlineIds={presence.liveOnlineIds}
+                isLoading={presence.isLoading}
+                onSelectPlayer={setSelectedPlayerId}
+                variant="sidebar"
+              />
+            </div>
           </section>
         </div>
       </main>
+
+      <PlayerInspectModal
+        playerId={selectedPlayerId}
+        onClose={() => setSelectedPlayerId(null)}
+        currentUserId={account?.id}
+        isAuthenticated={sessionAuthenticated}
+      />
 
     </div>
   );
