@@ -7466,6 +7466,12 @@
   .profile-inline-media-editor--background {
   height: 100%;
 }
+.frontend-shell
+  .profile-overview-cover--arcade
+  .profile-inline-media-editor__background-trigger img {
+  min-width: 0;
+  min-height: 0;
+}
 
 .frontend-shell
   .profile-overview-cover--arcade
