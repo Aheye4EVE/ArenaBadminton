@@ -1,0 +1,134 @@
+/* ============================================================
+   AUTH REGISTRATION SCENE + RAINBOW SIGN-UP CTA
+   ============================================================ */
+
+.auth-aside {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(28px, 4vw, 42px) clamp(22px, 3.4vw, 38px);
+  background: #7553b8;
+  isolation: isolate;
+}
+
+.auth-aside::before,
+.auth-aside::after {
+  display: none;
+}
+
+.auth-aside__art {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+}
+
+.auth-aside__art img {
+  object-fit: cover;
+  object-position: center 52%;
+}
+
+.auth-aside__scrim {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(63, 30, 119, 0.12) 0%, rgba(93, 52, 151, 0.14) 38%, rgba(34, 20, 74, 0.88) 100%),
+    linear-gradient(90deg, rgba(64, 28, 125, 0.24), rgba(255, 255, 255, 0.03) 48%, rgba(54, 25, 109, 0.24));
+}
+
+.auth-aside__copy {
+  z-index: 2;
+  max-width: 360px;
+  margin-top: auto;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(45, 23, 94, 0.32);
+}
+
+.auth-aside__copy p {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 11px;
+  color: #fff;
+  font-family: var(--font-mitr), sans-serif;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.auth-aside__copy h2 {
+  color: #fff;
+  font-family: var(--font-mitr), var(--font-fredoka), sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.16;
+}
+
+.auth-aside__copy > span {
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--font-mitr), sans-serif;
+  font-size: 0.92rem;
+}
+
+.auth-submit--rainbow {
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  background: linear-gradient(
+    108deg,
+    #ff2a8d 0%,
+    #ff8c00 18%,
+    #ffe600 34%,
+    #00d985 50%,
+    #00cfff 66%,
+    #5965ee 82%,
+    #9d4edd 92%,
+    #ff2a8d 100%
+  );
+  background-size: 240% 100%;
+  box-shadow: 0 14px 28px rgba(125, 69, 206, 0.3), 0 0 0 3px rgba(255, 255, 255, 0.12);
+  text-shadow: 0 1px 8px rgba(70, 20, 104, 0.28);
+  animation: auth-rainbow-button-flow 6s linear infinite;
+}
+
+.auth-submit--rainbow:hover:not(:disabled) {
+  box-shadow: 0 18px 34px rgba(125, 69, 206, 0.38), 0 0 0 4px rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px) scale(1.01);
+}
+
+.auth-submit--rainbow:focus-visible {
+  outline: 3px solid rgba(0, 229, 255, 0.5);
+  outline-offset: 3px;
+}
+
+@keyframes auth-rainbow-button-flow {
+  from {
+    background-position: 0% 50%;
+  }
+
+  to {
+    background-position: 240% 50%;
+  }
+}
+
+@media (max-width: 900px) {
+  .auth-aside {
+    min-height: 390px;
+  }
+}
+
+@media (max-width: 620px) {
+  .auth-aside {
+    min-height: 350px;
+    padding: 28px 22px;
+  }
+
+  .auth-aside__copy h2 {
+    font-size: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-submit--rainbow {
+    animation: none;
+    background-position: 50% 50%;
+  }
+}

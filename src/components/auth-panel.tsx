@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -183,7 +184,7 @@ export default function AuthPanel({ initialError, initialMessage, nextPath = "/p
                 {mode === "login" ? <button type="button" className="auth-forgot" onClick={() => { setShowReset(true); setError(""); setMessage(""); }}>ลืมรหัสผ่าน?</button> : null}
                 {error ? <div className="auth-feedback auth-feedback--error" role="alert">{error}</div> : null}
                 {message ? <div className="auth-feedback auth-feedback--success" role="status"><CheckCircle2 size={17} /> {message}</div> : null}
-                <button type="submit" className="auth-submit" disabled={isBusy}>
+                <button type="submit" className={mode === "signup" ? "auth-submit auth-submit--rainbow" : "auth-submit"} disabled={isBusy}>
                   {isBusy ? "กำลังดำเนินการ..." : mode === "login" ? "เข้าสู่ Arena" : "สร้างบัญชีของฉัน"}
                   {!isBusy ? <ArrowRight size={17} /> : null}
                 </button>
@@ -194,16 +195,22 @@ export default function AuthPanel({ initialError, initialMessage, nextPath = "/p
           <p className="auth-terms">การดำเนินการต่อแปลว่าคุณยอมรับ <Link href="/">ข้อกำหนดการใช้งาน</Link> และ <Link href="/">นโยบายความเป็นส่วนตัว</Link></p>
         </section>
 
-        <aside className="auth-aside" aria-label="สิ่งที่จะได้รับจาก Arena-Badminton">
-          <div className="auth-aside__bubble auth-aside__bubble--one">🏸</div>
-          <div className="auth-aside__bubble auth-aside__bubble--two">✨</div>
-          <div className="auth-aside__court"><span /><span /><span /><span /></div>
+        <aside className="auth-aside" aria-label="ฉากสมัครแข่งแบดมินตัน">
+          <div className="auth-aside__art" aria-hidden="true">
+            <Image
+              src="/images/auth-registration-chaos.png"
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 900px) 100vw, 48vw"
+            />
+          </div>
+          <div className="auth-aside__scrim" aria-hidden="true" />
           <div className="auth-aside__copy">
-            <p lang="en"><Sparkles size={16} /> Find your game</p>
+            <p><Sparkles size={16} /> ลงทะเบียนกันเล้ยยยย</p>
             <h2>ทุกแมตช์มีเรื่องราว<br />ทุกก๊วนมีเพื่อนใหม่</h2>
             <span><MessageCircle size={16} /> กรอกโปรไฟล์ให้ครบ แล้วเริ่มค้นหาสนามใกล้คุณ</span>
           </div>
-          <div className="auth-aside__stats"><span><strong>Lv.01</strong><small>เริ่มเก็บ EXP</small></span><span><strong>1,000 BP</strong><small>ค่าเริ่มต้นของคุณ</small></span><span><strong>99</strong><small>Level สูงสุด</small></span></div>
         </aside>
       </div>
     </main>
