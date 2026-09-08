@@ -13,15 +13,22 @@ import {
   ShieldCheck,
   Trophy,
   Users,
+  UserRound,
   Zap,
   Swords,
   MessageCircle,
 } from "lucide-react";
-import type { HeaderProfileSummary, ProfileTrophy } from "@/types/profile";
+import type {
+  HeaderProfileSummary,
+  ProfileFriend,
+  ProfileRecentMatch,
+  ProfileTrophy,
+} from "@/types/profile";
 import ProfileStatusFeed, {
   type ProfileStatus,
 } from "@/components/profile-status-feed";
 import ProfileMediaInlineEditor from "@/components/profile-media-inline-editor";
+import { PlayerInspectModal } from "@/components/player-inspect-modal";
 import { safeMediaUrl } from "@/lib/safe-media-url";
 
 type ProfileTab = "overview" | "trophies" | "lounge";
@@ -89,6 +96,93 @@ function StatTile({
   );
 }
 
+function formatMatchDate(value: string) {
+  const date = new Date(value);
+  if (!value || Number.isNaN(date.getTime())) return "เวลาไม่ระบุ";
+  return new Intl.DateTimeFormat("th-TH", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatSignedNumber(value: number) {
+  const formatted = formatNumber(Math.abs(value));
+  if (value > 0) return `+${formatted}`;
+  if (value < 0) return `-${formatted}`;
+  return "0";
+}
+
+function RecentMatchesCard({
+  matches,
+}: {
+  matches: ProfileRecentMatch[];
+}) {
+  return (
+    <section
+      className="profile-overview-card profile-recent-matches-card"
+      aria-labelledby="profile-recent-matches-title"
+    >
+      <div className="profile-overview-card-heading profile-recent-matches-heading">
+        <div>
+          <p lang="en">MATCH HISTORY</p>
+          <h2 id="profile-recent-matches-title">
+            <Trophy size={19} /> ประวัติการแข่งขัน
+          </h2>
+        </div>
+        <div className="profile-recent-matches-heading__meta">
+          <span>{matches.length > 0 ? `${matches.length} ครั้งล่าสุด` : "ยังไม่มีรายการ"}</span>
+          <Link href="/profile/history" className="profile-history-view-all">
+            ดูทั้งหมด <ArrowRight size={15} />
+          </Link>
+        </div>
+      </div>
+
+      {matches.length > 0 ? (
+        <div className="profile-recent-match-list">
+          {matches.map((match) => {
+            const won = match.result === "Victory";
+            return (
+              <article
+                className={`profile-recent-match-row profile-recent-match-row--${won ? "win" : "loss"}`}
+                key={match.id}
+              >
+                <span className="profile-recent-match-row__icon" aria-hidden="true">
+                  {won ? <Trophy size={17} /> : <Swords size={17} />}
+                </span>
+                <div className="profile-recent-match-row__copy">
+                  <strong>{match.groupTitle}</strong>
+                  <span>
+                    {match.matchNumber === null
+                      ? "การแข่งขันที่ยืนยันแล้ว"
+                      : `Match #${formatNumber(match.matchNumber)}`}
+                  </span>
+                  <small>{formatMatchDate(match.date)}</small>
+                </div>
+                <div className="profile-recent-match-row__result">
+                  <b>{match.result}</b>
+                  <strong>{match.score}</strong>
+                  <small>
+                    EXP {formatSignedNumber(match.exp)} · BP {formatSignedNumber(match.bp)}
+                  </small>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="profile-recent-matches-empty">
+          <div className="profile-recent-matches-empty__icon" aria-hidden="true">
+            <Trophy size={22} />
+          </div>
+          <strong>ยังไม่มีประวัติการแข่งขัน</strong>
+          <span>ผลการแข่งขันที่ยืนยันแล้วจะแสดงที่นี่</span>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function TrophiesPanel({ trophies }: { trophies: ProfileTrophy[] }) {
   return (
     <section
@@ -137,9 +231,6 @@ function TrophiesPanel({ trophies }: { trophies: ProfileTrophy[] }) {
           </div>
           <strong>ตู้ถ้วยรางวัลยังรอคุณอยู่</strong>
           <span>เข้าร่วมก๊วนและการแข่งขันเพื่อปลดล็อก Badge แรก</span>
-          <Link href="/groups" className="profile-overview-primary">
-            ค้นหาก๊วน <ArrowRight size={16} />
-          </Link>
         </div>
       )}
     </section>
@@ -151,13 +242,18 @@ export default function ProfileOverview({
   province,
   trophies,
   statuses = [],
+  friends = [],
+  recentMatches = [],
 }: {
   summary: HeaderProfileSummary;
   province: string | null;
   trophies: ProfileTrophy[];
   statuses?: ProfileStatus[];
+  friends?: ProfileFriend[];
+  recentMatches?: ProfileRecentMatch[];
 }) {
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
+  const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const location = province?.trim() || "ยังไม่ได้ระบุจังหวัด";
   const backgroundUrl = safeMediaUrl(summary.profileBackgroundUrl);
   const winRate =
@@ -257,17 +353,6 @@ export default function ProfileOverview({
               <span>{summary.levelProgress}%</span>
             </div>
           </div>
-          <div className="profile-overview-actions">
-            <Link href="/groups" className="profile-overview-primary">
-              ค้นหาก๊วนถัดไป <ArrowRight size={18} />
-            </Link>
-            <Link
-              href="/profile/history"
-              className="profile-overview-secondary"
-            >
-              <Trophy size={15} /> ดูประวัติการเล่น <ArrowRight size={15} />
-            </Link>
-          </div>
         </section>
 
         <nav className="profile-tabs" aria-label="ส่วนต่างๆ ของ Profile">
@@ -308,7 +393,8 @@ export default function ProfileOverview({
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
             {activeTab === "overview" ? (
-              <div className="profile-overview-content-grid">
+              <>
+                <div className="profile-overview-content-grid">
                 <section className="profile-overview-card profile-battle-card">
                   <div className="profile-overview-card-heading">
                     <div>
@@ -373,20 +459,55 @@ export default function ProfileOverview({
                         <Users size={19} /> เพื่อนร่วมก๊วน
                       </h2>
                     </div>
+                    <span className="profile-panel-count">
+                      {formatNumber(summary.friendCount)} คน
+                    </span>
                   </div>
-                  <Link
-                    href="/friends"
-                    className="profile-overview-friends-link"
-                  >
-                    <span className="profile-overview-friends-link__icon">
-                      <Users size={25} />
-                    </span>
-                    <span>
-                      <strong>{formatNumber(summary.friendCount)} คน</strong>
-                      <small>เพื่อนที่ยืนยันและคุยผ่าน Messenger ได้</small>
-                    </span>
-                    <ArrowRight size={17} />
-                  </Link>
+                  {friends.length > 0 ? (
+                    <div
+                      className="profile-circle-avatar-rail"
+                      aria-label="เพื่อนร่วมก๊วน แตะ Avatar เพื่อเปิด Arena Pass"
+                    >
+                      {friends.slice(0, 10).map((friend) => (
+                        <button
+                          type="button"
+                          className="profile-circle-avatar"
+                          key={friend.id}
+                          title={`เปิด Arena Pass ของ ${friend.displayName}`}
+                          aria-label={`เปิด Arena Pass ของ ${friend.displayName}`}
+                          onClick={() => setSelectedFriendId(friend.id)}
+                        >
+                          <span className="profile-circle-avatar__ring">
+                            {friend.avatarUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={friend.avatarUrl}
+                                alt=""
+                                draggable={false}
+                                style={{
+                                  objectPosition: `${friend.avatarFocusX}% ${friend.avatarFocusY}%`,
+                                }}
+                              />
+                            ) : (
+                              <UserRound size={21} aria-hidden="true" />
+                            )}
+                          </span>
+                          <span className="sr-only">{friend.displayName}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="profile-circle-empty">
+                      <Users size={20} />
+                      <span>ยังไม่มีเพื่อนใน Circle</span>
+                    </div>
+                  )}
+                  <div className="profile-circle-footer">
+                    <span>แตะ Avatar เพื่อส่อง Arena Pass</span>
+                    <Link href="/friends" className="profile-circle-view-all">
+                      ดูทั้งหมด <ArrowRight size={15} />
+                    </Link>
+                  </div>
                   {summary.pendingFriendRequestCount > 0 ? (
                     <p className="profile-overview-pending-friends">
                       มีคำขอใหม่{" "}
@@ -399,7 +520,9 @@ export default function ProfileOverview({
                     {formatNumber(summary.stats.joinedGroups)}
                   </div>
                 </section>
-              </div>
+                </div>
+                <RecentMatchesCard matches={recentMatches.slice(0, 5)} />
+              </>
             ) : activeTab === "trophies" ? (
               <TrophiesPanel trophies={trophies} />
             ) : (
@@ -413,6 +536,11 @@ export default function ProfileOverview({
           <span>Level up together · Rainbow Court</span>
         </footer>
       </div>
+      <PlayerInspectModal
+        playerId={selectedFriendId}
+        isAuthenticated
+        onClose={() => setSelectedFriendId(null)}
+      />
     </main>
   );
 }

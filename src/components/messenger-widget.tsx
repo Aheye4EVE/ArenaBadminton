@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
 } from "react";
@@ -134,6 +135,19 @@ export default function MessengerWidget() {
   const [loading, setLoading] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [error, setError] = useState("");
+  const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "ready" | "offline">("connecting");
+  const conversationIdsRef = useRef<Set<string>>(new Set());
+  const selectedConversationIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    conversationIdsRef.current = new Set(
+      conversations.map((conversation) => conversation.conversationId),
+    );
+  }, [conversations]);
+
+  useEffect(() => {
+    selectedConversationIdRef.current = selected?.conversationId ?? null;
+  }, [selected?.conversationId]);
 
   const loadData = useCallback(async (currentUserId: string) => {
     const client = getSupabaseBrowserClient();
@@ -350,6 +364,64 @@ export default function MessengerWidget() {
     };
   }, [loadData]);
 
+  // Keep a single inbox listener alive while the widget is mounted. This is
+  // intentionally separate from the selected-thread listener below so an
+  // incoming friend message can update the unread badge while the panel is
+  // closed or while another conversation is open.
+  useEffect(() => {
+    if (!userId || !ready) return;
+
+    const client = getSupabaseBrowserClient();
+    const channel = client
+      .channel(`messenger-inbox:${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "direct_messages",
+        },
+        (payload: { new: Record<string, unknown> }) => {
+          const message = payload.new;
+          const conversationId = String(message.conversation_id ?? "");
+          const senderId = String(message.sender_id ?? "");
+          if (!conversationId || senderId === userId || !conversationIdsRef.current.has(conversationId)) return;
+
+          const createdAt = typeof message.created_at === "string"
+            ? message.created_at
+            : new Date().toISOString();
+          setConversations((current) => {
+            const existing = current.find((conversation) => conversation.conversationId === conversationId);
+            if (!existing) return current;
+            const next = current.map((conversation) => conversation.conversationId === conversationId
+              ? { ...conversation, lastMessageAt: createdAt }
+              : conversation);
+            return [
+              next.find((conversation) => conversation.conversationId === conversationId)!,
+              ...next.filter((conversation) => conversation.conversationId !== conversationId),
+            ];
+          });
+
+          if (selectedConversationIdRef.current === conversationId) {
+            void client.rpc("mark_direct_messages_read", {
+              p_conversation_id: conversationId,
+            });
+            return;
+          }
+
+          setUnreadCount((current) => Math.min(999, current + 1));
+        },
+      )
+      .subscribe((status: string) => {
+        setRealtimeStatus(status === "SUBSCRIBED" ? "ready" : "offline");
+      });
+
+    return () => {
+      void client.removeChannel(channel);
+      setRealtimeStatus("offline");
+    };
+  }, [ready, userId]);
+
   useEffect(() => {
     if (!selected?.conversationId) return;
     const client = getSupabaseBrowserClient();
@@ -535,6 +607,9 @@ export default function MessengerWidget() {
                   <small>
                     @{selected.handle} · Level {selected.level}
                   </small>
+                </span>
+                <span className={`messenger-realtime-status messenger-realtime-status--${realtimeStatus}`}>
+                  <span /> {realtimeStatus === "ready" ? "Realtime" : realtimeStatus === "connecting" ? "กำลังเชื่อมต่อ" : "โหมดสำรอง"}
                 </span>
               </div>
               <div className="messenger-thread__messages" aria-live="polite">

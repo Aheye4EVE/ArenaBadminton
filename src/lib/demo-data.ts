@@ -242,6 +242,7 @@ export const shopItems = [
 export const navItems = [
   { label: "หน้าหลัก", href: "/", icon: "home" },
   { label: "Guild", href: "/guilds", icon: "shield" },
+  { label: "Arena Lobby", href: "/lobby", icon: "users" },
   { label: "ค้นหาก๊วน", href: "/groups", icon: "search" },
   { label: "สนามแบด", href: "/venues", icon: "map" },
   { label: "กิจกรรม", href: "/events", icon: "calendar" },

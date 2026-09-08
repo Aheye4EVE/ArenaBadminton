@@ -52,3 +52,24 @@ export type ProfileTrophy = {
   sourceType: string;
   awardedAt: string;
 };
+
+export type ProfileFriend = {
+  id: string;
+  displayName: string;
+  handle: string;
+  avatarUrl: string | null;
+  avatarFocusX: number;
+  avatarFocusY: number;
+  level: number;
+};
+
+export type ProfileRecentMatch = {
+  id: string;
+  groupTitle: string;
+  matchNumber: number | null;
+  date: string;
+  result: "Victory" | "Defeat";
+  score: string;
+  exp: number;
+  bp: number;
+};

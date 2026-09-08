@@ -1,14 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "motion/react";
-import { Sparkles, Users, Wifi, ChevronRight } from "lucide-react";
+import { ChevronRight, Sparkles, Users } from "lucide-react";
 import type { OnlinePlayerItem } from "@/lib/player-summary";
+import { PLAYER_ONLINE_WINDOW_SECONDS } from "@/lib/player-presence";
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(" ");
 
 function formatTimeAgo(secondsAgo: number, isLiveOnline: boolean): { text: string; isOnline: boolean } {
-  if (isLiveOnline || secondsAgo < 60) {
+  if (isLiveOnline || secondsAgo <= PLAYER_ONLINE_WINDOW_SECONDS) {
     return { text: "ออนไลน์อยู่", isOnline: true };
   }
   if (secondsAgo < 120) {
@@ -36,9 +38,10 @@ export function OnlinePlayersRail({
   onSelectPlayer: (playerId: string) => void;
   variant?: "sidebar" | "horizontal";
 }) {
-  const onlineCount = players.filter(
-    (p) => liveOnlineIds.has(p.id) || p.secondsAgo < 60
-  ).length;
+  const visiblePlayers = players
+    .filter((player) => liveOnlineIds.has(player.id) || player.secondsAgo <= PLAYER_ONLINE_WINDOW_SECONDS)
+    .slice(0, 10);
+  const onlineCount = visiblePlayers.length;
 
   if (variant === "horizontal") {
     return (
@@ -50,10 +53,15 @@ export function OnlinePlayersRail({
             </span>
             <h3>ผู้เล่นออนไลน์</h3>
           </div>
-          <span className="online-rail-mobile__count">
-            <span className="online-status-dot online-status-dot--live" />
-            {onlineCount > 0 ? `${onlineCount} คนออนไลน์` : `${players.length} ผู้เล่น`}
-          </span>
+          <div className="online-rail-mobile__actions">
+            <span className="online-rail-mobile__count">
+              <span className="online-status-dot online-status-dot--live" />
+              {onlineCount > 0 ? `${onlineCount} คนออนไลน์` : "ไม่มีผู้เล่นออนไลน์"}
+            </span>
+            <Link href="/lobby" className="online-rail__view-all">
+              ดูทั้งหมด <ChevronRight size={13} />
+            </Link>
+          </div>
         </div>
 
         <div className="online-rail-mobile__track">
@@ -63,13 +71,13 @@ export function OnlinePlayersRail({
               <span className="online-rail-skeleton-card" />
               <span className="online-rail-skeleton-card" />
             </div>
-          ) : players.length === 0 ? (
+          ) : visiblePlayers.length === 0 ? (
             <div className="online-rail-empty">
-              <p>ยังไม่มีผู้เล่นในล็อบบี้ขณะนี้</p>
+              <p>ยังไม่มีผู้เล่นออนไลน์ขณะนี้</p>
             </div>
           ) : (
-            players.map((player) => {
-              const isLive = liveOnlineIds.has(player.id) || player.secondsAgo < 60;
+            visiblePlayers.map((player) => {
+              const isLive = liveOnlineIds.has(player.id) || player.secondsAgo <= PLAYER_ONLINE_WINDOW_SECONDS;
               const { text: timeText, isOnline } = formatTimeAgo(player.secondsAgo, isLive);
 
               return (
@@ -133,9 +141,14 @@ export function OnlinePlayersRail({
           <Sparkles size={13} className="text-pink-400" />
           <span>ARENA LOBBY</span>
         </div>
-        <div className="online-players-sidebar__live-badge">
-          <span className="online-status-dot online-status-dot--live" />
-          <span>{onlineCount > 0 ? `${onlineCount} คนออนไลน์` : `${players.length} ล่าสุด`}</span>
+        <div className="online-players-sidebar__header-actions">
+          <div className="online-players-sidebar__live-badge">
+            <span className="online-status-dot online-status-dot--live" />
+            <span>{onlineCount > 0 ? `${onlineCount} คนออนไลน์` : "ไม่มีผู้เล่นออนไลน์"}</span>
+          </div>
+          <Link href="/lobby" className="online-rail__view-all">
+            ดูทั้งหมด <ChevronRight size={13} />
+          </Link>
         </div>
       </div>
 
@@ -150,14 +163,14 @@ export function OnlinePlayersRail({
             <span className="online-sidebar-skeleton" />
             <span className="online-sidebar-skeleton" />
           </div>
-        ) : players.length === 0 ? (
+        ) : visiblePlayers.length === 0 ? (
           <div className="online-sidebar-empty">
             <Users size={22} className="text-purple-400 opacity-60" />
-            <p>ยังไม่มีประวัติผู้เล่นออนไลน์ในล็อบบี้</p>
+            <p>ยังไม่มีผู้เล่นออนไลน์ในล็อบบี้</p>
           </div>
         ) : (
-          players.map((player) => {
-            const isLive = liveOnlineIds.has(player.id) || player.secondsAgo < 60;
+          visiblePlayers.map((player) => {
+            const isLive = liveOnlineIds.has(player.id) || player.secondsAgo <= PLAYER_ONLINE_WINDOW_SECONDS;
             const { text: timeText, isOnline } = formatTimeAgo(player.secondsAgo, isLive);
 
             return (

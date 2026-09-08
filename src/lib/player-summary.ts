@@ -1,6 +1,7 @@
 import { getSupabasePublicServerClient } from "@/lib/supabase-server";
 import { FALLBACK_SKILL_RANKS, getSkillRank } from "@/lib/skill-ranks";
 import { safeMediaUrl } from "@/lib/safe-media-url";
+import { PLAYER_ONLINE_WINDOW_SECONDS } from "@/lib/player-presence";
 import type { HeaderProfileSummary } from "@/types/profile";
 
 const asNumber = (value: unknown, fallback = 0) => {
@@ -41,66 +42,110 @@ export type PlayerPublicSummary = HeaderProfileSummary & {
   friendshipId?: string;
 };
 
-export async function getOnlinePlayers(currentUserId?: string | null): Promise<OnlinePlayerItem[]> {
-  const supabase = getSupabasePublicServerClient();
-  if (!supabase) return [];
+type PlayerDirectoryRow = {
+  id: string;
+  display_name: string | null;
+  handle: string | null;
+  avatar_url: string | null;
+  avatar_focus_x: number | string | null;
+  avatar_focus_y: number | string | null;
+  level: number | string | null;
+  skill_bp: number | string | null;
+  updated_at: string;
+};
 
-  const [playersResult, skillRanksResult] = await Promise.all([
-    supabase
-      .from("public_profile_directory")
-      .select("id, display_name, handle, avatar_url, avatar_focus_x, avatar_focus_y, level, skill_bp, updated_at")
-      .order("updated_at", { ascending: false })
-      .limit(20),
-    supabase
-      .from("skill_rank_definitions")
-      .select("tier, name, min_bp, color")
-      .order("min_bp", { ascending: true }),
-  ]);
+type FriendshipLookup = {
+  status: string;
+  requestedBy: string;
+  friendshipId: string;
+};
 
-  if (playersResult.error || !Array.isArray(playersResult.data)) {
-    return [];
-  }
+const PLAYER_DIRECTORY_COLUMNS = "id, display_name, handle, avatar_url, avatar_focus_x, avatar_focus_y, level, skill_bp, updated_at";
 
-  const rankDefinitions = Array.isArray(skillRanksResult.data)
-    ? skillRanksResult.data.map((d) => ({
-        tier: asNumber(d.tier, 1),
-        name: typeof d.name === "string" ? d.name : "มือใหม่",
-        minBp: asNumber(d.min_bp, 1000),
-        color: typeof d.color === "string" ? d.color : "slate",
+async function getSkillRankDefinitions(supabase: ReturnType<typeof getSupabasePublicServerClient>) {
+  if (!supabase) return FALLBACK_SKILL_RANKS;
+
+  const { data } = await supabase
+    .from("skill_rank_definitions")
+    .select("tier, name, min_bp, color")
+    .order("min_bp", { ascending: true });
+
+  return Array.isArray(data)
+    ? data.map((definition) => ({
+        tier: asNumber(definition.tier, 1),
+        name: typeof definition.name === "string" ? definition.name : "มือใหม่",
+        minBp: asNumber(definition.min_bp, 1000),
+        color: typeof definition.color === "string" ? definition.color : "slate",
       }))
     : FALLBACK_SKILL_RANKS;
+}
 
-  const playerIds = playersResult.data.map((p) => p.id);
+async function getFriendshipLookup(
+  supabase: NonNullable<ReturnType<typeof getSupabasePublicServerClient>>,
+  currentUserId: string | null | undefined,
+) {
+  const friendshipsMap = new Map<string, FriendshipLookup>();
+  if (!currentUserId) return friendshipsMap;
 
-  // Fetch friendships if currentUserId is present
-  const friendshipsMap = new Map<string, { status: string; requestedBy: string; friendshipId: string }>();
-  if (currentUserId && playerIds.length > 0) {
-    const { data: friendships } = await supabase
-      .from("user_friendships")
-      .select("id, low_user_id, high_user_id, requested_by, status")
-      .or(`low_user_id.eq.${currentUserId},high_user_id.eq.${currentUserId}`)
-      .in("status", ["pending", "accepted"]);
+  const { data: friendships } = await supabase
+    .from("user_friendships")
+    .select("id, low_user_id, high_user_id, requested_by, status")
+    .or(`low_user_id.eq.${currentUserId},high_user_id.eq.${currentUserId}`)
+    .in("status", ["pending", "accepted"]);
 
-    if (Array.isArray(friendships)) {
-      for (const f of friendships) {
-        const otherId = f.low_user_id === currentUserId ? f.high_user_id : f.low_user_id;
-        friendshipsMap.set(otherId, {
-          status: f.status,
-          requestedBy: f.requested_by,
-          friendshipId: f.id,
-        });
-      }
-    }
+  if (!Array.isArray(friendships)) return friendshipsMap;
+
+  for (const friendship of friendships) {
+    const otherId = friendship.low_user_id === currentUserId
+      ? friendship.high_user_id
+      : friendship.low_user_id;
+    friendshipsMap.set(otherId, {
+      status: friendship.status,
+      requestedBy: friendship.requested_by,
+      friendshipId: friendship.id,
+    });
   }
 
+  return friendshipsMap;
+}
+
+async function getAllPlayerDirectoryRows(
+  supabase: NonNullable<ReturnType<typeof getSupabasePublicServerClient>>,
+) {
+  const pageSize = 1000;
+  const rows: PlayerDirectoryRow[] = [];
+
+  for (let page = 0; ; page += 1) {
+    const { data, error } = await supabase
+      .from("public_profile_directory")
+      .select(PLAYER_DIRECTORY_COLUMNS)
+      .order("updated_at", { ascending: false })
+      .range(page * pageSize, page * pageSize + pageSize - 1);
+
+    if (error || !Array.isArray(data)) return [];
+
+    rows.push(...(data as PlayerDirectoryRow[]));
+    if (data.length < pageSize) break;
+  }
+
+  return rows;
+}
+
+function mapPlayerDirectoryRows(
+  rows: PlayerDirectoryRow[],
+  rankDefinitions: typeof FALLBACK_SKILL_RANKS,
+  currentUserId?: string | null,
+  friendshipsMap?: Map<string, FriendshipLookup>,
+) {
   const now = Date.now();
 
-  return playersResult.data.map((row) => {
+  return rows.flatMap((row) => {
+    const updatedTime = new Date(row.updated_at).getTime();
+    if (!Number.isFinite(updatedTime)) return [];
+
     const skillBp = Math.max(1000, asNumber(row.skill_bp, 1000));
     const skillRank = getSkillRank(skillBp, rankDefinitions);
-    const updatedTime = new Date(row.updated_at).getTime();
     const secondsAgo = Math.max(0, Math.floor((now - updatedTime) / 1000));
-
     let friendshipStatus: FriendshipStatus = "guest";
     let friendshipId: string | undefined;
 
@@ -108,7 +153,7 @@ export async function getOnlinePlayers(currentUserId?: string | null): Promise<O
       if (row.id === currentUserId) {
         friendshipStatus = "self";
       } else {
-        const relation = friendshipsMap.get(row.id);
+        const relation = friendshipsMap?.get(row.id);
         if (!relation) {
           friendshipStatus = "none";
         } else if (relation.status === "accepted") {
@@ -116,21 +161,21 @@ export async function getOnlinePlayers(currentUserId?: string | null): Promise<O
           friendshipId = relation.friendshipId;
         } else if (relation.status === "pending") {
           friendshipId = relation.friendshipId;
-          if (relation.requestedBy === currentUserId) {
-            friendshipStatus = "pending_sent";
-          } else {
-            friendshipStatus = "pending_received";
-          }
-        } else {
-          friendshipStatus = "none";
+          friendshipStatus = relation.requestedBy === currentUserId
+            ? "pending_sent"
+            : "pending_received";
         }
       }
     }
 
-    return {
+    return [{
       id: row.id,
-      displayName: typeof row.display_name === "string" && row.display_name.trim() ? row.display_name : "ผู้เล่นใหม่",
-      handle: typeof row.handle === "string" ? row.handle : `player_${row.id.replaceAll("-", "").slice(0, 12)}`,
+      displayName: typeof row.display_name === "string" && row.display_name.trim()
+        ? row.display_name
+        : "ผู้เล่นใหม่",
+      handle: typeof row.handle === "string"
+        ? row.handle
+        : `player_${row.id.replaceAll("-", "").slice(0, 12)}`,
       avatarUrl: safeMediaUrl(row.avatar_url),
       avatarFocusX: clamp(asNumber(row.avatar_focus_x, 50), 0, 100),
       avatarFocusY: clamp(asNumber(row.avatar_focus_y, 50), 0, 100),
@@ -143,8 +188,52 @@ export async function getOnlinePlayers(currentUserId?: string | null): Promise<O
       secondsAgo,
       friendshipStatus,
       friendshipId,
-    };
+    }];
   });
+}
+
+/** Returns only players whose heartbeat was seen in the online window. */
+export async function getOnlinePlayers(currentUserId?: string | null): Promise<OnlinePlayerItem[]> {
+  const supabase = getSupabasePublicServerClient();
+  if (!supabase) return [];
+
+  const cutoff = new Date(Date.now() - PLAYER_ONLINE_WINDOW_SECONDS * 1000).toISOString();
+  const [playersResult, rankDefinitions] = await Promise.all([
+    supabase
+      .from("public_profile_directory")
+      .select(PLAYER_DIRECTORY_COLUMNS)
+      .gte("updated_at", cutoff)
+      .order("updated_at", { ascending: false })
+      .limit(10),
+    getSkillRankDefinitions(supabase),
+  ]);
+
+  if (playersResult.error || !Array.isArray(playersResult.data)) return [];
+
+  const friendshipsMap = await getFriendshipLookup(supabase, currentUserId);
+  return mapPlayerDirectoryRows(
+    playersResult.data as PlayerDirectoryRow[],
+    rankDefinitions,
+    currentUserId,
+    friendshipsMap,
+  ).filter((player) => player.secondsAgo <= PLAYER_ONLINE_WINDOW_SECONDS).slice(0, 10);
+}
+
+/** Returns the public player directory for the full Arena Lobby page. */
+export async function getLobbyPlayers(currentUserId?: string | null): Promise<OnlinePlayerItem[]> {
+  const supabase = getSupabasePublicServerClient();
+  if (!supabase) return [];
+
+  const [playerRows, rankDefinitions] = await Promise.all([
+    getAllPlayerDirectoryRows(supabase),
+    getSkillRankDefinitions(supabase),
+  ]);
+
+  return mapPlayerDirectoryRows(
+    playerRows,
+    rankDefinitions,
+    currentUserId,
+  );
 }
 
 export async function getPlayerPublicSummary(

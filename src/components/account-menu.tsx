@@ -36,6 +36,7 @@ import { safeMediaUrl } from "@/lib/safe-media-url";
 import type { HeaderProfileSummary } from "@/types/profile";
 import PasswordResetForm from "@/components/password-reset-form";
 import GoogleLogo from "@/components/google-logo";
+import { AvatarPreview } from "@/components/avatar-preview";
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(" ");
@@ -520,7 +521,12 @@ function ArcadeProfileSummaryCard({
 
       <div className="account-profile__identity-wrap">
         <div className="account-profile__avatar-box">
-          <AccountAvatar account={account} large />
+          <AvatarPreview
+            avatarUrl={safeMediaUrl(account.avatarUrl)}
+            displayName={account.displayName}
+          >
+            <AccountAvatar account={account} large />
+          </AvatarPreview>
         </div>
         <div className="account-profile__user-info">
           <div className="account-profile__name-line">

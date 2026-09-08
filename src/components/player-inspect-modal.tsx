@@ -16,6 +16,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { PlayerPublicSummary } from "@/lib/player-summary";
+import { AvatarPreview } from "@/components/avatar-preview";
 
 const cx = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(" ");
@@ -27,12 +28,10 @@ function formatNumber(value: number | undefined | null) {
 export function PlayerInspectModal({
   playerId,
   onClose,
-  currentUserId,
   isAuthenticated,
 }: {
   playerId: string | null;
   onClose: () => void;
-  currentUserId?: string | null;
   isAuthenticated?: boolean;
 }) {
   const [player, setPlayer] = useState<PlayerPublicSummary | null>(null);
@@ -43,26 +42,37 @@ export function PlayerInspectModal({
 
   useEffect(() => {
     if (!playerId) {
-      setPlayer(null);
-      setFeedbackMessage(null);
       return;
     }
 
-    setLoading(true);
-    setFeedbackMessage(null);
+    let active = true;
+    const request = window.setTimeout(() => {
+      setLoading(true);
+      setFeedbackMessage(null);
 
-    fetch(`/api/players/${playerId}/summary`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.player) {
-          setPlayer(data.player);
-          setFriendStatus(data.player.friendshipStatus);
-        } else {
-          setPlayer(null);
-        }
-      })
-      .catch(() => setPlayer(null))
-      .finally(() => setLoading(false));
+      fetch(`/api/players/${playerId}/summary`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (!active) return;
+          if (data?.player) {
+            setPlayer(data.player);
+            setFriendStatus(data.player.friendshipStatus);
+          } else {
+            setPlayer(null);
+          }
+        })
+        .catch(() => {
+          if (active) setPlayer(null);
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
+    }, 0);
+
+    return () => {
+      active = false;
+      window.clearTimeout(request);
+    };
   }, [playerId]);
 
   const handleAddFriend = async () => {
@@ -155,19 +165,25 @@ export function PlayerInspectModal({
               {/* Player Identity */}
               <div className="account-profile__identity-wrap">
                 <div className="account-profile__avatar-box">
-                  <div className="account-avatar account-avatar--large">
-                    {player.avatarUrl ? (
-                      <img
-                        src={player.avatarUrl}
-                        alt={player.displayName}
-                        style={{
-                          objectPosition: `${player.avatarFocusX}% ${player.avatarFocusY}%`,
-                        }}
-                      />
-                    ) : (
-                      <span>{player.displayName.charAt(0)}</span>
-                    )}
-                  </div>
+                  <AvatarPreview
+                    avatarUrl={player.avatarUrl}
+                    displayName={player.displayName}
+                  >
+                    <div className="account-avatar account-avatar--large">
+                      {player.avatarUrl ? (
+                        <img
+                          src={player.avatarUrl}
+                          alt={player.displayName}
+                          draggable={false}
+                          style={{
+                            objectPosition: `${player.avatarFocusX}% ${player.avatarFocusY}%`,
+                          }}
+                        />
+                      ) : (
+                        <span>{player.displayName.charAt(0)}</span>
+                      )}
+                    </div>
+                  </AvatarPreview>
                 </div>
 
                 <div className="account-profile__user-info">

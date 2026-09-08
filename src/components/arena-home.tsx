@@ -265,6 +265,7 @@ export default function ArenaHome({
   const [groupGpsMessage, setGroupGpsMessage] = useState("");
   const [fetchedProfileGroups, setFetchedProfileGroups] = useState<Group[] | null>(null);
   const [profileGroupsFetched, setProfileGroupsFetched] = useState(Boolean(recommendedGroups));
+  const [sessionUserId, setSessionUserId] = useState<string | null>(account?.id ?? null);
   const [sessionAuthenticated, setSessionAuthenticated] = useState(isAuthenticated);
   const groupRequestIdRef = useRef(0);
   const groupAbortRef = useRef<AbortController | null>(null);
@@ -276,7 +277,7 @@ export default function ArenaHome({
   const homepageCourts = publicDataPending ? [] : isLiveData ? (featuredCourts ?? []) : demoCourts;
   const homepageMarketplaceListings = publicDataPending ? [] : isLiveData ? (featuredMarketplaceListings ?? []) : [];
   const marketplaceUsesViews = marketplaceSortMode !== "latest";
-  const presence = usePlayerPresence(account?.id, sessionAuthenticated);
+  const presence = usePlayerPresence(sessionUserId, sessionAuthenticated);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -329,7 +330,8 @@ export default function ArenaHome({
     };
   }, [profileGroupsFetched, recommendedGroups]);
 
-  const handleSessionResolved = useCallback(({ isAuthenticated: nextIsAuthenticated }: { isAuthenticated: boolean }) => {
+  const handleSessionResolved = useCallback(({ account: nextAccount, isAuthenticated: nextIsAuthenticated }: { account: HeaderProfileSummary | null; isAuthenticated: boolean }) => {
+    setSessionUserId(nextAccount?.id ?? null);
     setSessionAuthenticated(nextIsAuthenticated);
   }, []);
 
@@ -703,7 +705,6 @@ export default function ArenaHome({
       <PlayerInspectModal
         playerId={selectedPlayerId}
         onClose={() => setSelectedPlayerId(null)}
-        currentUserId={account?.id}
         isAuthenticated={sessionAuthenticated}
       />
 
