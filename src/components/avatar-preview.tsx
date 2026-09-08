@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Eye, ShieldCheck, X } from "lucide-react";
+import { Eye, X } from "lucide-react";
 
 /**
  * Opens the original avatar bytes in a view-only lightbox. The UI deliberately
@@ -70,7 +70,7 @@ export function AvatarPreview({
               className="avatar-preview-dialog"
               role="dialog"
               aria-modal="true"
-              aria-labelledby="avatar-preview-title"
+              aria-label={`ภาพ Avatar ต้นฉบับของ ${displayName}`}
               initial={{ opacity: 0, scale: 0.9, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: 10 }}
@@ -78,19 +78,6 @@ export function AvatarPreview({
               onClick={(event) => event.stopPropagation()}
               onContextMenu={(event) => event.preventDefault()}
             >
-              <div className="avatar-preview-dialog__topline">
-                <span><ShieldCheck size={14} /> ARENA PASS · ORIGINAL AVATAR</span>
-                <button
-                  ref={closeButtonRef}
-                  type="button"
-                  className="avatar-preview-dialog__close"
-                  onClick={() => setOpen(false)}
-                  aria-label="ปิดภาพ Avatar"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              <h2 id="avatar-preview-title">{displayName}</h2>
               <div
                 className="avatar-preview-dialog__image-wrap"
                 onContextMenu={(event) => event.preventDefault()}
@@ -99,12 +86,19 @@ export function AvatarPreview({
                   src={avatarUrl}
                   alt={`ภาพ Avatar ต้นฉบับของ ${displayName}`}
                   draggable={false}
+                  onDragStart={(event) => event.preventDefault()}
                   onContextMenu={(event) => event.preventDefault()}
                 />
               </div>
-              <p className="avatar-preview-dialog__notice">
-                <ShieldCheck size={13} /> โหมดดูอย่างเดียว · ปิดการลากและเมนูคลิกขวา
-              </p>
+              <button
+                ref={closeButtonRef}
+                type="button"
+                className="avatar-preview-dialog__close"
+                onClick={() => setOpen(false)}
+                aria-label="ปิดภาพ Avatar"
+              >
+                <X size={20} />
+              </button>
             </motion.section>
           </motion.div>
         ) : null}
