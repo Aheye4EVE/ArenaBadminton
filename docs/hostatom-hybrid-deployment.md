@@ -23,13 +23,17 @@ Do not include credentials, a path, a query string, or a fragment in the value.
 ## HostAtom/Plesk origin checklist
 
 1. Create a Node.js application in Plesk with a stable HTTPS hostname that is not the Vercel URL.
-2. Deploy the same Git revision to the origin and use the repository's normal commands:
+2. Deploy the same Git revision to the origin. Set the Plesk Node.js application's startup file
+   to `server.js`, then use the repository's normal dependency/build commands:
 
    ```text
    npm ci
    npm run build
-   npm run start
    ```
+
+   `server.js` is the small production adapter that starts the Next.js request handler on the
+   port supplied by Plesk. Do not use `npm run start` as a foreground deployment hook; Plesk
+   should own the application process and restart it through the Node.js application controls.
 
 3. Configure the production environment on HostAtom. Keep server-only values server-only:
    `DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, and
